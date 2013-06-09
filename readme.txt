@@ -1,6 +1,6 @@
 YAARX: Yet Another ARX Toolkit for Analysis of ARX Cryptographic Algorithms
 
-Note: Full documentation is available at: https://github.com/vesselinux/yaarx .
+Note: Full documentation is available at: http://vesselinux.github.io/yaarx/
 
 What is YAARX?
 
