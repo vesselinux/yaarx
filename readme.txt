@@ -6,7 +6,7 @@ YAARX is a set of programs for the differential analysis of ARX cryptographic al
 
 What About Other ARX Tools?
 
-YAARX complements existing toolkits such as <a href="http://www.di.ens.fr/~leurent/arxtools.html" >ARXtools</a> and significantly extends others, such as <a href="http://www.ecrypt.eu.org/tools/s-function-toolkit">The S-function Toolkit</a>. More specifically, YAARX provides methods for the computation of the differential probabilities of various ARX operations (XOR, modular addition, multiplication, bit shift, bit rotation) as well as of several larger components built from them. YAARX also provides means to search for high-probability differential trails in ARX algorithms in a fully automatic way. The latter has been a notoriously difficult task for ciphers that do not have S-boxes, such as ARX. 
+YAARX complements existing toolkits such as ARXtools (http://www.di.ens.fr/~leurent/arxtools.html) and significantly extends others, such as The S-function Toolkit (http://www.ecrypt.eu.org/tools/s-function-toolkit) . More specifically, YAARX provides methods for the computation of the differential probabilities of various ARX operations (XOR, modular addition, multiplication, bit shift, bit rotation) as well as of several larger components built from them. YAARX also provides means to search for high-probability differential trails in ARX algorithms in a fully automatic way. The latter has been a notoriously difficult task for ciphers that do not have S-boxes, such as ARX. 
 
 How Can YAARX Help Me?
 
