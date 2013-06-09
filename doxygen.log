@@ -1,0 +1,447 @@
+/home/vpv/yaarx-github/yaarx/include/adp-mul.hh:30: warning: Member gcd(const uint32_t a_in, const uint32_t b_in) (function) of file adp-mul.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/adp-mul.hh:32: warning: Member adp_mul(const uint32_t da, const uint32_t db, const uint32_t dc) (function) of file adp-mul.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/adp-mul.hh:34: warning: Member adp_mul_exper(const uint32_t da, const uint32_t db, const uint32_t dc) (function) of file adp-mul.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:64: warning: Member GMP_H (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:68: warning: Member GMPXX_H (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:86: warning: Member TEA_LSH_CONST (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:89: warning: Member TEA_RSH_CONST (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:98: warning: Member NROUNDS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:126: warning: Member MUL(x, y) (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:142: warning: Member DEBUG_MAX_XDP_ADD_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:143: warning: Member DEBUG_ADP_XOR_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:144: warning: Member DEBUG_ADP_XOR3_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:145: warning: Member DEBUG_MAX_ADP_XOR_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:146: warning: Member DEBUG_ADP_XOR_FI_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:147: warning: Member DEBUG_MAX_ADP_XOR_FI_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:148: warning: Member DEBUG_MAX_ADP_XOR3_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:149: warning: Member DEBUG_MAX_ADP_XOR3_SET_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:150: warning: Member DEBUG_ADP_RSH_XOR_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:151: warning: Member DEBUG_ADP_SHIFT_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:152: warning: Member DEBUG_EADP_TEA_F_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:153: warning: Member DEBUG_ADP_TEA_F_FK_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:154: warning: Member DEBUG_XDP_TEA_F_FK_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:155: warning: Member DEBUG_XDP_XTEA_F_FK_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:156: warning: Member DEBUG_ADP_XTEA_F_FK_TESTS (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:162: warning: Member DEBUG_ADP_TEA_F_FK (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:163: warning: Member DEBUG_XDP_TEA_F_FK (define) of file common.hh is not documented.
+/home/vpv/yaarx-github/yaarx/src/max-adp-arx.cc:349: warning: unable to resolve reference to `ARX:' for \ref command
+/home/vpv/yaarx-github/yaarx/src/max-adp-arx.cc:40: warning: unable to resolve reference to `ARX:' for \ref command
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:30: warning: Member MAX_NROUNDS (define) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:51: warning: Member salsa20(const uint32_t e[SALSA_STATE+SALSA_STATE][5], const uint32_t r_start, const uint32_t r_end, const uint32_t X_in[SALSA_STATE], uint32_t Y_in[SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:59: warning: Member salsa_uint8_to_uint32(const uint8_t X[4], uint32_t *Y) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:61: warning: Member salsa_uint32_to_uint8(uint8_t X[4], const uint32_t Y) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:63: warning: Member salsa_state_uint8_to_uint32(const uint8_t X[4 *SALSA_STATE], uint32_t Y[SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:65: warning: Member salsa_state_uint32_to_uint8(uint8_t X[4 *SALSA_STATE], const uint32_t Y[SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:67: warning: Member salsa_print_trail(uint32_t nrounds, diff_set_t DT[MAX_NROUNDS][SALSA_STATE], double P[MAX_NROUNDS][SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:69: warning: Member salsa_print_prob(double P[SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:71: warning: Member salsa_print_prob_vs_rand(double P[SALSA_STATE], double P_rand[SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:76: warning: Member xdp_add_dset_salsa20(const uint32_t e[SALSA_STATE+SALSA_STATE][5], const uint32_t r_start, const uint32_t r_end, gsl_matrix *A[3][3][3], const diff_set_t DX_in[SALSA_STATE], diff_set_t DY_in[SALSA_STATE], diff_set_t DT[MAX_NROUNDS][SALSA_STATE], double P[MAX_NROUNDS][SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:81: warning: Member xdp_add_dset_salsa20_exper(const uint32_t e[SALSA_STATE+SALSA_STATE][5], const uint32_t r_start, const uint32_t r_end, uint32_t npairs, const diff_set_t DX_set[SALSA_STATE], diff_set_t DY_set[SALSA_STATE], double PW[SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:98: warning: Member salsa_word_probs_v2(const uint32_t r_start, const uint32_t r_end, const uint32_t e[SALSA_STATE+SALSA_STATE][5], double PT[MAX_NROUNDS][SALSA_STATE], double P[SALSA_STATE]) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/salsa.hh:108: warning: Member xdp_add_dset_salsa_arx(gsl_matrix *A[3][3][3], diff_set_t dx, diff_set_t dy, diff_set_t dz, diff_set_t *dt, uint32_t k, bool b_single_diff) (function) of file salsa.hh is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:605: warning: unable to resolve reference to `xdp_add_dset_salsa20' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:139: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:706: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:1084: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:47: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:50: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:51: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:934: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:1108: warning: The following parameters of tea_add_trail_search_full(uint32_t key[4], double BB[NROUNDS], differential_t trail[NROUNDS], uint32_t num_rounds) are not documented:
+  parameter 'num_rounds'
+/home/vpv/yaarx-github/yaarx/include/tea-f-add-pddt.hh:53: warning: Member tea_f_da_add_pddt_i(const uint32_t k, const uint32_t n, const uint32_t lsh_const, const uint32_t rsh_const, gsl_matrix *A[2][2][2][2], gsl_vector *C, const uint32_t da, uint32_t *db, uint32_t *dc, uint32_t *dd, double *p, const double p_thres, std::set< differential_t, struct_comp_diff_dx_dy > *diff_set_dx_dy, std::multiset< differential_t, struct_comp_diff_p > *diff_mset_p, uint32_t *cnt_new) (function) of file tea-f-add-pddt.hh is not documented.
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:226: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:54: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:75: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:391: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:392: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:393: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:438: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:441: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:508: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:509: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:510: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:542: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:546: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:547: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:264: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:287: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:764: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:765: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:766: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/include/tea.hh:31: warning: Member TEA_ADD_P_THRES (define) of file tea.hh is not documented.
+/home/vpv/yaarx-github/yaarx/src/tea.cc:431: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea.cc:382: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea.cc:348: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/include/threefish.hh:30: warning: Member MAX_NROUNDS (define) of file threefish.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/threefish.hh:37: warning: Member xdp_add_dset_threefish_mix(gsl_matrix *A[3][3][3], diff_set_t DX[4], diff_set_t DY[4], double P[4], uint32_t rot_const_0, uint32_t rot_const_1, bool b_single_diff) (function) of file threefish.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/threefish.hh:41: warning: Member xdp_add_dset_threefish(uint32_t nrounds, uint32_t rot_const[MAX_NROUNDS][2], gsl_matrix *A[3][3][3], diff_set_t DX_in[4], diff_set_t DY_in[4], diff_set_t DT[MAX_NROUNDS][4], double P[MAX_NROUNDS][4]) (function) of file threefish.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/threefish.hh:43: warning: Member threefish_mix(uint32_t X[4], uint32_t rot_const_0, uint32_t rot_const_1) (function) of file threefish.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/threefish.hh:48: warning: Member xdp_add_dset_threefish_exper(uint32_t nrounds, uint32_t rot_const[MAX_NROUNDS][2], uint32_t npairs, uint32_t DX[4], diff_set_t DY_set[4]) (function) of file threefish.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/threefish.hh:50: warning: Member threefish_print_prob(double P[4]) (function) of file threefish.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/threefish.hh:52: warning: Member threefish_print_trail(uint32_t nrounds, diff_set_t DT[MAX_NROUNDS][4], double P[MAX_NROUNDS][4]) (function) of file threefish.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/threefish.hh:32: warning: Member g_threefish_rot_const[12][2] (variable) of file threefish.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:40: warning: Member XDP_ADD_DSET_NISTATES (define) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:59: warning: Member STAR_VALUE (define) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:60: warning: Member XDP_ADD_DSET_NVALUES (define) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:146: warning: Member xdp_add_dset_print_set(const diff_set_t da_set) (function) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:151: warning: Member xdp_add_dset_exper(gsl_matrix *A[2][2][2], const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set) (function) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:161: warning: Member rmax_xdp_add_dset(gsl_matrix *A[3][3][3], const diff_set_t da_set, const diff_set_t db_set, diff_set_t *dc_set_max, bool b_single_diff) (function) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:166: warning: Member max_xdp_add_dset_exper(gsl_matrix *A[2][2][2], const diff_set_t da_set, const diff_set_t db_set, diff_set_t *max_dc_set) (function) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:170: warning: Member max_xdp_add_dset(const diff_set_t da_set, const diff_set_t db_set, diff_set_t *dc_set) (function) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:173: warning: Member xor_dset(diff_set_t da_set, diff_set_t db_set) (function) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:175: warning: Member lrot_dset(diff_set_t da_set, uint32_t rot_const) (function) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:177: warning: Member is_inset(uint32_t da, diff_set_t da_set) (function) of file xdp-add-diff-set.hh is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:964: warning: argument 'AA' of command @param is not found in the argument list of xdp_add_dset(gsl_matrix *A[2][2][2], const uint32_t word_size, const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set)
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:964: warning: The following parameters of xdp_add_dset(gsl_matrix *A[2][2][2], const uint32_t word_size, const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set) are not documented:
+  parameter 'A'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:280: warning: argument 'da_set' of command @param is not found in the argument list of xdp_add_dset_gen_diff_all(const diff_set_t dc_set, std::vector< uint32_t > *dc_set_all)
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:280: warning: The following parameters of xdp_add_dset_gen_diff_all(const diff_set_t dc_set, std::vector< uint32_t > *dc_set_all) are not documented:
+  parameter 'dc_set'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:541: warning: argument 'dc_set_in' of command @param is not found in the argument list of xdp_add_dset_init_states(const uint32_t pos, gsl_vector *C, const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set)
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:541: warning: The following parameters of xdp_add_dset_init_states(const uint32_t pos, gsl_vector *C, const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set) are not documented:
+  parameter 'dc_set'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:512: warning: Found unknown command `\seexdp_add_dset_print_matrices'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:180: warning: The following parameters of xdp_add_input_dset_to_output_dset_i(uint32_t i, gsl_matrix *AA[2][2][2], const diff_set_t da_set, const diff_set_t db_set, diff_set_t *dc_set_in, double *r_in, diff_set_t *dc_set_max, double *r_max) are not documented:
+  parameter 'i'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:332: warning: argument 'output' of command @param is not found in the argument list of xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set, const diff_set_t db_set, uint32_t da[2], uint32_t db[2])
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:332: warning: argument 'output' of command @param is not found in the argument list of xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set, const diff_set_t db_set, uint32_t da[2], uint32_t db[2])
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:332: warning: The following parameters of xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set, const diff_set_t db_set, uint32_t da[2], uint32_t db[2]) are not documented:
+  parameter 'da'
+  parameter 'db'
+/home/vpv/yaarx-github/yaarx/src/xtea-add-threshold-search.cc:61: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-add-threshold-search.cc:75: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-add-threshold-search.cc:76: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-add-threshold-search.cc:384: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:234: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:235: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:59: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:60: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:98: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:150: warning: unable to resolve reference to `XTEA_XOR_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:151: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:152: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:45: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:46: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:56: warning: unable to resolve reference to `XTEA_XOR_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:383: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:385: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:386: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:389: warning: unable to resolve reference to `XTEA_XOR_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:51: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:52: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:111: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:122: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:123: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:447: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:434: warning: The following parameters of xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64], double B[NROUNDS], differential_t trail[NROUNDS]) are not documented:
+  parameter 'B'
+  parameter 'trail'
+/home/vpv/yaarx-github/yaarx/include/xtea.hh:31: warning: Member XTEA_XOR_P_THRES (define) of file xtea.hh is not documented.
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:473: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:474: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:570: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:572: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:573: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:657: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:427: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:428: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:520: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:522: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:523: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:618: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/adp-mul.cc:32: warning: Member gcd(const uint32_t a_in, const uint32_t b_in) (function) of file adp-mul.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/adp-mul.cc:53: warning: Member adp_mul(const uint32_t da, const uint32_t db, const uint32_t dc) (function) of file adp-mul.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/adp-mul.cc:87: warning: Member adp_mul_exper(const uint32_t da, const uint32_t db, const uint32_t dc) (function) of file adp-mul.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:36: warning: Member d(uint32_t x) (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:44: warning: Member inv_d(uint32_t x) (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:51: warning: Member idea_mul(uint32_t x_in, uint32_t y_in) (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:62: warning: Member adp_idea_mul(const uint32_t da_in, const uint32_t db_in, const uint32_t dc_in) (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:101: warning: Member adp_idea_mul_exper(const uint32_t da, const uint32_t db, const uint32_t dc) (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:128: warning: Member test_adp_idea_mul() (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:157: warning: Member test_idea_mul() (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:169: warning: Member test_d() (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:185: warning: Member test_inv_d_add() (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:202: warning: Member test_inv_d() (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:216: warning: Member test_idea_tvec() (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/idea.cc:242: warning: Member test_idea_lin() (function) of file idea.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/max-adp-arx.cc:349: warning: unable to resolve reference to `ARX:' for \ref command
+/home/vpv/yaarx-github/yaarx/src/max-adp-arx.cc:40: warning: unable to resolve reference to `ARX:' for \ref command
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:102: warning: Member xdp_add_dset_salsa_arx(gsl_matrix *A[3][3][3], diff_set_t dx, diff_set_t dy, diff_set_t dz, diff_set_t *dt, uint32_t k, bool b_single_diff) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:116: warning: Member xdp_add_dset_salsa20(const uint32_t e[SALSA_STATE+SALSA_STATE][5], const uint32_t r_start, const uint32_t r_end, gsl_matrix *A[3][3][3], const diff_set_t DX_in[SALSA_STATE], diff_set_t DY_in[SALSA_STATE], diff_set_t DT[MAX_NROUNDS][SALSA_STATE], double P[MAX_NROUNDS][SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:199: warning: Member xdp_add_dset_salsa20_exper(const uint32_t e[SALSA_STATE+SALSA_STATE][5], const uint32_t r_start, const uint32_t r_end, uint32_t npairs, const diff_set_t DX_set[SALSA_STATE], diff_set_t DY_set[SALSA_STATE], double PW[SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:265: warning: Member salsa20(const uint32_t e[SALSA_STATE+SALSA_STATE][5], const uint32_t r_start, const uint32_t r_end, const uint32_t X_in[SALSA_STATE], uint32_t Y_in[SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:407: warning: Member salsa_uint8_to_uint32(const uint8_t X[4], uint32_t *Y) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:413: warning: Member salsa_uint32_to_uint8(uint8_t X[4], const uint32_t Y) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:422: warning: Member salsa_state_uint8_to_uint32(const uint8_t X[4 *SALSA_STATE], uint32_t Y[SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:431: warning: Member salsa_state_uint32_to_uint8(uint8_t X[4 *SALSA_STATE], const uint32_t Y[SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:445: warning: Member salsa_print_trail(uint32_t nrounds, diff_set_t DT[MAX_NROUNDS][SALSA_STATE], double P[MAX_NROUNDS][SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:474: warning: Member salsa_print_prob(double P[SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:485: warning: Member salsa_print_prob_vs_rand(double P[SALSA_STATE], double P_rand[SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:646: warning: Member salsa_word_probs_v2(const uint32_t r_start, const uint32_t r_end, const uint32_t e[SALSA_STATE+SALSA_STATE][5], double PT[MAX_NROUNDS][SALSA_STATE], double P[SALSA_STATE]) (function) of file salsa.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/salsa.cc:605: warning: unable to resolve reference to `xdp_add_dset_salsa20' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:139: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:706: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:1084: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:47: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:50: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-ddt-search.cc:51: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:70: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:78: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:79: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:451: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:459: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:460: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:934: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-add-threshold-search.cc:1108: warning: The following parameters of tea_add_trail_search_full(uint32_t key[4], double BB[NROUNDS], differential_t trail[NROUNDS], uint32_t num_rounds) are not documented:
+  parameter 'num_rounds'
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:226: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:54: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:75: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:391: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:392: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:393: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:438: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:441: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:508: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:509: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:510: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:542: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:546: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:547: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:264: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:287: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:764: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:765: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:766: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea-f-add-pddt.cc:628: warning: unable to resolve reference to `TEA_ADD_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea.cc:431: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea.cc:382: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/tea.cc:348: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/threefish.cc:61: warning: Member xdp_add_dset_threefish_mix(gsl_matrix *A[3][3][3], diff_set_t DX[4], diff_set_t DY[4], double P[4], uint32_t rot_const_0, uint32_t rot_const_1, bool b_single_diff) (function) of file threefish.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/threefish.cc:107: warning: Member threefish_print_dset(diff_set_t DX[4]) (function) of file threefish.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/threefish.cc:116: warning: Member threefish_print_prob(double P[4]) (function) of file threefish.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/threefish.cc:124: warning: Member threefish_print_trail(uint32_t nrounds, diff_set_t DT[MAX_NROUNDS][4], double P[MAX_NROUNDS][4]) (function) of file threefish.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/threefish.cc:139: warning: Member xdp_add_dset_threefish(uint32_t nrounds, uint32_t rot_const[MAX_NROUNDS][2], gsl_matrix *A[3][3][3], diff_set_t DX_in[4], diff_set_t DY_in[4], diff_set_t DT[MAX_NROUNDS][4], double P[MAX_NROUNDS][4]) (function) of file threefish.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/threefish.cc:206: warning: Member threefish_mix(uint32_t X[4], uint32_t rot_const_0, uint32_t rot_const_1) (function) of file threefish.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/threefish.cc:244: warning: Member xdp_add_dset_threefish_exper(uint32_t nrounds, uint32_t rot_const[8][2], uint32_t npairs, uint32_t DX[4], diff_set_t DY_set[4]) (function) of file threefish.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/threefish.cc:55: warning: Member g_threefish_rot_const[12][2] (variable) of file threefish.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:1305: warning: Member rmax_xdp_add_dset(gsl_matrix *A[3][3][3], const diff_set_t da_set, const diff_set_t db_set, diff_set_t *dc_set_max, bool b_single_diff) (function) of file xdp-add-diff-set.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:1359: warning: Member max_xdp_add_dset(const diff_set_t da_set, const diff_set_t db_set, diff_set_t *dc_set) (function) of file xdp-add-diff-set.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:1412: warning: Member xdp_add_dset_exper(gsl_matrix *A[2][2][2], const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set) (function) of file xdp-add-diff-set.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:1456: warning: Member max_xdp_add_dset_exper(gsl_matrix *A[2][2][2], const diff_set_t da_set, const diff_set_t db_set, diff_set_t *max_dc_set) (function) of file xdp-add-diff-set.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:1511: warning: Member xdp_add_dset_print_set(const diff_set_t da_set) (function) of file xdp-add-diff-set.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:1524: warning: Member xor_dset(diff_set_t da_set_in, diff_set_t db_set_in) (function) of file xdp-add-diff-set.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:1534: warning: Member lrot_dset(diff_set_t da_set, uint32_t rot_const) (function) of file xdp-add-diff-set.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:1545: warning: Member is_inset(uint32_t da, diff_set_t da_set) (function) of file xdp-add-diff-set.cc is not documented.
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:964: warning: argument 'AA' of command @param is not found in the argument list of xdp_add_dset(gsl_matrix *A[2][2][2], const uint32_t word_size, const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set)
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:964: warning: The following parameters of xdp_add_dset(gsl_matrix *A[2][2][2], const uint32_t word_size, const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set) are not documented:
+  parameter 'A'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:280: warning: argument 'da_set' of command @param is not found in the argument list of xdp_add_dset_gen_diff_all(const diff_set_t dc_set, std::vector< uint32_t > *dc_set_all)
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:280: warning: The following parameters of xdp_add_dset_gen_diff_all(const diff_set_t dc_set, std::vector< uint32_t > *dc_set_all) are not documented:
+  parameter 'dc_set'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:541: warning: argument 'dc_set_in' of command @param is not found in the argument list of xdp_add_dset_init_states(const uint32_t pos, gsl_vector *C, const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set)
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:541: warning: The following parameters of xdp_add_dset_init_states(const uint32_t pos, gsl_vector *C, const diff_set_t da_set, const diff_set_t db_set, const diff_set_t dc_set) are not documented:
+  parameter 'dc_set'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:512: warning: Found unknown command `\seexdp_add_dset_print_matrices'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:180: warning: The following parameters of xdp_add_input_dset_to_output_dset_i(uint32_t i, gsl_matrix *AA[2][2][2], const diff_set_t da_set, const diff_set_t db_set, diff_set_t *dc_set_in, double *r_in, diff_set_t *dc_set_max, double *r_max) are not documented:
+  parameter 'i'
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:332: warning: argument 'output' of command @param is not found in the argument list of xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set, const diff_set_t db_set, uint32_t da[2], uint32_t db[2])
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:332: warning: argument 'output' of command @param is not found in the argument list of xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set, const diff_set_t db_set, uint32_t da[2], uint32_t db[2])
+/home/vpv/yaarx-github/yaarx/src/xdp-add-diff-set.cc:332: warning: The following parameters of xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set, const diff_set_t db_set, uint32_t da[2], uint32_t db[2]) are not documented:
+  parameter 'da'
+  parameter 'db'
+/home/vpv/yaarx-github/yaarx/src/xtea-add-threshold-search.cc:61: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-add-threshold-search.cc:75: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-add-threshold-search.cc:76: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-add-threshold-search.cc:384: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:234: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:235: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:59: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:60: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-add-pddt.cc:98: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:150: warning: unable to resolve reference to `XTEA_XOR_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:151: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:152: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:45: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:46: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:56: warning: unable to resolve reference to `XTEA_XOR_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:383: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:385: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:386: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-f-xor-pddt.cc:389: warning: unable to resolve reference to `XTEA_XOR_P_THRES' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:51: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:52: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:111: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:122: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:123: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:447: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea-xor-threshold-search.cc:434: warning: The following parameters of xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64], double B[NROUNDS], differential_t trail[NROUNDS]) are not documented:
+  parameter 'B'
+  parameter 'trail'
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:473: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:474: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:570: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:572: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:573: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:657: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:427: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:428: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:520: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:522: warning: unable to resolve reference to `TEA_LSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:523: warning: unable to resolve reference to `TEA_RSH_CONST' for \ref command
+/home/vpv/yaarx-github/yaarx/src/xtea.cc:618: warning: unable to resolve reference to `NROUNDS' for \ref command
+/home/vpv/yaarx-github/yaarx/tests/adp-arx-tests.cc:210: warning: Member test_max_adp_arx() (function) of file adp-arx-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-arx-tests.cc:245: warning: Member test_max_adp_arx_all() (function) of file adp-arx-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-arx-tests.cc:287: warning: Member test_max_adp_arx_is_max() (function) of file adp-arx-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-arx-tests.cc:319: warning: Member test_max_adp_arx_is_max_all() (function) of file adp-arx-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-mul-tests.cc:35: warning: Member test_adp_mul() (function) of file adp-mul-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-rsh-xor-tests.cc:38: warning: Member test_adp_rsh_xor_alloc() (function) of file adp-rsh-xor-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-rsh-xor-tests.cc:47: warning: Member test_adp_rsh_xor_sf() (function) of file adp-rsh-xor-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-rsh-xor-tests.cc:61: warning: Member test_adp_rsh_xor() (function) of file adp-rsh-xor-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-shift-tests.cc:37: warning: Member test_adp_lsh() (function) of file adp-shift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-shift-tests.cc:52: warning: Member test_adp_lsh_all() (function) of file adp-shift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-shift-tests.cc:77: warning: Member test_adp_rsh() (function) of file adp-shift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-shift-tests.cc:96: warning: Member test_adp_rsh_all() (function) of file adp-shift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-shift-tests.cc:122: warning: Member main() (function) of file adp-shift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:41: warning: Member test_ddt() (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:90: warning: Member test_adp_f_ddt_vs_exper() (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:120: warning: Member test_max_adp_f_ddt_exper() (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:145: warning: Member test_max_adp_f_ddt_vs_exper_all() (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:177: warning: Member test_max_adp_f_rsddt_vs_exper_all() (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:224: warning: Member operator<(skey_t x, skey_t y) (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:234: warning: Member test_max_adp_f_ddt_wrt_keys() (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:281: warning: Member test_adp_f_ddt() (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:305: warning: Member main() (function) of file adp-tea-f-fk-ddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-noshift-tests.cc:38: warning: Member test_adp_f_op_noshift() (function) of file adp-tea-f-fk-noshift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-noshift-tests.cc:66: warning: Member test_adp_f_op_noshift_vs_exper_all() (function) of file adp-tea-f-fk-noshift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-noshift-tests.cc:103: warning: Member test_adp_f_op_noshift_sf() (function) of file adp-tea-f-fk-noshift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-noshift-tests.cc:117: warning: Member test_adp_f_op_noshift_exper() (function) of file adp-tea-f-fk-noshift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-noshift-tests.cc:150: warning: Member main() (function) of file adp-tea-f-fk-noshift-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:38: warning: Member test_adp_f_fk_v2_vs_adp_f_fk_exper() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:69: warning: Member test_adp_f_fk_v2_vs_adp_f_fk_exper_all() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:104: warning: Member test_adp_f_fk() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:129: warning: Member test_max_dx_adp_f_fk() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:161: warning: Member test_max_key_dx_adp_f_fk() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:186: warning: Member test_max_dx_dy_adp_f_fk() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:218: warning: Member test_max_adp_f_fk_dx_vs_exper_all() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:259: warning: Member test_adp_f_fk_vs_exper() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:289: warning: Member test_adp_f_fk_vs_exper_all() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:333: warning: Member test_adp_f_fk_vs_exper_all_shconst_and_diffs() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:375: warning: Member test_adp_f_fk_vs_exper_all_shconst() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:410: warning: Member test_max_dy_adp_f_fk() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:439: warning: Member test_all_dy_adp_f_fk() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:486: warning: Member test_max_dy_adp_f_fk_vs_exper_all() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:533: warning: Member test_max_dx_dy_adp_f_fk_vs_exper_all() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-tests.cc:584: warning: Member main() (function) of file adp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor-fi-tests.cc:35: warning: Member test_adp_xor_fixed_input() (function) of file adp-xor-fi-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor-fi-tests.cc:59: warning: Member test_adp_xor_fixed_input_all() (function) of file adp-xor-fi-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor-fi-tests.cc:93: warning: Member main() (function) of file adp-xor-fi-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor-pddt-tests.cc:38: warning: Member test_adp_xor_ddt() (function) of file adp-xor-pddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor-tests.cc:114: warning: Member test_adp_xor_print_matrices_sage() (function) of file adp-xor-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor3-tests.cc:35: warning: Member test_adp_xor3_sf() (function) of file adp-xor3-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor3-tests.cc:50: warning: Member test_adp_xor3_alloc_matrices() (function) of file adp-xor3-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor3-tests.cc:59: warning: Member test_adp_xor3() (function) of file adp-xor3-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xor3-tests.cc:84: warning: Member test_adp_xor3_all() (function) of file adp-xor3-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:53: warning: Member test_adp_xtea_f_lxr() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:73: warning: Member test_adp_xtea_f_lxr_all() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:100: warning: Member test_adp_xtea_f_lxr_vs_exper_all() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:138: warning: Member test_adp_xtea_f_approx() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:168: warning: Member test_adp_xtea_f_approx_all() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:215: warning: Member test_adp_xtea_f() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:240: warning: Member test_adp_xtea_f_all() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:283: warning: Member test_max_dy_adp_xtea_f() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:306: warning: Member test_max_dx_adp_xtea_f() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:330: warning: Member test_max_dy_adp_xtea_f_is_max() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:358: warning: Member test_max_dx_adp_xtea_f_is_max() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:385: warning: Member test_max_dy_adp_xtea_f_is_max_all() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:433: warning: Member test_max_dx_adp_xtea_f_is_max_all() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:481: warning: Member test_first_nz_adp_xtea_f() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:525: warning: Member test_first_nz_adp_xtea_f_all() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:576: warning: Member test_first_nz_adp_xtea_f_random() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-xtea-f-fk-tests.cc:592: warning: Member main() (function) of file adp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/eadp-tea-f-tests.cc:56: warning: Member test_adp_xor3_vs_eadp_tea_f() (function) of file eadp-tea-f-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/eadp-tea-f-tests.cc:112: warning: Member test_eadp_tea_f() (function) of file eadp-tea-f-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/eadp-tea-f-tests.cc:136: warning: Member test_eadp_tea_f_vs_exper_all() (function) of file eadp-tea-f-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/eadp-tea-f-tests.cc:170: warning: Member test_max_eadp_tea_f_is_max() (function) of file eadp-tea-f-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor-fi-tests.cc:38: warning: Member test_max_adp_xor_fixed_input() (function) of file max-adp-xor-fi-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor-fi-tests.cc:62: warning: Member test_max_adp_xor_fixed_input_is_max() (function) of file max-adp-xor-fi-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor-fi-tests.cc:90: warning: Member main() (function) of file max-adp-xor-fi-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor-tests.cc:38: warning: Member test_max_adp_xor() (function) of file max-adp-xor-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor-tests.cc:67: warning: Member test_max_adp_xor_is_max() (function) of file max-adp-xor-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor-tests.cc:96: warning: Member main() (function) of file max-adp-xor-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor3-set-tests.cc:38: warning: Member test_max_adp_xor3_set() (function) of file max-adp-xor3-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor3-set-tests.cc:79: warning: Member test_max_adp_xor3_set_is_max_all() (function) of file max-adp-xor3-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor3-set-tests.cc:143: warning: Member test_max_adp_xor3_set_is_max_rand() (function) of file max-adp-xor3-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor3-set-tests.cc:198: warning: Member main() (function) of file max-adp-xor3-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor3-tests.cc:38: warning: Member test_max_adp_xor3_rec() (function) of file max-adp-xor3-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor3-tests.cc:68: warning: Member test_max_adp_xor3_vs_rec_all() (function) of file max-adp-xor3-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor3-tests.cc:105: warning: Member test_max_adp_xor3_is_max() (function) of file max-adp-xor3-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-adp-xor3-tests.cc:136: warning: Member main() (function) of file max-adp-xor3-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-xdp-add-tests.cc:38: warning: Member test_max_xdp_add() (function) of file max-xdp-add-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/max-xdp-add-tests.cc:67: warning: Member test_max_xdp_add_is_max() (function) of file max-xdp-add-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/salsa-tests.cc:70: warning: Member test_vector_salsa20() (function) of file salsa-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/salsa-tests.cc:104: warning: Member test_salsa() (function) of file salsa-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/salsa-tests.cc:118: warning: Member test_xdp_add_dset_salsa20_all() (function) of file salsa-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/salsa-tests.cc:235: warning: Member test_xdp_add_dset_salsa20() (function) of file salsa-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/salsa-tests.cc:300: warning: Member test_salsa_bias() (function) of file salsa-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/salsa-tests.cc:357: warning: Member test_salsa_gen_word_deps() (function) of file salsa-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/salsa-tests.cc:378: warning: Member test_xdp_add_dset_salsa_arx() (function) of file salsa-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-ddt-search-tests.cc:43: warning: Member test_tea_search_ddt() (function) of file tea-add-ddt-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-ddt-search-tests.cc:54: warning: Member test_tea_search_xddt() (function) of file tea-add-ddt-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-ddt-search-tests.cc:65: warning: Member test_tea_search_xddt_bottom_up() (function) of file tea-add-ddt-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-ddt-search-tests.cc:76: warning: Member test_tea_search_ddt_xddt_xddt_bottom_up() (function) of file tea-add-ddt-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-ddt-search-tests.cc:90: warning: Member main() (function) of file tea-add-ddt-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-threshold-search-tests.cc:38: warning: Member test_tea_add_trail_search() (function) of file tea-add-threshold-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-threshold-search-tests.cc:214: warning: Member test_trail18() (function) of file tea-add-threshold-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-threshold-search-tests.cc:344: warning: Member raiden(unsigned long *data, unsigned long *result, unsigned long *key) (function) of file tea-add-threshold-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-add-threshold-search-tests.cc:356: warning: Member main() (function) of file tea-add-threshold-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-f-add-pddt-tests.cc:52: warning: Member test_rsh_condition() (function) of file tea-f-add-pddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-f-add-pddt-tests.cc:80: warning: Member test_tea_f_add_pddt_vs_full_ddt() (function) of file tea-f-add-pddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/tea-f-add-pddt-tests.cc:155: warning: Member main() (function) of file tea-f-add-pddt-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/threefish-tests.cc:41: warning: Member test_xdp_add_dset_threefish() (function) of file threefish-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/va-tests.cc:254: warning: Member test_xdp_add_nonzero_cond() (function) of file va-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/va-tests.cc:351: warning: unable to resolve reference to `xdp_add_input_diff_sets_to_diffs' for \ref command
+/home/vpv/yaarx-github/yaarx/tests/va-tests.cc:471: warning: unable to resolve reference to `xdp_add_input_diff_sets_to_diffs' for \ref command
+/home/vpv/yaarx-github/yaarx/tests/va-tests.cc:406: warning: unable to resolve reference to `xdp_add_input_diff_sets_to_diffs' for \ref command
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:813: warning: Member LIM (define) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:44: warning: Member test_xdp_add_dset_print_matrices() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:53: warning: Member test_xdp_add_dset_init_states() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:106: warning: Member test_xdp_add_dset() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:161: warning: Member test_xdp_add_dset_vs_exper_all() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:241: warning: Member test_xdp_add_dset_vs_exper_rand() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:302: warning: Member test_xdp_add_input_diff_to_output_dset_all() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:572: warning: Member test_xdp_add_count_nz() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:605: warning: Member test_lrot_dset() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:616: warning: Member test_xor_dset() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:630: warning: Member test_rmax_xdp_add_dset_is_max_all() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-diff-set-tests.cc:742: warning: Member test_rmax_xdp_add_dset_is_max_rand() (function) of file xdp-add-diff-set-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-add-tests.cc:114: warning: Member test_xdp_add_print_matrices_sage() (function) of file xdp-add-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-tea-f-fk-tests.cc:38: warning: Member test_xdp_f_fk() (function) of file xdp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-tea-f-fk-tests.cc:65: warning: Member test_xdp_f_fk_vs_exper_all() (function) of file xdp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-tea-f-fk-tests.cc:106: warning: Member test_max_dx_xdp_f_fk() (function) of file xdp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-tea-f-fk-tests.cc:133: warning: Member test_max_dx_xdp_f_fk_vs_exper_all() (function) of file xdp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-tea-f-fk-tests.cc:175: warning: Member test_max_dx_xdp_f_fk_vs_exper() (function) of file xdp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-tea-f-fk-tests.cc:204: warning: Member test_max_dy_xdp_f_fk() (function) of file xdp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-tea-f-fk-tests.cc:238: warning: Member test_max_dy_xdp_f_fk_vs_exper_all() (function) of file xdp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-tea-f-fk-tests.cc:281: warning: Member main() (function) of file xdp-tea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-xtea-f-fk-tests.cc:41: warning: Member test_xdp_xtea_f_fk() (function) of file xdp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-xtea-f-fk-tests.cc:67: warning: Member test_xdp_xtea_f_fk_all() (function) of file xdp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-xtea-f-fk-tests.cc:122: warning: Member test_xdp_xtea_f2_fk() (function) of file xdp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-xtea-f-fk-tests.cc:146: warning: Member test_xdp_xtea_f2_fk_all() (function) of file xdp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-xtea-f-fk-tests.cc:192: warning: Member test_xdp_xtea_f2_fk_approx() (function) of file xdp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-xtea-f-fk-tests.cc:217: warning: Member test_nz_xdp_xtea_f() (function) of file xdp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xdp-xtea-f-fk-tests.cc:244: warning: Member main() (function) of file xdp-xtea-f-fk-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xtea-add-threshold-search-tests.cc:39: warning: Member test_xtea_add_trail_search() (function) of file xtea-add-threshold-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xtea-add-threshold-search-tests.cc:70: warning: Member main() (function) of file xtea-add-threshold-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xtea-xor-threshold-search-tests.cc:38: warning: Member test_xtea_xor_trail_search() (function) of file xtea-xor-threshold-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/tests/xtea-xor-threshold-search-tests.cc:107: warning: Member main() (function) of file xtea-xor-threshold-search-tests.cc is not documented.
+/home/vpv/yaarx-github/yaarx/include/bsdr.hh:40: warning: Member val (variable) of class bsd_t is not documented.
+/home/vpv/yaarx-github/yaarx/include/bsdr.hh:41: warning: Member sign (variable) of class bsd_t is not documented.
+/home/vpv/yaarx-github/yaarx/include/xdp-add-diff-set.hh:70: warning: Member diff (variable) of class diff_set_t is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:218: warning: Member k0 (variable) of class skey_t is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:219: warning: Member k1 (variable) of class skey_t is not documented.
+/home/vpv/yaarx-github/yaarx/tests/adp-tea-f-fk-ddt-tests.cc:220: warning: Member p (variable) of class skey_t is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:202: warning: Member operator()(differential_3d_t a, differential_3d_t b) const  (function) of class struct_comp_diff_3d_p is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:230: warning: Member operator()(differential_t a, differential_t b) (function) of class struct_comp_diff_dx_dy is not documented.
+/home/vpv/yaarx-github/yaarx/include/common.hh:214: warning: Member operator()(differential_t a, differential_t b) const  (function) of class struct_comp_diff_p is not documented.
