@@ -22,3 +22,6 @@ Compilation
 
 For successful compilation it is required to install the development version of the GNU Scientific Library (GSL) and the Multiprecision arithmetic library (GMP) developers tools. Under Ubuntu/Debian Linux the name of the packages are resp. libgsl0-dev and libgmp-dev. After downloading the YAARX source code, it can be compiled by running the make command from within the top directory of the source tree. The pre-compiled programs are stored in the ./bin directoy . 
 
+Documentation
+
+The full documentation of YAARX is available at: https://github.com/vesselinux/yaarx .
