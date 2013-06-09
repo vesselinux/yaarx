@@ -1,0 +1,6 @@
+var searchData=
+[
+  ['f_5fsfun',['f_sfun',['../adp-tea-f-fk_8cc.html#aec0b210e6e32237337038b416e4566d1',1,'f_sfun(const uint32_t n, const uint32_t x_word, const uint32_t dx_word, const uint32_t delta_word, const uint32_t k0_word, const uint32_t k1_word):&#160;adp-tea-f-fk.cc'],['../adp-tea-f-fk_8hh.html#aec0b210e6e32237337038b416e4566d1',1,'f_sfun(const uint32_t n, const uint32_t x_word, const uint32_t dx_word, const uint32_t delta_word, const uint32_t k0_word, const uint32_t k1_word):&#160;adp-tea-f-fk.cc']]],
+  ['first_5fnz_5fadp_5fxtea_5ff',['first_nz_adp_xtea_f',['../adp-xtea-f-fk_8cc.html#afcd00d5c1a88acce22eb6dbf61ee7624',1,'first_nz_adp_xtea_f(gsl_matrix *A[2][2][2], gsl_matrix *AA[2][2][2], const uint32_t key, const uint32_t delta, const uint32_t da, uint32_t *ret_dd, uint32_t lsh_const, uint32_t rsh_const):&#160;adp-xtea-f-fk.cc'],['../adp-xtea-f-fk_8hh.html#afcd00d5c1a88acce22eb6dbf61ee7624',1,'first_nz_adp_xtea_f(gsl_matrix *A[2][2][2], gsl_matrix *AA[2][2][2], const uint32_t key, const uint32_t delta, const uint32_t da, uint32_t *ret_dd, uint32_t lsh_const, uint32_t rsh_const):&#160;adp-xtea-f-fk.cc']]],
+  ['fixed',['fixed',['../structdiff__set__t.html#a508ddaddd1fcc2eb6938a08722fdfd50',1,'diff_set_t::fixed()'],['../xdp-add-diff-set_8hh.html#a20207ffc8e6f0bdcefb5c42a5b5c3fb8',1,'FIXED():&#160;xdp-add-diff-set.hh']]]
+];

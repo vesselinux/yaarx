@@ -1,0 +1,191 @@
+\hypertarget{adp-tea-f-fk-noshift_8cc}{\subsection{src/adp-\/tea-\/f-\/fk-\/noshift.cc \-File \-Reference}
+\label{adp-tea-f-fk-noshift_8cc}\index{src/adp-\/tea-\/f-\/fk-\/noshift.\-cc@{src/adp-\/tea-\/f-\/fk-\/noshift.\-cc}}
+}
+
+
+\-The additive differential probability (\-A\-D\-P) of a modified version of the \-F-\/function of \-T\-E\-A with the shift operations removed. \-Complexity $O(n)$.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}tea.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}adp-\/tea-\/f-\/fk-\/noshift.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{adp-tea-f-fk-noshift_8cc_a23de342298e8c480df8c8ba3b7125edf}{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-sf} (gsl\-\_\-matrix $\ast$\-A\mbox{[}\hyperlink{adp-tea-f-fk-noshift_8hh_a4822a46657916694abfee9a1c1cdd137}{\-N\-S\-P\-O\-S}\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+void \hyperlink{adp-tea-f-fk-noshift_8cc_ac0b220b9e12d3deba6975d306ee0abc3}{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-alloc\-\_\-matrices} (gsl\-\_\-matrix $\ast$\-A\mbox{[}\hyperlink{adp-tea-f-fk-noshift_8hh_a4822a46657916694abfee9a1c1cdd137}{\-N\-S\-P\-O\-S}\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+void \hyperlink{adp-tea-f-fk-noshift_8cc_a98db145f973752af2ab7143077141e54}{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-free\-\_\-matrices} (gsl\-\_\-matrix $\ast$\-A\mbox{[}\hyperlink{adp-tea-f-fk-noshift_8hh_a4822a46657916694abfee9a1c1cdd137}{\-N\-S\-P\-O\-S}\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+void \hyperlink{adp-tea-f-fk-noshift_8cc_a60908ea41ae7cbeafb475c09623d5f0f}{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-normalize\-\_\-matrices} (gsl\-\_\-matrix $\ast$\-A\mbox{[}\hyperlink{adp-tea-f-fk-noshift_8hh_a4822a46657916694abfee9a1c1cdd137}{\-N\-S\-P\-O\-S}\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+void \hyperlink{adp-tea-f-fk-noshift_8cc_ad426ae37e100f13ab3fe95d7f6254ba0}{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-print\-\_\-matrices} (gsl\-\_\-matrix $\ast$\-A\mbox{[}\hyperlink{adp-tea-f-fk-noshift_8hh_a4822a46657916694abfee9a1c1cdd137}{\-N\-S\-P\-O\-S}\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+double \hyperlink{adp-tea-f-fk-noshift_8cc_adae0e9b5832d3b61a0c626b547441349}{adp\-\_\-f\-\_\-op\-\_\-noshift} (gsl\-\_\-matrix $\ast$\-A\mbox{[}\hyperlink{adp-tea-f-fk-noshift_8hh_a4822a46657916694abfee9a1c1cdd137}{\-N\-S\-P\-O\-S}\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, uint32\-\_\-t k0, uint32\-\_\-t k1, uint32\-\_\-t delta, uint32\-\_\-t da, uint32\-\_\-t db)
+\item 
+double \hyperlink{adp-tea-f-fk-noshift_8cc_a1eda076dbcc18021d891ac9f0532d50f}{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-exper} (uint32\-\_\-t k0, uint32\-\_\-t k1, uint32\-\_\-t delta, uint32\-\_\-t da, uint32\-\_\-t db)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-The additive differential probability (\-A\-D\-P) of a modified version of the \-F-\/function of \-T\-E\-A with the shift operations removed. \-Complexity $O(n)$. \-The \-F-\/function of \-T\-E\-A with the shift operations removed is denoted by \-F' and is defined as\-: $y = F'(k_0, k_1, \delta |~ x) = (x + k_0) \oplus (x + \delta) \oplus (x + k_1)$.
+
+\begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{adp-tea-f-fk-noshift_8cc_adae0e9b5832d3b61a0c626b547441349}{\index{adp-\/tea-\/f-\/fk-\/noshift.\-cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}!adp\-\_\-f\-\_\-op\-\_\-noshift@{adp\-\_\-f\-\_\-op\-\_\-noshift}}
+\index{adp\-\_\-f\-\_\-op\-\_\-noshift@{adp\-\_\-f\-\_\-op\-\_\-noshift}!adp-tea-f-fk-noshift.cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}}
+\paragraph[{adp\-\_\-f\-\_\-op\-\_\-noshift}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-f\-\_\-op\-\_\-noshift} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}\-N\-S\-P\-O\-S\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{uint32\-\_\-t}]{k0, }
+\item[{uint32\-\_\-t}]{k1, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{da, }
+\item[{uint32\-\_\-t}]{db}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-noshift_8cc_adae0e9b5832d3b61a0c626b547441349}
+\-The additive differential probability (\-A\-D\-P) of a modified version of the \-F-\/function of \-T\-E\-A with the shift operations removed, denoted by \-F' and defined as\-:
+
+$y = F'(k_0, k_1, \delta |~ x) = (x + k_0) \oplus (x + \delta) \oplus (x + k_1)$.
+
+{\bfseries \-Complexity\-:} $O(n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $F'$ computed with \hyperlink{adp-tea-f-fk-noshift_8hh_a23de342298e8c480df8c8ba3b7125edf}{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-sf} \\
+\hline
+{\em k0} & first round key. \\
+\hline
+{\em k1} & second round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em da} & input difference. \\
+\hline
+{\em db} & output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{F'}(k_0, k_1, \delta |~ da \rightarrow db)$. 
+\end{DoxyReturn}
+\hypertarget{adp-tea-f-fk-noshift_8cc_ac0b220b9e12d3deba6975d306ee0abc3}{\index{adp-\/tea-\/f-\/fk-\/noshift.\-cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}!adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-alloc\-\_\-matrices@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-alloc\-\_\-matrices}}
+\index{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-alloc\-\_\-matrices@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-alloc\-\_\-matrices}!adp-tea-f-fk-noshift.cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}}
+\paragraph[{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-alloc\-\_\-matrices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-alloc\-\_\-matrices} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}\-N\-S\-P\-O\-S\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-noshift_8cc_ac0b220b9e12d3deba6975d306ee0abc3}
+\-Allocate memory for the transition probability matrices for $F'$. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $F'$. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-rsh-xor_8hh_ae9cae9f38ce4ca450faa24c5dc4def67}{adp\-\_\-rsh\-\_\-xor\-\_\-free\-\_\-matrices} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-noshift_8cc_a1eda076dbcc18021d891ac9f0532d50f}{\index{adp-\/tea-\/f-\/fk-\/noshift.\-cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}!adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-exper@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-exper}}
+\index{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-exper@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-exper}!adp-tea-f-fk-noshift.cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}}
+\paragraph[{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{k0, }
+\item[{uint32\-\_\-t}]{k1, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{da, }
+\item[{uint32\-\_\-t}]{db}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-noshift_8cc_a1eda076dbcc18021d891ac9f0532d50f}
+\-The additive differential probability (\-A\-D\-P) of \-F' (a modified version of the \-F-\/function of \-T\-E\-A with the shift operations removed) computed experimentally over all inputs. \-Complexity\-: $O(2^{2n})$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em k0} & first round key. \\
+\hline
+{\em k1} & second round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em da} & input difference. \\
+\hline
+{\em db} & output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{F'}(k_0, k_1, \delta |~ da \rightarrow db)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-noshift_8hh_adae0e9b5832d3b61a0c626b547441349}{adp\-\_\-f\-\_\-op\-\_\-noshift} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-noshift_8cc_a98db145f973752af2ab7143077141e54}{\index{adp-\/tea-\/f-\/fk-\/noshift.\-cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}!adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-free\-\_\-matrices@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-free\-\_\-matrices}}
+\index{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-free\-\_\-matrices@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-free\-\_\-matrices}!adp-tea-f-fk-noshift.cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}}
+\paragraph[{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-free\-\_\-matrices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-free\-\_\-matrices} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}\-N\-S\-P\-O\-S\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-noshift_8cc_a98db145f973752af2ab7143077141e54}
+\-Free memory reserved by a previous call to adp\-\_\-rsh\-\_\-xor\-\_\-free\-\_\-matrices. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $F'$. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-noshift_8cc_a60908ea41ae7cbeafb475c09623d5f0f}{\index{adp-\/tea-\/f-\/fk-\/noshift.\-cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}!adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-normalize\-\_\-matrices@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-normalize\-\_\-matrices}}
+\index{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-normalize\-\_\-matrices@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-normalize\-\_\-matrices}!adp-tea-f-fk-noshift.cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}}
+\paragraph[{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-normalize\-\_\-matrices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-normalize\-\_\-matrices} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}\-N\-S\-P\-O\-S\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-noshift_8cc_a60908ea41ae7cbeafb475c09623d5f0f}
+\-Transform the elements of \-A into probabilities. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $F'$. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-noshift_8cc_ad426ae37e100f13ab3fe95d7f6254ba0}{\index{adp-\/tea-\/f-\/fk-\/noshift.\-cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}!adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-print\-\_\-matrices@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-print\-\_\-matrices}}
+\index{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-print\-\_\-matrices@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-print\-\_\-matrices}!adp-tea-f-fk-noshift.cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}}
+\paragraph[{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-print\-\_\-matrices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-print\-\_\-matrices} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}\-N\-S\-P\-O\-S\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-noshift_8cc_ad426ae37e100f13ab3fe95d7f6254ba0}
+\-Print the elements of \-A. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $F'$. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-noshift_8cc_a23de342298e8c480df8c8ba3b7125edf}{\index{adp-\/tea-\/f-\/fk-\/noshift.\-cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}!adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-sf@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-sf}}
+\index{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-sf@{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-sf}!adp-tea-f-fk-noshift.cc@{adp-\/tea-\/f-\/fk-\/noshift.\-cc}}
+\paragraph[{adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-sf}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-f\-\_\-op\-\_\-noshift\-\_\-sf} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}\-N\-S\-P\-O\-S\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-noshift_8cc_a23de342298e8c480df8c8ba3b7125edf}
+\-S-\/function for a modified version of the \-T\-E\-A \-F-\/function with the shift operations removed, denoted by \-F' and defined as\-:
+
+$y = F'(k_0, k_1, \delta |~ x) = (x + k_0) \oplus (x + \delta) \oplus (x + k_1)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & zero-\/initialized set of matrices. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+\-Transition probability matrices \-A for $F'$.
+\end{DoxyReturn}
+$A[j][2][2][2][2][2] = A[j][k0[i]][k1[i]][\delta[i]][da[i]][db[i]]$, where
+
+
+\begin{DoxyItemize}
+\item $j$ \-: dummy variable for future use.
+\item $k_0[i]$ \-: the i-\/th bit of the first round key.
+\item $k_1[i]$ \-: the i-\/th bit of the second round key.
+\item $\delta[i]$ \-: the i-\/th bit of the round constant\-:
+\item $da[i]$ \-: the i-\/th bit of the input difference.
+\item $db[i]$ \-: the i-\/th bit of the output difference. 
+\end{DoxyItemize}

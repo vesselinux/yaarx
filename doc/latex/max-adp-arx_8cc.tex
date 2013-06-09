@@ -1,0 +1,310 @@
+\hypertarget{max-adp-arx_8cc}{\subsection{src/max-\/adp-\/arx.cc \-File \-Reference}
+\label{max-adp-arx_8cc}\index{src/max-\/adp-\/arx.\-cc@{src/max-\/adp-\/arx.\-cc}}
+}
+
+
+\-The maximum \-A\-D\-D differential probability of the sequence of operations\-: \hyperlink{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}{\-A\-D\-D}, \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T}, \hyperlink{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\-X\-O\-R} (\hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X})\-: $\max_{de}~\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}adp-\/arx.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}max-\/adp-\/arx.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{max-adp-arx_8cc_aca732635ed09b370e99cb05feb4c2765}{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-0} (uint32\-\_\-t k, const uint32\-\_\-t n, const uint32\-\_\-t lrot\-\_\-const, double $\ast$p, uint32\-\_\-t $\ast$de, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-B\mbox{[}\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S}\mbox{]}\mbox{[}\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}+1\mbox{]}, gsl\-\_\-vector $\ast$\-C\mbox{[}\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S}\mbox{]}, const uint32\-\_\-t dc, const uint32\-\_\-t dd, uint32\-\_\-t $\ast$de\-\_\-max, double $\ast$p\-\_\-max)
+\item 
+void \hyperlink{max-adp-arx_8cc_a0976a49270edcbdfae7c207c0b807a89}{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i} (uint32\-\_\-t k, const uint32\-\_\-t n, const uint32\-\_\-t lrot\-\_\-const, double $\ast$p, uint32\-\_\-t $\ast$de, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-B\mbox{[}\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}+1\mbox{]}, gsl\-\_\-vector $\ast$\-C, const uint32\-\_\-t dc, const uint32\-\_\-t dd, uint32\-\_\-t $\ast$de\-\_\-max, double $\ast$p\-\_\-max)
+\item 
+void \hyperlink{max-adp-arx_8cc_a33419708a7aa0ca45657294dcfd98d86}{max\-\_\-adp\-\_\-arx\-\_\-bounds} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-B\mbox{[}\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S}\mbox{]}\mbox{[}\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}+1\mbox{]}, const uint32\-\_\-t lrot\-\_\-const, const uint32\-\_\-t dc, const uint32\-\_\-t dd, uint32\-\_\-t $\ast$de\-\_\-max)
+\item 
+void \hyperlink{max-adp-arx_8cc_ae6cb4039d510247582c4e275a7efc3d1}{max\-\_\-adp\-\_\-arx\-\_\-print\-\_\-bounds} (gsl\-\_\-vector $\ast$\-B\mbox{[}\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S}\mbox{]}\mbox{[}\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}+1\mbox{]})
+\item 
+double \hyperlink{max-adp-arx_8cc_a661c329bf4379aac10838bd72310cebd}{max\-\_\-adp\-\_\-arx} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, const uint32\-\_\-t lrot\-\_\-const, const uint32\-\_\-t da, const uint32\-\_\-t db, const uint32\-\_\-t dd, uint32\-\_\-t $\ast$de\-\_\-max)
+\item 
+double \hyperlink{max-adp-arx_8cc_abfb1c22b9460ed0c2bb71497e214f75c}{max\-\_\-adp\-\_\-arx\-\_\-exper} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, const uint32\-\_\-t lrot\-\_\-const, const uint32\-\_\-t da, const uint32\-\_\-t db, const uint32\-\_\-t dd, uint32\-\_\-t $\ast$de\-\_\-max)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-The maximum \-A\-D\-D differential probability of the sequence of operations\-: \hyperlink{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}{\-A\-D\-D}, \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T}, \hyperlink{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\-X\-O\-R} (\hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X})\-: $\max_{de}~\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$. \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{max-adp-arx_8cc_a661c329bf4379aac10838bd72310cebd}{\index{max-\/adp-\/arx.\-cc@{max-\/adp-\/arx.\-cc}!max\-\_\-adp\-\_\-arx@{max\-\_\-adp\-\_\-arx}}
+\index{max\-\_\-adp\-\_\-arx@{max\-\_\-adp\-\_\-arx}!max-adp-arx.cc@{max-\/adp-\/arx.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-arx}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-arx} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{const uint32\-\_\-t}]{lrot\-\_\-const, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{const uint32\-\_\-t}]{dd, }
+\item[{uint32\-\_\-t $\ast$}]{de\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-arx_8cc_a661c329bf4379aac10838bd72310cebd}
+\-Compute the maximum probability output difference $de$ from \-A\-R\-X\-: $\max_{de}~\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$ -\/-\/ a wrapper function for \hyperlink{max-adp-arx_8hh_a661c329bf4379aac10838bd72310cebd}{max\-\_\-adp\-\_\-arx}+bounds\-\_\-0 .
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em lrot\-\_\-const} & the rotation constant of the \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T} operation in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}. \\
+\hline
+{\em da} & first input difference (input to the \hyperlink{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}{\-A\-D\-D} in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}). \\
+\hline
+{\em db} & second input difference (input to the \hyperlink{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}{\-A\-D\-D} in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}). \\
+\hline
+{\em dd} & third input difference (input to the \hyperlink{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\-X\-O\-R} in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}). \\
+\hline
+{\em de\-\_\-max} & maximum probability output difference from \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X} (computed). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-arx_8hh_a33419708a7aa0ca45657294dcfd98d86}{max\-\_\-adp\-\_\-arx\-\_\-bounds}, \hyperlink{max-adp-arx_8hh_a0976a49270edcbdfae7c207c0b807a89}{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i}, \hyperlink{max-adp-arx_8hh_aca732635ed09b370e99cb05feb4c2765}{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-0} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-arx_8cc_a33419708a7aa0ca45657294dcfd98d86}{\index{max-\/adp-\/arx.\-cc@{max-\/adp-\/arx.\-cc}!max\-\_\-adp\-\_\-arx\-\_\-bounds@{max\-\_\-adp\-\_\-arx\-\_\-bounds}}
+\index{max\-\_\-adp\-\_\-arx\-\_\-bounds@{max\-\_\-adp\-\_\-arx\-\_\-bounds}!max-adp-arx.cc@{max-\/adp-\/arx.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-arx\-\_\-bounds}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf max\-\_\-adp\-\_\-arx\-\_\-bounds} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-B\mbox{[}\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S\mbox{]}\mbox{[}\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E+1\mbox{]}, }
+\item[{const uint32\-\_\-t}]{lrot\-\_\-const, }
+\item[{const uint32\-\_\-t}]{dc, }
+\item[{const uint32\-\_\-t}]{dd, }
+\item[{uint32\-\_\-t $\ast$}]{de\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-arx_8cc_a33419708a7aa0ca45657294dcfd98d86}
+\-Compute an array of bounds to be used in the computation of the maximum differential probability.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em \-B} & array of bounds for every initial state\-: $s: 0 \le s <$\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S} and every bit position $k: 0 \le k \le$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}. \\
+\hline
+{\em lrot\-\_\-const} & \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T} constant. \\
+\hline
+{\em dc} & input difference to the \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T} operation in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}. \\
+\hline
+{\em dd} & input difference to the \hyperlink{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\-X\-O\-R} operation in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}. \\
+\hline
+{\em de\-\_\-max} & maximum probability output difference from \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X} (not used).\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+
+\begin{DoxyItemize}
+\item \-For each initial state $s: 0 \le s <$\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S}, $n =$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}, initialize $B[s][n]$ to the corresponding final states (see \hyperlink{adp-arx_8hh_af70040b1b46c82f1fbe37b5bab89d7db}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-F\-S\-T\-A\-T\-E\-S})\-: $B[s][n] = L^{s}$, where $L^{0} = (1,1,0,0,0,0,0,0)$, $L^{1} = (0,0,1,1,0,0,0,0)$ $L^{2} = (0,0,0,0,1,1,0,0)$, $L^{3} = (0,0,0,0,0,0,1,1)$ (performed by the caller).
+\item \-For every bit position k from (\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} -\/ 1) down to 0
+\begin{DoxyItemize}
+\item \-For every initial state $s$ from 0 to (\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S} -\/ 1)\-:
+\begin{DoxyItemize}
+\item \-For every state $i$ from 0 to (\hyperlink{adp-arx_8hh_af665f75e00f5755b68319f5907f75823}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-M\-S\-I\-Z\-E} -\/ 1)\-:
+\begin{DoxyItemize}
+\item \-Initialize $B[s][k][i] \leftarrow p_{\mathrm{max}} = 0$
+\item \-Let $C^{i}_{k-1}$ be a column unit vector of size \hyperlink{adp-arx_8hh_af665f75e00f5755b68319f5907f75823}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-M\-S\-I\-Z\-E} with 1 at position $i$.
+\item \-Recursively assign values to the bits of the output difference $de$ starting at bit popsition $j = k$ and terminating at bit position $n=$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}.
+\item \-The recursion proceeds to bit postion $j + 1$ only if the probability $p_j$ of the partially constructed differential $(dc[j:k], dd[j+r:k+r] \rightarrow de[j+r:k+r])$ multiplied by the bound of the probability until the end $B[s][j+1]$, where $r=\mathrm{lrot\_const}$, is bigger than the best probability found so far i.\-e. if\-: $B[s][j+1] A_{j} A_{j-1} \ldots A_{k} C^{i}_{k-1} > p_{\mathrm{max}}$. \begin{DoxyNote}{\-Note}
+\-This step is performed by \hyperlink{max-adp-arx_8hh_a0976a49270edcbdfae7c207c0b807a89}{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i} .
+\end{DoxyNote}
+
+\item \-When $j = n$ update the maximum $p_{\mathrm{max}} \leftarrow p_{n-1} = \mathrm{dp}(dc[n-1:k],dd[n-1+r:k+r] \rightarrow de[n-1+r:k+r])$.
+\item \-At the end of the recursion set the maximum value for state $i$ and initial state $s$ at bit position $k$\-: $B[s][k][i] \leftarrow p_{\mathrm{max}}$.
+\end{DoxyItemize}
+\end{DoxyItemize}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+{\bfseries \-Meaning} {\bfseries of} {\bfseries the} {\bfseries bounds} {\bfseries \-B\-:} 
+
+\-For any $i: 0 \le i <$\hyperlink{adp-arx_8hh_af665f75e00f5755b68319f5907f75823}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-M\-S\-I\-Z\-E}, the probability $B[s][k][i]$ computed with the above algorithm is an {\itshape upper\/} {\itshape bound\/} on on the maximum probability of the differential $(dc[n-1:k], dd[n-1+r:k+r] \rightarrow de[n-1+r:k+r])$, computed from initial state $i$ and terminating at final state $L^{s}$. \-In other words, for any choice of the following $(n-k)$ bits of de\-: $de[n-1+r:k+r]$, the probability $ L^{s} A_{n-1} A_{n-2} \ldots A_{k} C^{i}_{k-1}$ will never be bigger than $B[s][k][i]$. \-Furthermore, let $G[s][k] = L^{s} A_{n-1} A_{n-2} \ldots A_{k}$ be the multiplication of the corresponding transition probability matrices for the following $(n-k)$ bits of de\-: $de[n-1+r:k+r]$ and let $H[s][k-1] = A_{k-1} A_{k-2} \ldots A_{0} C^i_{k-1}$ and $H[-1] = C^{2s}$. \-Then $\mathrm{dp}(dc,dd \rightarrow de) = \sum_{s}(G[s][k]~ H[s][k-1]) \le \sum_{s}(B[s][k]~ H[s][k-1])$. \-Threfore $\sum_{s}(B[s][k]~ H[s][k-1])$ is an upper bound on the proability $\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$. \-Note that $\mathrm{dp}(dc,dd \rightarrow de) = \mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$, where $da + db = dc$.
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-arx_8hh_a0976a49270edcbdfae7c207c0b807a89}{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i}, \hyperlink{max-adp-xor_8hh_ab44746fae93c11ea36bd24f4f874669d}{max\-\_\-adp\-\_\-xor\-\_\-bounds} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-arx_8cc_aca732635ed09b370e99cb05feb4c2765}{\index{max-\/adp-\/arx.\-cc@{max-\/adp-\/arx.\-cc}!max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-0@{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-0}}
+\index{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-0@{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-0}!max-adp-arx.cc@{max-\/adp-\/arx.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-0}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-0} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{n, }
+\item[{const uint32\-\_\-t}]{lrot\-\_\-const, }
+\item[{double $\ast$}]{p, }
+\item[{uint32\-\_\-t $\ast$}]{de, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-B\mbox{[}\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S\mbox{]}\mbox{[}\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E+1\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-C\mbox{[}\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S\mbox{]}, }
+\item[{const uint32\-\_\-t}]{dc, }
+\item[{const uint32\-\_\-t}]{dd, }
+\item[{uint32\-\_\-t $\ast$}]{de\-\_\-max, }
+\item[{double $\ast$}]{p\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-arx_8cc_aca732635ed09b370e99cb05feb4c2765}
+\-Compute the maximum probability output difference $de$ from \-A\-R\-X\-: $\max_{de}~\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$, given upper bounds on the probabilities $B[s][k]$ for every initial state $s: 0 \le s <$\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S} and every bit postion $k: 0 \le k <$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}, computed with \hyperlink{max-adp-arx_8hh_a33419708a7aa0ca45657294dcfd98d86}{max\-\_\-adp\-\_\-arx\-\_\-bounds} .
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em k} & current bit position\-: $n \ge > k \ge 0$; initialized to 0. \\
+\hline
+{\em n} & word size (\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em lrot\-\_\-const} & \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T} constant. \\
+\hline
+{\em p} & the estimated probability at bit position $k$. \\
+\hline
+{\em de} & output difference. \\
+\hline
+{\em \-A} & transition probability matrices (\hyperlink{adp-arx_8hh_afa557fabb780c1febded3e85fe3c7510}{adp\-\_\-arx\-\_\-sf}). \\
+\hline
+{\em \-B} & array of bounds for every initial state\-: $s: 0 \le s <$\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S} and every bit position $k: 0 \le k \le$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}. \\
+\hline
+{\em \-C} & a set of \hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S} unit row vectors of size \hyperlink{adp-arx_8hh_af665f75e00f5755b68319f5907f75823}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-M\-S\-I\-Z\-E}. \-Each one is initialized with 1 at one of the four initial states (\hyperlink{adp-arx_8hh_a94f941841e2bc961bc9abd1c7e0b8513}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-I\-S\-T\-A\-T\-E\-S}). \\
+\hline
+{\em dc} & input difference to the \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T} operation in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}. \\
+\hline
+{\em dd} & input difference to the \hyperlink{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\-X\-O\-R} operation in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}. \\
+\hline
+{\em de\-\_\-max} & maximum probability output difference from \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X} (not used). \\
+\hline
+{\em p\-\_\-max} & the maximum probability. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$
+\end{DoxyReturn}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+
+\begin{DoxyItemize}
+\item \-Recursively assign values to the bits of the output difference $de$ starting at bit popsition $j = 0$ and terminating at bit position $n=$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}.
+\item \-The recursion proceeds to bit postion $j + 1$ only if the sum of the probabilities $p_j[s]$ of the partially constructed differential $(dc[j:0], dd[j+r:r] \rightarrow de[j+r:r])$ computed starting from initial position $s$, multiplied by the bound of the probability until the end $B[s][j+1]$, is bigger than the best probability found so far i.\-e. if\-: $\sum_{s} (B[s][j+1]~ A_{j} A_{j-1} \ldots A_{0} C^{s}_{-1}) > p_{\mathrm{max}}$.
+\item \-When $j = n$ update the maximum $p_{\mathrm{max}} \leftarrow p_{n-1} = \sum_{s} (L^{s}~ A_{n-1} A_{n-2} \ldots A_{0} C^{s}_{-1})$ $ = \mathrm{dp}(dc[n-1:0],dd[n-1+r:r] \rightarrow de[n-1+r:r])$. \-Note that $B[s][n]$ must be are initialized to $L^{s}$ by the caller, where $L^{0} = (1,1,0,0,0,0,0,0)$, $L^{1} = (0,0,1,1,0,0,0,0)$ $L^{2} = (0,0,0,0,1,1,0,0)$, $L^{3} = (0,0,0,0,0,0,1,1)$.
+\item \-At the end of the recursion $p_\mathrm{max} = \mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$, since $\mathrm{dp}(dc,dd \rightarrow de) = \mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$, where $da + db = dc$.
+\item \-Store $de$ and return $p_\mathrm{max}$.
+\end{DoxyItemize}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-arx_8hh_a0976a49270edcbdfae7c207c0b807a89}{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-arx_8cc_a0976a49270edcbdfae7c207c0b807a89}{\index{max-\/adp-\/arx.\-cc@{max-\/adp-\/arx.\-cc}!max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i@{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i}}
+\index{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i@{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i}!max-adp-arx.cc@{max-\/adp-\/arx.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf max\-\_\-adp\-\_\-arx\-\_\-bounds\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{n, }
+\item[{const uint32\-\_\-t}]{lrot\-\_\-const, }
+\item[{double $\ast$}]{p, }
+\item[{uint32\-\_\-t $\ast$}]{de, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-B\mbox{[}\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E+1\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-C, }
+\item[{const uint32\-\_\-t}]{dc, }
+\item[{const uint32\-\_\-t}]{dd, }
+\item[{uint32\-\_\-t $\ast$}]{de\-\_\-max, }
+\item[{double $\ast$}]{p\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-arx_8cc_a0976a49270edcbdfae7c207c0b807a89}
+\-For a fixed initial state $s$ and bit position $k$, compute an {\itshape upper\/} {\itshape bound\/} $B[s][k][i]$ on the probability of the differential $(dc[n-1:k], dd[n-1+r:k+r] \rightarrow de[n-1+r:k+r])$ computed from initial state $i$ and terminating at final state $L^{s}$, where $s: 0 \le s <$\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S} i.\-e. compute a bound on the probability $\mathrm{dp}(dc[n-1:k],dd[n-1+r:k+r] \rightarrow de[n-1+r:k+r]) = L^{s} A_{n-1} A_{n-2} \ldots A_{k} C^{i}_{k-1}$, given the upper bounds $B[s][k]$ on the probabilities of the differentials $(dc[n-1:j], dd[n-1+r:j+r] \rightarrow de[n-1+r:j+r])$ for $j = k+1, k+2, \ldots, n-1$, where $L^{0} = (1,1,0,0,0,0,0,0)$, $L^{1} = (0,0,1,1,0,0,0,0)$ $L^{2} = (0,0,0,0,1,1,0,0)$, $L^{3} = (0,0,0,0,0,0,1,1)$ and $C^{i}_{k-1}$ is a column unit vector of size \hyperlink{adp-arx_8hh_af665f75e00f5755b68319f5907f75823}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-M\-S\-I\-Z\-E} with 1 at position $i$,
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em k} & current bit position\-: $n \ge > k \ge 0$. \\
+\hline
+{\em n} & word size (\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em lrot\-\_\-const} & \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T} constant. \\
+\hline
+{\em p} & the estimated probability at bit position $k$. \\
+\hline
+{\em de} & output difference.\\
+\hline
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em \-B} & array of bounds for a fixed initial state $s$, set by the caller and every bit position $k: 0 \le k \le$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}. \\
+\hline
+{\em \-C} & unit row vector of size \hyperlink{adp-arx_8hh_af665f75e00f5755b68319f5907f75823}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-M\-S\-I\-Z\-E}, initialized with 1 at state index $i$. \\
+\hline
+{\em dc} & input difference to the \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T} operation in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}. \\
+\hline
+{\em dd} & input difference to the \hyperlink{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\-X\-O\-R} operation in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}. \\
+\hline
+{\em de\-\_\-max} & maximum probability output difference from \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X} (not used). \\
+\hline
+{\em p\-\_\-max} & the maximum probability.\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+
+\begin{DoxyItemize}
+\item \-Recursively assign values to the bits of the output difference $de$ starting at bit popsition $j = k$ and terminating at bit position $n=$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}.
+\item \-The recursion proceeds to bit postion $j + 1$ only if the probability $p_j$ of the partially constructed differential $(dc[j:k], dd[j+r:k+r] \rightarrow de[j+r:k+r])$ multiplied by the bound of the probability until the end $B[s][j+1]$, where $r=\mathrm{lrot\_const}$, is bigger than the best probability found so far i.\-e. if\-: $B[s][j+1] A_{j} A_{j-1} \ldots A_{k} C^{i}_{k-1} > p_{\mathrm{max}}$.
+\item \-When $j = n$ update the maximum $p_{\mathrm{max}} \leftarrow p_{n-1} = \mathrm{dp}(dc[n-1:k],dd[n-1+r:k+r] \rightarrow de[n-1+r:k+r])$.
+\item \-Store $p_max$ and return.
+\end{DoxyItemize}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-arx_8hh_a33419708a7aa0ca45657294dcfd98d86}{max\-\_\-adp\-\_\-arx\-\_\-bounds} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-arx_8cc_abfb1c22b9460ed0c2bb71497e214f75c}{\index{max-\/adp-\/arx.\-cc@{max-\/adp-\/arx.\-cc}!max\-\_\-adp\-\_\-arx\-\_\-exper@{max\-\_\-adp\-\_\-arx\-\_\-exper}}
+\index{max\-\_\-adp\-\_\-arx\-\_\-exper@{max\-\_\-adp\-\_\-arx\-\_\-exper}!max-adp-arx.cc@{max-\/adp-\/arx.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-arx\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-arx\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{const uint32\-\_\-t}]{lrot\-\_\-const, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{const uint32\-\_\-t}]{dd, }
+\item[{uint32\-\_\-t $\ast$}]{de\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-arx_8cc_abfb1c22b9460ed0c2bb71497e214f75c}
+\-Compute the maximum differential probability by exhaustive search over all output differences. {\bfseries \-Complexity\-:} $O(2^n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em lrot\-\_\-const} & the rotation constant of the \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T} operation in \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}. \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dd} & third input difference. \\
+\hline
+{\em de\-\_\-max} & maximum probability output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\max_{de}~\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-xor_8hh_aa66f59ae4d29988f90f525ce600d6045}{max\-\_\-adp\-\_\-xor} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-arx_8cc_ae6cb4039d510247582c4e275a7efc3d1}{\index{max-\/adp-\/arx.\-cc@{max-\/adp-\/arx.\-cc}!max\-\_\-adp\-\_\-arx\-\_\-print\-\_\-bounds@{max\-\_\-adp\-\_\-arx\-\_\-print\-\_\-bounds}}
+\index{max\-\_\-adp\-\_\-arx\-\_\-print\-\_\-bounds@{max\-\_\-adp\-\_\-arx\-\_\-print\-\_\-bounds}!max-adp-arx.cc@{max-\/adp-\/arx.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-arx\-\_\-print\-\_\-bounds}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf max\-\_\-adp\-\_\-arx\-\_\-print\-\_\-bounds} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-vector $\ast$}]{\-B\mbox{[}\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S\mbox{]}\mbox{[}\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E+1\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{max-adp-arx_8cc_ae6cb4039d510247582c4e275a7efc3d1}
+\-Print the array of bounds computed with \hyperlink{max-adp-arx_8hh_a33419708a7aa0ca45657294dcfd98d86}{max\-\_\-adp\-\_\-arx\-\_\-bounds} .
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-B} & array of bounds for every initial state\-: $s: 0 \le s <$\hyperlink{adp-arx_8hh_af9236f8d08a54b97ed2199271de979f6}{\-A\-D\-P\-\_\-\-A\-R\-X\-\_\-\-N\-I\-S\-T\-A\-T\-E\-S} and every bit position $k: 0 \le k \le$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-arx_8hh_a33419708a7aa0ca45657294dcfd98d86}{max\-\_\-adp\-\_\-arx\-\_\-bounds}. 
+\end{DoxySeeAlso}

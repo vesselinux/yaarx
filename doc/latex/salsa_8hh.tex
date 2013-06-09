@@ -1,0 +1,184 @@
+\hypertarget{salsa_8hh}{\subsection{include/salsa.hh \-File \-Reference}
+\label{salsa_8hh}\index{include/salsa.\-hh@{include/salsa.\-hh}}
+}
+
+
+\-Header file for \hyperlink{salsa_8cc}{salsa.\-cc}\-: \-Analysis of block cipher \-Salsa20.  .  
+
+
+\subsubsection*{\-Defines}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{salsa_8hh_ab9131406759404181baccde51c4fa855}{\#define {\bfseries \-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S}~20}\label{salsa_8hh_ab9131406759404181baccde51c4fa855}
+
+\item 
+\#define \hyperlink{salsa_8hh_a26854b2861b7c4bbddcf4833fad35882}{\-S\-A\-L\-S\-A\-\_\-\-F\-E\-E\-D\-\_\-\-F\-O\-R\-W\-A\-R\-D}~0
+\item 
+\#define \hyperlink{salsa_8hh_a92b29a260afbda4bbda637dd7c76cff6}{\-S\-A\-L\-S\-A\-\_\-\-R\-A\-N\-D\-\_\-\-R\-O\-T\-\_\-\-C\-O\-N\-S\-T}~0
+\item 
+\#define \hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}~16
+\end{DoxyCompactItemize}
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{salsa_8hh_a075c010da91440a44535de65daeddf05}{void {\bfseries salsa20} (const uint32\-\_\-t e\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]}, const uint32\-\_\-t r\-\_\-start, const uint32\-\_\-t r\-\_\-end, const uint32\-\_\-t \-X\-\_\-in\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, uint32\-\_\-t \-Y\-\_\-in\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_a075c010da91440a44535de65daeddf05}
+
+\item 
+void \hyperlink{salsa_8hh_aa499af8d8d1dc95497226dd8949bbe79}{salsa\-\_\-gen\-\_\-rand\-\_\-input\-\_\-state} (uint32\-\_\-t \-X\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})
+\item 
+void \hyperlink{salsa_8hh_ae95929608c990de68d87198dc8bfe36c}{salsa\-\_\-print\-\_\-state\-\_\-uint32} (const uint32\-\_\-t \-X\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})
+\item 
+void \hyperlink{salsa_8hh_a5df83dc88782e57a1288c66047d67aa5}{salsa\-\_\-print\-\_\-state\-\_\-uint8} (const uint8\-\_\-t \-X\mbox{[}4 $\ast$\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})
+\item 
+\hypertarget{salsa_8hh_aec235ccc18eea1de3674c3e8ba9e458e}{void {\bfseries salsa\-\_\-uint8\-\_\-to\-\_\-uint32} (const uint8\-\_\-t \-X\mbox{[}4\mbox{]}, uint32\-\_\-t $\ast$\-Y)}\label{salsa_8hh_aec235ccc18eea1de3674c3e8ba9e458e}
+
+\item 
+\hypertarget{salsa_8hh_a438585255c425543024693c96fd7134e}{void {\bfseries salsa\-\_\-uint32\-\_\-to\-\_\-uint8} (uint8\-\_\-t \-X\mbox{[}4\mbox{]}, const uint32\-\_\-t \-Y)}\label{salsa_8hh_a438585255c425543024693c96fd7134e}
+
+\item 
+\hypertarget{salsa_8hh_a30e43f0a4a7b3b29508a28d7c35bb56b}{void {\bfseries salsa\-\_\-state\-\_\-uint8\-\_\-to\-\_\-uint32} (const uint8\-\_\-t \-X\mbox{[}4 $\ast$\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, uint32\-\_\-t \-Y\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_a30e43f0a4a7b3b29508a28d7c35bb56b}
+
+\item 
+\hypertarget{salsa_8hh_a88c3d454fe1dd19fad385a8da5977073}{void {\bfseries salsa\-\_\-state\-\_\-uint32\-\_\-to\-\_\-uint8} (uint8\-\_\-t \-X\mbox{[}4 $\ast$\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, const uint32\-\_\-t \-Y\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_a88c3d454fe1dd19fad385a8da5977073}
+
+\item 
+\hypertarget{salsa_8hh_a45063cc798f47435afc6969418d1b280}{void {\bfseries salsa\-\_\-print\-\_\-trail} (uint32\-\_\-t nrounds, \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} \-D\-T\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, double \-P\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_a45063cc798f47435afc6969418d1b280}
+
+\item 
+\hypertarget{salsa_8hh_a0010e7e3d0dbc6640950be30a496ec1e}{void {\bfseries salsa\-\_\-print\-\_\-prob} (double \-P\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_a0010e7e3d0dbc6640950be30a496ec1e}
+
+\item 
+\hypertarget{salsa_8hh_a4cd595a2aec8057b648c8414e6fdbe7f}{void {\bfseries salsa\-\_\-print\-\_\-prob\-\_\-vs\-\_\-rand} (double \-P\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, double \-P\-\_\-rand\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_a4cd595a2aec8057b648c8414e6fdbe7f}
+
+\item 
+\hypertarget{salsa_8hh_a87c47e09c7ee4b307288ff0eae8a7516}{double {\bfseries xdp\-\_\-add\-\_\-dset\-\_\-salsa20} (const uint32\-\_\-t e\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]}, const uint32\-\_\-t r\-\_\-start, const uint32\-\_\-t r\-\_\-end, gsl\-\_\-matrix $\ast$\-A\mbox{[}3\mbox{]}\mbox{[}3\mbox{]}\mbox{[}3\mbox{]}, const \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} \-D\-X\-\_\-in\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} \-D\-Y\-\_\-in\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} \-D\-T\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, double \-P\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_a87c47e09c7ee4b307288ff0eae8a7516}
+
+\item 
+\hypertarget{salsa_8hh_ad1843b8eae9d9ec19b88d98c3fe65ed2}{double {\bfseries xdp\-\_\-add\-\_\-dset\-\_\-salsa20\-\_\-exper} (const uint32\-\_\-t e\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]}, const uint32\-\_\-t r\-\_\-start, const uint32\-\_\-t r\-\_\-end, uint32\-\_\-t npairs, const \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} \-D\-X\-\_\-set\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} \-D\-Y\-\_\-set\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, double \-P\-W\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_ad1843b8eae9d9ec19b88d98c3fe65ed2}
+
+\item 
+void \hyperlink{salsa_8hh_a496fa3f57622f1769cd5b6a72178bdaf}{salsa\-\_\-gen\-\_\-rand\-\_\-shift\-\_\-const} (uint32\-\_\-t \hyperlink{salsa_8hh_ab44999d45b6e0fee6f910387230b783a}{\-E}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]})
+\item 
+void \hyperlink{salsa_8hh_af2d8a96fe890b36bec9d8f5bdf99ac82}{salsa\-\_\-gen\-\_\-word\-\_\-deps} (const uint32\-\_\-t nrounds, const uint32\-\_\-t e\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]}, uint32\-\_\-t dep\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})
+\item 
+void \hyperlink{salsa_8hh_a286f3009b9c24e47535b0c0e0383e9b4}{salsa\-\_\-word\-\_\-probs} (const uint32\-\_\-t nrounds, const uint32\-\_\-t e\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]}, double \-P\-T\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, uint32\-\_\-t \-D\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, double \-P\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})
+\item 
+\hypertarget{salsa_8hh_a2f556091ae55b7ba91f3e4268bb95003}{void {\bfseries salsa\-\_\-word\-\_\-probs\-\_\-v2} (const uint32\-\_\-t r\-\_\-start, const uint32\-\_\-t r\-\_\-end, const uint32\-\_\-t e\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]}, double \-P\-T\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, double \-P\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})}\label{salsa_8hh_a2f556091ae55b7ba91f3e4268bb95003}
+
+\item 
+void \hyperlink{salsa_8hh_a0497e7b685ebd10996738b4fd2326d74}{salsa\-\_\-compute\-\_\-prob\-\_\-rand} (const \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} \-Y\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}, double \-P\mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]})
+\item 
+\hypertarget{salsa_8hh_a287bafe63e9e494be9e4691f3e62166a}{double {\bfseries xdp\-\_\-add\-\_\-dset\-\_\-salsa\-\_\-arx} (gsl\-\_\-matrix $\ast$\-A\mbox{[}3\mbox{]}\mbox{[}3\mbox{]}\mbox{[}3\mbox{]}, \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} dx, \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} dy, \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} dz, \hyperlink{structdiff__set__t}{diff\-\_\-set\-\_\-t} $\ast$dt, uint32\-\_\-t k, bool b\-\_\-single\-\_\-diff)}\label{salsa_8hh_a287bafe63e9e494be9e4691f3e62166a}
+
+\end{DoxyCompactItemize}
+\subsubsection*{\-Variables}
+\begin{DoxyCompactItemize}
+\item 
+uint32\-\_\-t \hyperlink{salsa_8hh_ab44999d45b6e0fee6f910387230b783a}{\-E} \mbox{[}\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+\hyperlink{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Header file for \hyperlink{salsa_8cc}{salsa.\-cc}\-: \-Analysis of block cipher \-Salsa20.  . \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Define \-Documentation}
+\hypertarget{salsa_8hh_a26854b2861b7c4bbddcf4833fad35882}{\index{salsa.\-hh@{salsa.\-hh}!\-S\-A\-L\-S\-A\-\_\-\-F\-E\-E\-D\-\_\-\-F\-O\-R\-W\-A\-R\-D@{\-S\-A\-L\-S\-A\-\_\-\-F\-E\-E\-D\-\_\-\-F\-O\-R\-W\-A\-R\-D}}
+\index{\-S\-A\-L\-S\-A\-\_\-\-F\-E\-E\-D\-\_\-\-F\-O\-R\-W\-A\-R\-D@{\-S\-A\-L\-S\-A\-\_\-\-F\-E\-E\-D\-\_\-\-F\-O\-R\-W\-A\-R\-D}!salsa.hh@{salsa.\-hh}}
+\paragraph[{\-S\-A\-L\-S\-A\-\_\-\-F\-E\-E\-D\-\_\-\-F\-O\-R\-W\-A\-R\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-A\-L\-S\-A\-\_\-\-F\-E\-E\-D\-\_\-\-F\-O\-R\-W\-A\-R\-D}~0}}\label{salsa_8hh_a26854b2861b7c4bbddcf4833fad35882}
+\-Apply the feed-\/forward with the input state? \-Yes = 1, \-No = 0. \hypertarget{salsa_8hh_a92b29a260afbda4bbda637dd7c76cff6}{\index{salsa.\-hh@{salsa.\-hh}!\-S\-A\-L\-S\-A\-\_\-\-R\-A\-N\-D\-\_\-\-R\-O\-T\-\_\-\-C\-O\-N\-S\-T@{\-S\-A\-L\-S\-A\-\_\-\-R\-A\-N\-D\-\_\-\-R\-O\-T\-\_\-\-C\-O\-N\-S\-T}}
+\index{\-S\-A\-L\-S\-A\-\_\-\-R\-A\-N\-D\-\_\-\-R\-O\-T\-\_\-\-C\-O\-N\-S\-T@{\-S\-A\-L\-S\-A\-\_\-\-R\-A\-N\-D\-\_\-\-R\-O\-T\-\_\-\-C\-O\-N\-S\-T}!salsa.hh@{salsa.\-hh}}
+\paragraph[{\-S\-A\-L\-S\-A\-\_\-\-R\-A\-N\-D\-\_\-\-R\-O\-T\-\_\-\-C\-O\-N\-S\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-A\-L\-S\-A\-\_\-\-R\-A\-N\-D\-\_\-\-R\-O\-T\-\_\-\-C\-O\-N\-S\-T}~0}}\label{salsa_8hh_a92b29a260afbda4bbda637dd7c76cff6}
+\-Apply random shift constants. \hypertarget{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}{\index{salsa.\-hh@{salsa.\-hh}!\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E@{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}}
+\index{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E@{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}!salsa.hh@{salsa.\-hh}}
+\paragraph[{\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}~16}}\label{salsa_8hh_a642186115ff24eb2f42febb3ccaa093f}
+\-Number of words in the state. 
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{salsa_8hh_a0497e7b685ebd10996738b4fd2326d74}{\index{salsa.\-hh@{salsa.\-hh}!salsa\-\_\-compute\-\_\-prob\-\_\-rand@{salsa\-\_\-compute\-\_\-prob\-\_\-rand}}
+\index{salsa\-\_\-compute\-\_\-prob\-\_\-rand@{salsa\-\_\-compute\-\_\-prob\-\_\-rand}!salsa.hh@{salsa.\-hh}}
+\paragraph[{salsa\-\_\-compute\-\_\-prob\-\_\-rand}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf salsa\-\_\-compute\-\_\-prob\-\_\-rand} (
+\begin{DoxyParamCaption}
+\item[{const {\bf diff\-\_\-set\-\_\-t}}]{\-Y\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}, }
+\item[{double}]{\-P\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{salsa_8hh_a0497e7b685ebd10996738b4fd2326d74}
+\-Compute the random case for the probability. \hypertarget{salsa_8hh_aa499af8d8d1dc95497226dd8949bbe79}{\index{salsa.\-hh@{salsa.\-hh}!salsa\-\_\-gen\-\_\-rand\-\_\-input\-\_\-state@{salsa\-\_\-gen\-\_\-rand\-\_\-input\-\_\-state}}
+\index{salsa\-\_\-gen\-\_\-rand\-\_\-input\-\_\-state@{salsa\-\_\-gen\-\_\-rand\-\_\-input\-\_\-state}!salsa.hh@{salsa.\-hh}}
+\paragraph[{salsa\-\_\-gen\-\_\-rand\-\_\-input\-\_\-state}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf salsa\-\_\-gen\-\_\-rand\-\_\-input\-\_\-state} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{\-X\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{salsa_8hh_aa499af8d8d1dc95497226dd8949bbe79}
+\-Generate a random input state. \hypertarget{salsa_8hh_a496fa3f57622f1769cd5b6a72178bdaf}{\index{salsa.\-hh@{salsa.\-hh}!salsa\-\_\-gen\-\_\-rand\-\_\-shift\-\_\-const@{salsa\-\_\-gen\-\_\-rand\-\_\-shift\-\_\-const}}
+\index{salsa\-\_\-gen\-\_\-rand\-\_\-shift\-\_\-const@{salsa\-\_\-gen\-\_\-rand\-\_\-shift\-\_\-const}!salsa.hh@{salsa.\-hh}}
+\paragraph[{salsa\-\_\-gen\-\_\-rand\-\_\-shift\-\_\-const}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf salsa\-\_\-gen\-\_\-rand\-\_\-shift\-\_\-const} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{\-E\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E+\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}\mbox{[}5\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{salsa_8hh_a496fa3f57622f1769cd5b6a72178bdaf}
+\-Generate random shift constants. \-Used when the word size is less than 32. \hypertarget{salsa_8hh_af2d8a96fe890b36bec9d8f5bdf99ac82}{\index{salsa.\-hh@{salsa.\-hh}!salsa\-\_\-gen\-\_\-word\-\_\-deps@{salsa\-\_\-gen\-\_\-word\-\_\-deps}}
+\index{salsa\-\_\-gen\-\_\-word\-\_\-deps@{salsa\-\_\-gen\-\_\-word\-\_\-deps}!salsa.hh@{salsa.\-hh}}
+\paragraph[{salsa\-\_\-gen\-\_\-word\-\_\-deps}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf salsa\-\_\-gen\-\_\-word\-\_\-deps} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{nrounds, }
+\item[{const uint32\-\_\-t}]{e\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E+\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}\mbox{[}5\mbox{]}, }
+\item[{uint32\-\_\-t}]{\-D\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{salsa_8hh_af2d8a96fe890b36bec9d8f5bdf99ac82}
+\-Generate an array of dependencies of each of the \-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E number of output words after \-R\-O\-U\-N\-D\-S number of rounds upon some of the modular additions in rounds 0,1,2,...,\-R\-O\-U\-N\-D\-S-\/2. dep\mbox{[}i\mbox{]}\mbox{[}j\mbox{]} are 32-\/bit words of which only the 16 lsb bits are used. each of these 16 bits corresponds to one modular addition in the given round.
+
+\-Example\-: \-Let \-R\-O\-U\-N\-D\-S = 3. \-Then each of the 16 words after round 3 depends on some modular additions from rounds 1,2 and 3. \-Let's say that word 4 depends on additions 1 and 8 after round 1 (if we start counting from zero this is a 16-\/bit word with bits \#1 and \#8 set to 1\-: 0x0102), on additions 2 and 7 after round 2 (0x0044) and on additions 15 and 3 after round 3 (0x8010). \-Then the corresponding entry of dep for word 4 will be\-:
+
+dep\mbox{[}4\mbox{]} = \{0x0082, 0x0044, 0x8010\}
+
+\-The modular additions in a given round are enumerated with the same index as the index of the word which is computed by using this modular addition.
+
+\-Example\-: \-The modular addition (word\mbox{[}0\mbox{]} + word\mbox{[}12\mbox{]}) described with the pair (word\mbox{[}0\mbox{]}, word\mbox{[}12\mbox{]}) and used to compute word 4 has index 4\-:
+
+word\mbox{[}4\mbox{]} = \-X\-O\-R(word\mbox{[}4\mbox{]},\-R\-O\-T\-A\-T\-E(\-P\-L\-U\-S(word\mbox{[}0\mbox{]},word\mbox{[}12\mbox{]}), 7);
+
+\-So the addition \-P\-L\-U\-S(word\mbox{[}0\mbox{]},word\mbox{[}12\mbox{]}) has index 4 in the dep array. \hypertarget{salsa_8hh_ae95929608c990de68d87198dc8bfe36c}{\index{salsa.\-hh@{salsa.\-hh}!salsa\-\_\-print\-\_\-state\-\_\-uint32@{salsa\-\_\-print\-\_\-state\-\_\-uint32}}
+\index{salsa\-\_\-print\-\_\-state\-\_\-uint32@{salsa\-\_\-print\-\_\-state\-\_\-uint32}!salsa.hh@{salsa.\-hh}}
+\paragraph[{salsa\-\_\-print\-\_\-state\-\_\-uint32}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf salsa\-\_\-print\-\_\-state\-\_\-uint32} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{\-X\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{salsa_8hh_ae95929608c990de68d87198dc8bfe36c}
+\-Print state in 32-\/bit words. \hypertarget{salsa_8hh_a5df83dc88782e57a1288c66047d67aa5}{\index{salsa.\-hh@{salsa.\-hh}!salsa\-\_\-print\-\_\-state\-\_\-uint8@{salsa\-\_\-print\-\_\-state\-\_\-uint8}}
+\index{salsa\-\_\-print\-\_\-state\-\_\-uint8@{salsa\-\_\-print\-\_\-state\-\_\-uint8}!salsa.hh@{salsa.\-hh}}
+\paragraph[{salsa\-\_\-print\-\_\-state\-\_\-uint8}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf salsa\-\_\-print\-\_\-state\-\_\-uint8} (
+\begin{DoxyParamCaption}
+\item[{const uint8\-\_\-t}]{\-X\mbox{[}4 $\ast$\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{salsa_8hh_a5df83dc88782e57a1288c66047d67aa5}
+\-Print state in 8-\/bit words. \hypertarget{salsa_8hh_a286f3009b9c24e47535b0c0e0383e9b4}{\index{salsa.\-hh@{salsa.\-hh}!salsa\-\_\-word\-\_\-probs@{salsa\-\_\-word\-\_\-probs}}
+\index{salsa\-\_\-word\-\_\-probs@{salsa\-\_\-word\-\_\-probs}!salsa.hh@{salsa.\-hh}}
+\paragraph[{salsa\-\_\-word\-\_\-probs}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf salsa\-\_\-word\-\_\-probs} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{nrounds, }
+\item[{const uint32\-\_\-t}]{e\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E+\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}\mbox{[}5\mbox{]}, }
+\item[{double}]{\-P\-T\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}, }
+\item[{uint32\-\_\-t}]{\-D\mbox{[}\-M\-A\-X\-\_\-\-N\-R\-O\-U\-N\-D\-S\mbox{]}\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}, }
+\item[{double}]{\-P\mbox{[}\-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{salsa_8hh_a286f3009b9c24e47535b0c0e0383e9b4}
+\-Given the probabilities for each of the words of the state after every round {\ttfamily \-P\-T} computed with xdp\-\_\-add\-\_\-dset\-\_\-salsa20 , and the array of word dependencies {\ttfamily \-D} computed with \hyperlink{salsa_8hh_af2d8a96fe890b36bec9d8f5bdf99ac82}{salsa\-\_\-gen\-\_\-word\-\_\-deps} , compute the individual probabilities for each of the words of the state after {\ttfamily nrounds} .
+
+\begin{DoxyAttention}{\-Attention}
+{\ttfamily \-P}\mbox{[}0\mbox{]} is the initial input and therefore \-P\mbox{[}i\mbox{]} is the output from round $i - 1$. 
+\end{DoxyAttention}
+
+
+\subsubsection{\-Variable \-Documentation}
+\hypertarget{salsa_8hh_ab44999d45b6e0fee6f910387230b783a}{\index{salsa.\-hh@{salsa.\-hh}!\-E@{\-E}}
+\index{\-E@{\-E}!salsa.hh@{salsa.\-hh}}
+\paragraph[{\-E}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf \-E}\mbox{[}{\bf \-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}+{\bf \-S\-A\-L\-S\-A\-\_\-\-S\-T\-A\-T\-E}\mbox{]}\mbox{[}5\mbox{]}}}\label{salsa_8hh_ab44999d45b6e0fee6f910387230b783a}
+\-The array {\ttfamily e} encodes the operations of the \-Salsa column round by providing the indexes of the words on which operations are performed. \-The information for i-\/th entry of e is interpreted as follow (see the column round operation of \-Salsa20)\-:
+
+e\mbox{[}i\mbox{]}\mbox{[}0\mbox{]} = \-X\-O\-R( e\mbox{[}i\mbox{]}\mbox{[}1\mbox{]}, \-L\-R\-O\-T( \hyperlink{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}{\-A\-D\-D(e\mbox{[}i\mbox{]}\mbox{[}2\mbox{]},e\mbox{[}i\mbox{]}\mbox{[}3\mbox{]})}, e\mbox{[}i\mbox{]}\mbox{[}4\mbox{]}) ) = e\mbox{[}i\mbox{]}\mbox{[}1\mbox{]} $^\wedge$ ((e\mbox{[}i\mbox{]}\mbox{[}2\mbox{]} + e\mbox{[}i\mbox{]}\mbox{[}3\mbox{]}) $<$$<$$<$ e\mbox{[}i\mbox{]}\mbox{[}4\mbox{]}) 

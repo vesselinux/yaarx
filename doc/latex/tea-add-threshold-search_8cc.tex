@@ -1,0 +1,311 @@
+\hypertarget{tea-add-threshold-search_8cc}{\subsection{src/tea-\/add-\/threshold-\/search.cc \-File \-Reference}
+\label{tea-add-threshold-search_8cc}\index{src/tea-\/add-\/threshold-\/search.\-cc@{src/tea-\/add-\/threshold-\/search.\-cc}}
+}
+
+
+\-Automatic search for \-A\-D\-D differential trails in block cipher \-T\-E\-A.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}adp-\/xor3.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}tea.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}eadp-\/tea-\/f.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}tea-\/f-\/add-\/pddt.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint32\-\_\-t \hyperlink{tea-add-threshold-search_8cc_a50a3716bc83febae5e18ba2934aea8ab}{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp} (\hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t trail\-\_\-len, double p\-\_\-thres)
+\item 
+void \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} (const int n, const int nrounds, const uint32\-\_\-t npairs, const uint32\-\_\-t key\mbox{[}4\mbox{]}, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, double $\ast$\-Bn, const \hyperlink{structdifferential__t}{differential\-\_\-t} diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+void \hyperlink{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full} (const int n, const int nrounds, const uint32\-\_\-t npairs, const uint32\-\_\-t key\mbox{[}4\mbox{]}, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, double $\ast$\-Bn, const \hyperlink{structdifferential__t}{differential\-\_\-t} diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$croads\-\_\-diff\-\_\-mset\-\_\-p, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$croads\-\_\-diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+uint32\-\_\-t \hyperlink{tea-add-threshold-search_8cc_aa0f68e80d4599027b9a5c581891af32f}{tea\-\_\-add\-\_\-trail\-\_\-search} (uint32\-\_\-t key\mbox{[}4\mbox{]}, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+uint32\-\_\-t \hyperlink{tea-add-threshold-search_8cc_ad67aee37c1fb58e3236ddbe912574538}{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full} (uint32\-\_\-t key\mbox{[}4\mbox{]}, double \-B\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t num\-\_\-rounds)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Automatic search for \-A\-D\-D differential trails in block cipher \-T\-E\-A. \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{tea-add-threshold-search_8cc_a50a3716bc83febae5e18ba2934aea8ab}{\index{tea-\/add-\/threshold-\/search.\-cc@{tea-\/add-\/threshold-\/search.\-cc}!tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp@{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp}}
+\index{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp@{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp}!tea-add-threshold-search.cc@{tea-\/add-\/threshold-\/search.\-cc}}
+\paragraph[{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{trail\-\_\-len, }
+\item[{double}]{p\-\_\-thres}
+\end{DoxyParamCaption}
+)}}\label{tea-add-threshold-search_8cc_a50a3716bc83febae5e18ba2934aea8ab}
+\-Count the number of differentials in a {\ttfamily trail} that have probabilities below a given threshold.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em trail} & a differential trail for {\ttfamily trail\-\_\-len} rounds. \\
+\hline
+{\em trail\-\_\-len} & length of the differential trail. \\
+\hline
+{\em p\-\_\-thres} & probability threshold. \\
+\hline
+\end{DoxyParams}
+\hypertarget{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{\index{tea-\/add-\/threshold-\/search.\-cc@{tea-\/add-\/threshold-\/search.\-cc}!tea\-\_\-add\-\_\-threshold\-\_\-search@{tea\-\_\-add\-\_\-threshold\-\_\-search}}
+\index{tea\-\_\-add\-\_\-threshold\-\_\-search@{tea\-\_\-add\-\_\-threshold\-\_\-search}!tea-add-threshold-search.cc@{tea-\/add-\/threshold-\/search.\-cc}}
+\paragraph[{tea\-\_\-add\-\_\-threshold\-\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-add\-\_\-threshold\-\_\-search} (
+\begin{DoxyParamCaption}
+\item[{const int}]{n, }
+\item[{const int}]{nrounds, }
+\item[{const uint32\-\_\-t}]{npairs, }
+\item[{const uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{double $\ast$}]{\-Bn, }
+\item[{const {\bf differential\-\_\-t}}]{diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}
+\-Automatic search for \-A\-D\-D differential trails in block cipher \-T\-E\-A. using p\-D\-D\-T.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & index of the current round\-: $0 \le n < \mathrm{nrounds}$. \\
+\hline
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em key} & cryptographic key of \-T\-E\-A. \\
+\hline
+{\em \-A} & transition probability matrices for $\mathrm{adp}^{3\oplus}$ (\hyperlink{adp-xor3_8hh_a229a19749624926d15eb5b1731379855}{adp\-\_\-xor3\-\_\-sf}). \\
+\hline
+{\em \-B} & array containing the best differential probabilities for i rounds\-: $0 \le i < n$. \\
+\hline
+{\em \-Bn} & the best probability on $n$ rounds, updated dynamically. \\
+\hline
+{\em diff\-\_\-in} & array of differentials. \\
+\hline
+{\em trail} & best found differential trail for {\ttfamily nrounds}. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em diff\-\_\-mset\-\_\-p} & set of differentials $(dx,dy,p)$ (the p\-D\-D\-T) ordered by probability p. \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx,dy,p)$ (the p\-D\-D\-T) ordered by index $i = (dx~ 2^{n} + dy)$.\\
+\hline
+\end{DoxyParams}
+\-The outline of the array of bounds $B$ is the following\-:
+
+
+\begin{DoxyItemize}
+\item $B[0]$\-: best probability for $1$ round.
+\item $B[1]$\-: best probability for $2$ rounds.
+\item $\ldots$
+\item $B[i]$\-: best probability for $(i+1)$ rounds.
+\item $\ldots$
+\item $B[n-2]$\-: best probability for $(n-1)$ rounds.
+\item $B[n-1]$\-: best probability for $n$ rounds.
+\end{DoxyItemize}
+
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+\-The algorithm is based on \-Matsui search strategy described in \mbox{[}\-Sect. 4, \-Matsui, \href{http://dblp.uni-trier.de/rec/bibtex/conf/eurocrypt/Matsui94}{\tt \-On correlation between the order of \-S-\/boxes and the strength of \-D\-E\-S}, \-E\-U\-R\-O\-C\-R\-Y\-P\-T'94\mbox{]}. \-The main idea is to view the \-F-\/function of \-T\-E\-A as an \-S-\/box for which a partial difference distribution table (p\-D\-D\-T) is constructed (\hyperlink{tea-f-add-pddt_8hh_af962bfb5724a4f1dd45fdb2fdeac49f4}{tea\-\_\-f\-\_\-add\-\_\-pddt}). \-Then a recursive search for differential trails over a given number of rounds $n \ge 1$ is performed. \-From knowledge of the best probabilities $B_{1}, B_{2}, \ldots, B_{n-1}$ for the first $(n-1)$ rounds and an initial estimate ${\overline B_n}$ for the probability for $n$ rounds the best probability $B_{n}$ for $n$ rounds is derived. \-Note that for the estimate the following must hold\-: ${\overline B_n} \leq B_n$.
+
+\-In addition to \-Matsui's notation for the probability of the best $n$-\/round trail $B_n$ and of its estimation ${\overline B_n}$ we introduce ${\widehat B_n}$ to denote the probability of {\itshape the\/} {\itshape best\/} {\itshape found\/} trail for $n$ rounds\-: ${\overline B_n} \leq {\widehat B_n} \leq B_n$. \-Given a p\-D\-D\-T $D$ of maximum size $m$, an estimation for the best $n$-\/round probability ${\overline B_n}$ with its corresponding $n$-\/round differential trail ${\overline T}$ and the probabilities ${{\widehat B_1}, {\widehat B_2}, \ldots, {\widehat B_{n-1}}}$ of the best found trails for the first $(n - 1)$ rounds, \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} outputs an $n$-\/round trail ${\widehat T}$ that has probability ${\widehat{B_n}} \ge {\overline B_n}$.
+
+\hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} operates by recursively extending a trail for $i$ rounds to $(i+1)$ rounds, beginning with $i = 1$ and terminating at $i = n$. \-This is done by exploring multiple differential trails constructed from the entries of the p\-D\-D\-T $D$ at every round. \-If, in the process, a differential that is not already in $D$ is encountered it is added to $D$, provided that the maximum size $m$ has not been reached. \-The recursion at level $i$ continues to level $(i+1)$ only if the probability of the constructed $i$-\/round trail multiplied by the probability of the best found trail for $(n - i)$ rounds is at least ${\overline B_n}$ i.\-e. if, $p_1 p_2 \ldots p_i\, {\widehat B_{n - i}} \ge {\overline B_n}$ holds. \-For $i = n$ the last equation is equivalent to\-: $p_1 p_2 \ldots p_n = {\widehat B_{n}} \ge {\overline B_n}$. \-If the latter holds, the initial estimate is updated with the new\-: ${\overline B_n} \gets {\widehat B_{n}}$ and the corresponding trail is also updated accordingly\-: ${\overline T_n} \gets {\widehat T_{n}}$. \-Upon termination the best found trail ${\widehat T_{n}}$ and its probability ${\widehat{B_n}}$ are returned as result.
+
+\begin{DoxyAttention}{\-Attention}
+\-In the process of the search if an input differences $\alpha$ is encountered for which a corresponding output difference $\beta$ is not found in the p\-D\-D\-T (i.\-e. the differential $(\alpha \rightarrow \beta_i)$ is not in the p\-D\-D\-T for no $i$), then an arbitarary non-\/zero probability output differnece $\beta$ is computed with the \hyperlink{eadp-tea-f_8hh_a288ad628f2a68f2f32c7c065a2c87e82}{nz\-\_\-eadp\-\_\-tea\-\_\-f} procedure . \-See also \hyperlink{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full} where a more extensive search over the space of possible output differences $\beta$ is performed in this case.
+\end{DoxyAttention}
+{\bfseries \-Termination} 
+
+\-The algorithm terminates when one of the following two events happens first\-:
+
+
+\begin{DoxyEnumerate}
+\item \-The initial estimate ${\overline B_n}$ can not be improved further.
+\item \-The maximum size $m$ of the p\-D\-D\-T $D$ is reached and all differentials in $D$ in every round have been explored.
+\end{DoxyEnumerate}
+
+{\bfseries \-Complexity} 
+
+\-The complexity of \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} depends on the following factors\-:
+
+
+\begin{DoxyEnumerate}
+\item \-The closeness of the best found probabilities ${{\widehat B_1}, {\widehat B_2}, \ldots, {\widehat B_{n-1}}}$ for the first $(n - 1)$ rounds to the actual best probabilities.
+\item \-The tightness of the initial estimate ${\overline B_n}$.
+\item \-The number of elements in $D$. \-The latter is determined by the probability threshold used to compute $D$ and by the maximum number of elements $m$ allowed.
+\end{DoxyEnumerate}
+
+\-In the worst-\/case, in every round, except the last, $m$ iterations will be executed. \-Therefore the worst-\/case complexity is $\mathcal{O}(m^{n-1})$, where $n$ is the number of rounds. \-Although the algorithm is worst-\/case exponential in the number of rounds, it is much more efficient in practice.
+
+\begin{DoxyAttention}{\-Attention}
+\-The algorithm does not guarantee to find the {\itshape best\/} trail.
+\end{DoxyAttention}
+\begin{DoxyNote}{\-Note}
+\-The p\-D\-D\-T of \-T\-E\-A contains the expected differential probabilities of \-F averaged over all keys and round constants. \-To obtain better estimate of the probabilities of trails for a fixed key and round constants, in the process of the search the probability of each differential is additionally adjusted to the value of the round key and constant by performing one-\/round encryptions over {\ttfamily npairs} pairs of chosen plaintexts.
+\end{DoxyNote}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}{\index{tea-\/add-\/threshold-\/search.\-cc@{tea-\/add-\/threshold-\/search.\-cc}!tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full@{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full}}
+\index{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full@{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full}!tea-add-threshold-search.cc@{tea-\/add-\/threshold-\/search.\-cc}}
+\paragraph[{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full} (
+\begin{DoxyParamCaption}
+\item[{const int}]{n, }
+\item[{const int}]{nrounds, }
+\item[{const uint32\-\_\-t}]{npairs, }
+\item[{const uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{double $\ast$}]{\-Bn, }
+\item[{const {\bf differential\-\_\-t}}]{diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{croads\-\_\-diff\-\_\-mset\-\_\-p, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{croads\-\_\-diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}
+\-Full threshold search for \-A\-D\-D differential trails in block cipher \-T\-E\-A, that uses initial bounds pre-\/computed with \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} .
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & index of the current round\-: $0 \le n < \mathrm{nrounds}$. \\
+\hline
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em key} & cryptographic key of \-T\-E\-A. \\
+\hline
+{\em \-A} & transition probability matrices for $\mathrm{adp}^{3\oplus}$ (\hyperlink{adp-xor3_8hh_a229a19749624926d15eb5b1731379855}{adp\-\_\-xor3\-\_\-sf}). \\
+\hline
+{\em \-B} & array of initial bounds pre-\/computed with \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} . \\
+\hline
+{\em \-Bn} & the best probability on $n$ rounds, updated dynamically. \\
+\hline
+{\em diff\-\_\-in} & array of differentials. \\
+\hline
+{\em trail} & best found differential trail for {\ttfamily nrounds}. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em diff\-\_\-mset\-\_\-p} & set of differentials $(dx,dy,p)$ ({\bfseries \-Highways}) ordered by probability p. \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx,dy,p)$ ({\bfseries \-Highways}) ordered by index $i = (dx~ 2^{n} + dy)$. \\
+\hline
+{\em croads\-\_\-diff\-\_\-mset\-\_\-p} & temporrary set of differentials $(dx,dy,p)$ ({\bfseries \-Countryroads}) ordered by probability p. \\
+\hline
+{\em croads\-\_\-diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx,dy,p)$ ({\bfseries \-Countryroads}) ordered by index $i = (dx~ 2^{n} + dy)$.\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+\-The high-\/level logic of the algorithm is conceptually the same as \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} . \-The main difference is in the way it handles the case when an input difference $\alpha$ is encountered for which a corresponding output difference $\beta$ is not found in the pre-\/computed p\-D\-D\-T. \-In this case a list of many possible output differences is computed and is explored during the search. \-More deatiled explanation follows.
+
+\-Let $\alpha_r$ be an input difference to round $r$ such that the differential $(\alpha_r \rightarrow \beta_i)$ is not in the p\-D\-D\-T for no value of $i$. \-In this case the algorithm uses \hyperlink{tea-f-add-pddt_8hh_a379d6e4054b1bf78e6068f4cbdd06065}{tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt} to compute all differences $\beta_i$ that satisfy the following conditions\-:
+
+
+\begin{DoxyEnumerate}
+\item \-The differential $(\alpha_r \rightarrow \beta_i)$ is such that its probability $p_r$ can still improve the probability of the best found trail for the given number of rounds i.\-e. $p_r \ge {{\overline B_n}}/{(p_1 p_2 \cdots p_{r-1} {\widehat B_{n-r}})}$.
+\item \-The output difference $\beta_i$ is such that it guarantees that the input difference for the next round $\alpha_{r+1} = \alpha_{r-1} + \beta_{i}$ will have a matching entry in the pre-\/computed p\-D\-D\-T. \-This condition guarantees that the resulting output difference $\alpha_{r+1}$ for the next round will have a matching output differences $\beta_{r+1}$ in the initial p\-D\-D\-T.
+\end{DoxyEnumerate}
+
+\-All differentials $(\alpha_r, \beta_r, p_r)$ computed according to the above rules are stored in a temporary p\-D\-D\-T. \-The differentials in this p\-D\-D\-T are explored during the next stages of the search togeter with the differentials from the initial p\-D\-D\-T.
+
+{\bfseries \-The} {\bfseries \-Highways} {\bfseries and} {\bfseries \-Countryroads} {\bfseries \-Analogy} 
+
+\-Denote the temporary p\-D\-D\-T constructed as explained above by $C$ and the initial p\-D\-D\-T that is pre-\/computed at the start of the search by $ H $. \-Then the two tables $ H $ and $C$ can be thought of as lists of {\bfseries highways} and {\bfseries countryroads} on a road map. \-The differentials contained in $H$ have high probabilities w.\-r.\-t. to the fixed probability threshold and correspond therefore to fast roads such as {\bfseries highways}. \-Analogously, the differentials in $C$ have low probabilities and can be seen as slow roads or {\bfseries countryroads}. \-To continue this analogy, the problem of finding a high probability differential trail for $n$ rounds can be seen as a problem of finding a fast route between points $1$ and $n$ on the map. \-Clearly such a route must be composed of as many highways as possible. \-Condition (2), mentioned above, essentially guarantees that any country road that we may take in our search for a fast route will bring us back on a highway. \-Note that it is possible that the fastest route contains two or more country roads in sequence. \-While such a case will be missed, it may be accounted for by lowering the initial probability threshold.
+
+{\bfseries \-Full} {\bfseries \-Threshold} {\bfseries \-Search} {\bfseries \-Pseudo-\/\-Code} 
+
+
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-threshold-search_8cc_aa0f68e80d4599027b9a5c581891af32f}{\index{tea-\/add-\/threshold-\/search.\-cc@{tea-\/add-\/threshold-\/search.\-cc}!tea\-\_\-add\-\_\-trail\-\_\-search@{tea\-\_\-add\-\_\-trail\-\_\-search}}
+\index{tea\-\_\-add\-\_\-trail\-\_\-search@{tea\-\_\-add\-\_\-trail\-\_\-search}!tea-add-threshold-search.cc@{tea-\/add-\/threshold-\/search.\-cc}}
+\paragraph[{tea\-\_\-add\-\_\-trail\-\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf tea\-\_\-add\-\_\-trail\-\_\-search} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{tea-add-threshold-search_8cc_aa0f68e80d4599027b9a5c581891af32f}
+\-Search for \-A\-D\-D differential trails in block cipher \-T\-E\-A\-: wrapper function for \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search}.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & cryptographic key of \-T\-E\-A. \\
+\hline
+{\em \-B} & array of bounds. \\
+\hline
+{\em trail} & best found differential trail.\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+\-The procedure operates as follows\-:
+
+
+\begin{DoxyEnumerate}
+\item \-Compute a p\-D\-D\-T for \-F (\hyperlink{tea-f-add-pddt_8hh_af962bfb5724a4f1dd45fdb2fdeac49f4}{tea\-\_\-f\-\_\-add\-\_\-pddt}).
+\item \-Adjust the probabilities of the p\-D\-D\-T to the round key and constant (\hyperlink{tea-f-add-pddt_8hh_aa60ac75c659872644ff116ea451bed41}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key}).
+\item \-Execute the search for differential trails for $n$ rounds (n = \-N\-R\-O\-U\-N\-D\-S) through a successive application of \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} \-:
+\begin{DoxyItemize}
+\item \-Compute the best found probability on 1 round\-: $B[0]$.
+\item \-Using $B[0]$ compute the best found probability on 2 rounds\-: $B[1]$.
+\item $\ldots$
+\item \-Using $B[0],\ldots,B[i-1]$ compute the best found probability on $(i+1)$ rounds\-: $B[i]$.
+\item $\ldots$
+\item \-Using $B[0],\ldots,B[n-2]$ compute the best found probability on $n$ rounds\-: $B[n-1]$.
+\end{DoxyItemize}
+\item \-Print the best found trail on $n$ rounds on standrad output and terminate.
+\end{DoxyEnumerate}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-threshold-search_8cc_ad67aee37c1fb58e3236ddbe912574538}{\index{tea-\/add-\/threshold-\/search.\-cc@{tea-\/add-\/threshold-\/search.\-cc}!tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full@{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full}}
+\index{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full@{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full}!tea-add-threshold-search.cc@{tea-\/add-\/threshold-\/search.\-cc}}
+\paragraph[{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{double}]{\-B\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{num\-\_\-rounds}
+\end{DoxyParamCaption}
+)}}\label{tea-add-threshold-search_8cc_ad67aee37c1fb58e3236ddbe912574538}
+\-Full threshold search using bounds pre-\/computed with \hyperlink{tea-add-threshold-search_8hh_aa0f68e80d4599027b9a5c581891af32f}{tea\-\_\-add\-\_\-trail\-\_\-search} ; basically a wrapper function for \hyperlink{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full} .
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & cryptographic key of \-T\-E\-A. \\
+\hline
+{\em \-B\-B} & array of bounds. \\
+\hline
+{\em trail} & best found differential trail.\\
+\hline
+\end{DoxyParams}
+\-The function takes as input an array of initial bounds {\ttfamily \-B} and the corresponding best found trail, computed with a prior call to {\ttfamily tea\-\_\-add\-\_\-trail\-\_\-search} and outputs a trail that is at least as good as the niput.
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full} 
+\end{DoxySeeAlso}

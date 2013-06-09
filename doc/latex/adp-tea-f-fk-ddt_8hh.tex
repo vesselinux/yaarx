@@ -1,0 +1,533 @@
+\hypertarget{adp-tea-f-fk-ddt_8hh}{\subsection{include/adp-\/tea-\/f-\/fk-\/ddt.hh \-File \-Reference}
+\label{adp-tea-f-fk-ddt_8hh}\index{include/adp-\/tea-\/f-\/fk-\/ddt.\-hh@{include/adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+}
+
+
+\-Header file for \hyperlink{adp-tea-f-fk-ddt_8cc}{adp-\/tea-\/f-\/fk-\/ddt.\-cc}\-: \-Computing the full difference distribution table (\-D\-D\-T) for the \-F-\/function of block cipher \-T\-E\-A by exaustive search over all inputs. \-Complexity $O(2^{2n})$. .  
+
+
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_ae2648d869a0e829edcd50795485f601a}{ddt\-\_\-sort\-\_\-rows} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-T)
+\item 
+bool \hyperlink{adp-tea-f-fk-ddt_8hh_a8170accc84159941657fd6f5d26cf934}{comp\-\_\-rows} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$a, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$b)
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a3670224453681d2f7ba2c30ac943e0df}{ddt\-\_\-sort\-\_\-first\-\_\-col} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-T)
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a8df073a51fe2d186f4b906a32aa12358}{ddt\-\_\-to\-\_\-list} (uint32\-\_\-t $\ast$$\ast$\-D\-D\-T, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$\-S\-D\-D\-T)
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_aed88c10880d1cccbd59fb73cda9b73a5}{ddt\-\_\-to\-\_\-diff\-\_\-struct} (uint32\-\_\-t $\ast$$\ast$\-D\-D\-T, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-S\-D\-D\-T)
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_abdac451896b7ea3af93445baddf6dfe2}{ddt\-\_\-sort} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$\-S\-D\-D\-T)
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a322003a873ab463e906e45cb30cd9f78}{print\-\_\-rsddt} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-R\-S\-D\-D\-T)
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a0fa6898489cbc273789ac98e7a9abefb}{print\-\_\-sddt} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$\-S\-D\-D\-T)
+\item 
+double \hyperlink{adp-tea-f-fk-ddt_8hh_a705378e71f93b36fff9a8b543f6b963d}{adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all} (const uint32\-\_\-t da, const uint32\-\_\-t db, const uint32\-\_\-t k0, const uint32\-\_\-t k1, const uint32\-\_\-t delta, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+double \hyperlink{adp-tea-f-fk-ddt_8hh_a900cf5610b1e2d1bde8d81f865217a33}{max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all} (const uint32\-\_\-t da, uint32\-\_\-t $\ast$db, const uint32\-\_\-t k0, const uint32\-\_\-t k1, const uint32\-\_\-t delta, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$ \hyperlink{adp-tea-f-fk-ddt_8hh_a9b33673043159fc8155fd759672a27b0}{rsddt\-\_\-alloc} ()
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a12b44b7012a0e2d3f1760784e6f8a482}{rsddt\-\_\-free} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-T)
+\item 
+\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$ \hyperlink{adp-tea-f-fk-ddt_8hh_a0395ec92dbc818f2b8779389392ec023}{sddt\-\_\-alloc} ()
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a38f85fc23a1e6bf662e3359513451826}{sddt\-\_\-free} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$\-S\-T)
+\item 
+uint32\-\_\-t $\ast$$\ast$ \hyperlink{adp-tea-f-fk-ddt_8hh_a700c0928ef26a9130e4309c8b603792c}{ddt\-\_\-alloc} ()
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a0cfc92867fc1d471847ec25a48bcfb8d}{ddt\-\_\-free} (uint32\-\_\-t $\ast$$\ast$\-T)
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_af2b10deffd82820ece2d258c915c8a90}{ddt\-\_\-f} (uint32\-\_\-t $\ast$$\ast$\-T, uint32\-\_\-t k0, uint32\-\_\-t k1, uint32\-\_\-t delta, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_ae45c4755238695992a8343a7a5fe4e95}{ddt\-\_\-print} (uint32\-\_\-t $\ast$$\ast$\-T)
+\item 
+double \hyperlink{adp-tea-f-fk-ddt_8hh_af181e4e9f3fbd475e728cd1789d533f1}{adp\-\_\-f\-\_\-ddt} (uint32\-\_\-t $\ast$$\ast$\-D\-D\-T, uint32\-\_\-t dx, uint32\-\_\-t dy)
+\item 
+double \hyperlink{adp-tea-f-fk-ddt_8hh_af1fceea05ff2c63817e865a7e3b458fa}{max\-\_\-adp\-\_\-f\-\_\-ddt} (uint32\-\_\-t $\ast$$\ast$\-D\-D\-T, uint32\-\_\-t dx, uint32\-\_\-t $\ast$dy)
+\item 
+double \hyperlink{adp-tea-f-fk-ddt_8hh_a417cfc278c155913968b66d613570aec}{max\-\_\-adp\-\_\-f\-\_\-rsddt} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-T\-S, uint32\-\_\-t dx, uint32\-\_\-t $\ast$dy)
+\item 
+uint32\-\_\-t $\ast$$\ast$$\ast$ \hyperlink{adp-tea-f-fk-ddt_8hh_a0396966a9a11ad40f31edafc85db591f}{xddt\-\_\-alloc} ()
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a114fedd486da22fbe4e4da1cd0c7ed17}{xddt\-\_\-free} (uint32\-\_\-t $\ast$$\ast$$\ast$\-T)
+\item 
+\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$$\ast$ \hyperlink{adp-tea-f-fk-ddt_8hh_a4e360a46043422c7b7db4bfabd0d0c49}{xrsddt\-\_\-alloc} ()
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_acadd780577508f5e7d25e1193123fb6d}{xrsddt\-\_\-free} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$$\ast$\-T)
+\item 
+\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$ \hyperlink{adp-tea-f-fk-ddt_8hh_a183a6ef0f00ff0803797f5f236edb226}{xsddt\-\_\-alloc} ()
+\item 
+void \hyperlink{adp-tea-f-fk-ddt_8hh_a5d58f7c0cd651607df464887025b38d1}{xsddt\-\_\-free} (\hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-S\-T)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Header file for \hyperlink{adp-tea-f-fk-ddt_8cc}{adp-\/tea-\/f-\/fk-\/ddt.\-cc}\-: \-Computing the full difference distribution table (\-D\-D\-T) for the \-F-\/function of block cipher \-T\-E\-A by exaustive search over all inputs. \-Complexity $O(2^{2n})$. . \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{adp-tea-f-fk-ddt_8hh_af181e4e9f3fbd475e728cd1789d533f1}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!adp\-\_\-f\-\_\-ddt@{adp\-\_\-f\-\_\-ddt}}
+\index{adp\-\_\-f\-\_\-ddt@{adp\-\_\-f\-\_\-ddt}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{adp\-\_\-f\-\_\-ddt}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-f\-\_\-ddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t $\ast$$\ast$}]{\-D\-D\-T, }
+\item[{uint32\-\_\-t}]{dx, }
+\item[{uint32\-\_\-t}]{dy}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_af181e4e9f3fbd475e728cd1789d533f1}
+\-Compute the \-A\-D\-D differential probability of the \-T\-E\-A \-F-\/function from the full \-D\-D\-T, precomputed for a a fixed key and round constant.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-D\-D\-T} & \-D\-D\-T. \\
+\hline
+{\em dx} & input difference. \\
+\hline
+{\em dy} & output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+\-D\-D\-T\mbox{[}da\mbox{]}\mbox{[}db\mbox{]} = $\mathrm{adp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_a705378e71f93b36fff9a8b543f6b963d}{adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a705378e71f93b36fff9a8b543f6b963d}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all@{adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all}}
+\index{adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all@{adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{const uint32\-\_\-t}]{k0, }
+\item[{const uint32\-\_\-t}]{k1, }
+\item[{const uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a705378e71f93b36fff9a8b543f6b963d}
+\-Compute the \-A\-D\-D differential probability of the \-T\-E\-A \-F-\/function for a fixed key and round constants ( $\mathrm{adp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$) by exhaustive searc over all inputs. \-Complexity $O(2^n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em da} & input difference. \\
+\hline
+{\em db} & output difference. \\
+\hline
+{\em k0} & first round key. \\
+\hline
+{\em k1} & second round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant. \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$. 
+\end{DoxyReturn}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a8170accc84159941657fd6f5d26cf934}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!comp\-\_\-rows@{comp\-\_\-rows}}
+\index{comp\-\_\-rows@{comp\-\_\-rows}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{comp\-\_\-rows}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf comp\-\_\-rows} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$}]{a, }
+\item[{{\bf differential\-\_\-t} $\ast$}]{b}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a8170accc84159941657fd6f5d26cf934}
+\-Compare two rows in a row-\/sorted \-D\-D\-T by their first (max) element. \-Assumes that the elemnets in a row are sorted in descending order. 
+\begin{DoxyParams}{\-Parameters}
+{\em a} & row of differentials in a \-D\-D\-T. \\
+\hline
+{\em b} & row of differentials in a \-D\-D\-T. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a700c0928ef26a9130e4309c8b603792c}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-alloc@{ddt\-\_\-alloc}}
+\index{ddt\-\_\-alloc@{ddt\-\_\-alloc}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-alloc}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t$\ast$$\ast$ {\bf ddt\-\_\-alloc} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a700c0928ef26a9130e4309c8b603792c}
+\-Allocate memory for a \-D\-D\-T as a 2\-D array containingg number of rigt pairs. \begin{DoxyReturn}{\-Returns}
+a \-D\-D\-T as a 2\-D array containing number of rigt pairs. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_a0cfc92867fc1d471847ec25a48bcfb8d}{ddt\-\_\-free} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_af2b10deffd82820ece2d258c915c8a90}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-f@{ddt\-\_\-f}}
+\index{ddt\-\_\-f@{ddt\-\_\-f}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-f}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf ddt\-\_\-f} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t $\ast$$\ast$}]{\-T, }
+\item[{uint32\-\_\-t}]{k0, }
+\item[{uint32\-\_\-t}]{k1, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_af2b10deffd82820ece2d258c915c8a90}
+\-Compute the full difference distribution table (\-D\-D\-T) for the \-F-\/function of block cipher \-T\-E\-A for a fixed key and round constant, by exaustive search over all input values and differences. \-Complexity $O(2^{2n})$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-T} & a \-D\-D\-T as a 2\-D array containing number of right pairs.. \\
+\hline
+{\em k0} & first round key. \\
+\hline
+{\em k1} & second round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant. \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+full \-D\-D\-T for the \-T\-E\-A \-F-\/function. 
+\end{DoxyReturn}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a0cfc92867fc1d471847ec25a48bcfb8d}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-free@{ddt\-\_\-free}}
+\index{ddt\-\_\-free@{ddt\-\_\-free}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-free}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf ddt\-\_\-free} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t $\ast$$\ast$}]{\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a0cfc92867fc1d471847ec25a48bcfb8d}
+\-Free the memory reserved for a \-D\-D\-T as a 2\-D array containingg number of rigt pairs. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-T} & a \-D\-D\-T as a 2\-D array containing number of rigt pairs. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_a700c0928ef26a9130e4309c8b603792c}{ddt\-\_\-alloc} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_ae45c4755238695992a8343a7a5fe4e95}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-print@{ddt\-\_\-print}}
+\index{ddt\-\_\-print@{ddt\-\_\-print}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-print}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf ddt\-\_\-print} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t $\ast$$\ast$}]{\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_ae45c4755238695992a8343a7a5fe4e95}
+\-Print the entries of a \-D\-D\-T. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-T} & \-D\-D\-T. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_abdac451896b7ea3af93445baddf6dfe2}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-sort@{ddt\-\_\-sort}}
+\index{ddt\-\_\-sort@{ddt\-\_\-sort}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-sort}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf ddt\-\_\-sort} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$}]{\-S\-D\-D\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_abdac451896b7ea3af93445baddf6dfe2}
+\-Sort all elements of a \-D\-D\-T, represented as a 1\-D list of differentials, in descending order by the number of right pairs. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-S\-D\-D\-T} & \-D\-D\-T as a 1\-D list of differentials. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a3670224453681d2f7ba2c30ac943e0df}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-sort\-\_\-first\-\_\-col@{ddt\-\_\-sort\-\_\-first\-\_\-col}}
+\index{ddt\-\_\-sort\-\_\-first\-\_\-col@{ddt\-\_\-sort\-\_\-first\-\_\-col}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-sort\-\_\-first\-\_\-col}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf ddt\-\_\-sort\-\_\-first\-\_\-col} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a3670224453681d2f7ba2c30ac943e0df}
+\-Sorts the rows of a difference distribution table (\-D\-D\-T) 2\-D by the probability of the elements in the first column -\/-\/ highest probability first.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-T} & a difference distribution table (\-D\-D\-T). \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_ae2648d869a0e829edcd50795485f601a}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-sort\-\_\-rows@{ddt\-\_\-sort\-\_\-rows}}
+\index{ddt\-\_\-sort\-\_\-rows@{ddt\-\_\-sort\-\_\-rows}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-sort\-\_\-rows}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf ddt\-\_\-sort\-\_\-rows} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_ae2648d869a0e829edcd50795485f601a}
+\-Sort every row by decreasing number of right pairs. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-T} & a difference distribution table (\-D\-D\-T). \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_aed88c10880d1cccbd59fb73cda9b73a5}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-to\-\_\-diff\-\_\-struct@{ddt\-\_\-to\-\_\-diff\-\_\-struct}}
+\index{ddt\-\_\-to\-\_\-diff\-\_\-struct@{ddt\-\_\-to\-\_\-diff\-\_\-struct}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-to\-\_\-diff\-\_\-struct}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf ddt\-\_\-to\-\_\-diff\-\_\-struct} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t $\ast$$\ast$}]{\-D\-D\-T, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-S\-D\-D\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_aed88c10880d1cccbd59fb73cda9b73a5}
+\-Convert a \-D\-D\-T to 2\-D array of differentials.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-D\-D\-T} & difference distribution table. \\
+\hline
+{\em \-S\-D\-D\-T} & array differentials. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a8df073a51fe2d186f4b906a32aa12358}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!ddt\-\_\-to\-\_\-list@{ddt\-\_\-to\-\_\-list}}
+\index{ddt\-\_\-to\-\_\-list@{ddt\-\_\-to\-\_\-list}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{ddt\-\_\-to\-\_\-list}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf ddt\-\_\-to\-\_\-list} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t $\ast$$\ast$}]{\-D\-D\-T, }
+\item[{{\bf differential\-\_\-t} $\ast$}]{\-S\-D\-D\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a8df073a51fe2d186f4b906a32aa12358}
+\-Convert a \-D\-D\-T to a list of differentials.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-D\-D\-T} & difference distribution table. \\
+\hline
+{\em \-S\-D\-D\-T} & list of differentials. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_af1fceea05ff2c63817e865a7e3b458fa}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!max\-\_\-adp\-\_\-f\-\_\-ddt@{max\-\_\-adp\-\_\-f\-\_\-ddt}}
+\index{max\-\_\-adp\-\_\-f\-\_\-ddt@{max\-\_\-adp\-\_\-f\-\_\-ddt}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{max\-\_\-adp\-\_\-f\-\_\-ddt}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-f\-\_\-ddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t $\ast$$\ast$}]{\-D\-D\-T, }
+\item[{uint32\-\_\-t}]{dx, }
+\item[{uint32\-\_\-t $\ast$}]{dy}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_af1fceea05ff2c63817e865a7e3b458fa}
+\-For a fixed input difference to the \-T\-E\-A \-F-\/function compute the maximum probability output \-A\-D\-D difference from the full \-D\-D\-T, precomputed for a fixed key and round constant. \-Complexity $O(1)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-D\-D\-T} & \-D\-D\-T. \\
+\hline
+{\em dx} & input difference. \\
+\hline
+{\em dy} & maximum probability output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\max_{dd} \mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_a900cf5610b1e2d1bde8d81f865217a33}{max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a900cf5610b1e2d1bde8d81f865217a33}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all@{max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all}}
+\index{max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all@{max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{da, }
+\item[{uint32\-\_\-t $\ast$}]{db, }
+\item[{const uint32\-\_\-t}]{k0, }
+\item[{const uint32\-\_\-t}]{k1, }
+\item[{const uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a900cf5610b1e2d1bde8d81f865217a33}
+\-For a fixed input difference to the \-T\-E\-A \-F-\/function compute the maximum probability output \-A\-D\-D difference for a fixed key and round constant by exhaustive search over all inputs and output differences. \-Complexity $O(2^{2n})$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em da} & input difference. \\
+\hline
+{\em db} & output difference. \\
+\hline
+{\em k0} & first round key. \\
+\hline
+{\em k1} & second round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant. \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\max_{dd} \mathrm{adp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_af1fceea05ff2c63817e865a7e3b458fa}{max\-\_\-adp\-\_\-f\-\_\-ddt}, \hyperlink{adp-tea-f-fk-ddt_8hh_a417cfc278c155913968b66d613570aec}{max\-\_\-adp\-\_\-f\-\_\-rsddt} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a417cfc278c155913968b66d613570aec}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!max\-\_\-adp\-\_\-f\-\_\-rsddt@{max\-\_\-adp\-\_\-f\-\_\-rsddt}}
+\index{max\-\_\-adp\-\_\-f\-\_\-rsddt@{max\-\_\-adp\-\_\-f\-\_\-rsddt}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{max\-\_\-adp\-\_\-f\-\_\-rsddt}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-f\-\_\-rsddt} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-T\-S, }
+\item[{uint32\-\_\-t}]{dx, }
+\item[{uint32\-\_\-t $\ast$}]{dy}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a417cfc278c155913968b66d613570aec}
+\-For a fixed input difference to the \-T\-E\-A \-F-\/function compute the maximum probability output \-A\-D\-D difference from the full \-D\-D\-T represented as a 2\-D array of differentials. \-In this \-D\-D\-T the differentials in every row are sorted by decreasing probability. \-Complexity $O(1)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-T\-S} & a \-D\-D\-T in which the differentials in every row are sorted by decreasing number of probability. \\
+\hline
+{\em dx} & input difference. \\
+\hline
+{\em dy} & maximum probability output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+\-T\-S\mbox{[}dx\mbox{]}\mbox{[}0\mbox{]} = $\max_{dd} \mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_af1fceea05ff2c63817e865a7e3b458fa}{max\-\_\-adp\-\_\-f\-\_\-ddt}, \hyperlink{adp-tea-f-fk-ddt_8hh_a900cf5610b1e2d1bde8d81f865217a33}{max\-\_\-adp\-\_\-f\-\_\-exper\-\_\-fixed\-\_\-key\-\_\-all} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a322003a873ab463e906e45cb30cd9f78}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!print\-\_\-rsddt@{print\-\_\-rsddt}}
+\index{print\-\_\-rsddt@{print\-\_\-rsddt}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{print\-\_\-rsddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf print\-\_\-rsddt} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-R\-S\-D\-D\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a322003a873ab463e906e45cb30cd9f78}
+\-Print the elements of a \-D\-D\-T. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-R\-S\-D\-D\-T} & \-D\-D\-T as a 2\-D list of differentials. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a0fa6898489cbc273789ac98e7a9abefb}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!print\-\_\-sddt@{print\-\_\-sddt}}
+\index{print\-\_\-sddt@{print\-\_\-sddt}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{print\-\_\-sddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf print\-\_\-sddt} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$}]{\-S\-D\-D\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a0fa6898489cbc273789ac98e7a9abefb}
+\-Print the elements of a \-D\-D\-T. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-S\-D\-D\-T} & \-D\-D\-T as a 1\-D list of differentials. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a9b33673043159fc8155fd759672a27b0}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!rsddt\-\_\-alloc@{rsddt\-\_\-alloc}}
+\index{rsddt\-\_\-alloc@{rsddt\-\_\-alloc}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{rsddt\-\_\-alloc}]{\setlength{\rightskip}{0pt plus 5cm}{\bf differential\-\_\-t}$\ast$$\ast$ {\bf rsddt\-\_\-alloc} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a9b33673043159fc8155fd759672a27b0}
+\-Allocate memory for a \-D\-D\-T as a 2\-D array of differentials. \begin{DoxyReturn}{\-Returns}
+a \-D\-D\-T as a 2\-D array of differentials. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_a12b44b7012a0e2d3f1760784e6f8a482}{rsddt\-\_\-free} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a12b44b7012a0e2d3f1760784e6f8a482}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!rsddt\-\_\-free@{rsddt\-\_\-free}}
+\index{rsddt\-\_\-free@{rsddt\-\_\-free}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{rsddt\-\_\-free}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf rsddt\-\_\-free} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a12b44b7012a0e2d3f1760784e6f8a482}
+\-Free the memory reserved for a \-D\-D\-T as a 2\-D array of differentials. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-T} & a \-D\-D\-T as a 2\-D array of differentials. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_a9b33673043159fc8155fd759672a27b0}{rsddt\-\_\-alloc} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a0395ec92dbc818f2b8779389392ec023}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!sddt\-\_\-alloc@{sddt\-\_\-alloc}}
+\index{sddt\-\_\-alloc@{sddt\-\_\-alloc}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{sddt\-\_\-alloc}]{\setlength{\rightskip}{0pt plus 5cm}{\bf differential\-\_\-t}$\ast$ {\bf sddt\-\_\-alloc} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a0395ec92dbc818f2b8779389392ec023}
+\-Allocate memory for a \-D\-D\-T as a 1\-D array of differentials. \begin{DoxyReturn}{\-Returns}
+a \-D\-D\-T as a 1\-D array of differentials. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_a38f85fc23a1e6bf662e3359513451826}{sddt\-\_\-free} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a38f85fc23a1e6bf662e3359513451826}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!sddt\-\_\-free@{sddt\-\_\-free}}
+\index{sddt\-\_\-free@{sddt\-\_\-free}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{sddt\-\_\-free}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf sddt\-\_\-free} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$}]{\-S\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a38f85fc23a1e6bf662e3359513451826}
+\-Free the memory reserved for a \-D\-D\-T as a 1\-D array of differentials. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-S\-T} & a \-D\-D\-T as a 1\-D array of differentials. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-tea-f-fk-ddt_8hh_a0395ec92dbc818f2b8779389392ec023}{sddt\-\_\-alloc} 
+\end{DoxySeeAlso}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a0396966a9a11ad40f31edafc85db591f}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!xddt\-\_\-alloc@{xddt\-\_\-alloc}}
+\index{xddt\-\_\-alloc@{xddt\-\_\-alloc}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{xddt\-\_\-alloc}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t$\ast$$\ast$$\ast$ {\bf xddt\-\_\-alloc} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a0396966a9a11ad40f31edafc85db591f}
+\-Allocate memory for a an array of \hyperlink{common_8hh_ad918c7df882adba39ac2777fbf01248e}{\-N\-D\-E\-L\-T\-A} \-D\-D\-Ts. \-Each \-D\-D\-T represents a 2\-D array containing numbers of rigt right pairs and generated for a fixed value of the $\delta$ constant of the \-T\-E\-A \-F-\/function. \begin{DoxyReturn}{\-Returns}
+array of \-D\-D\-Ts\-: each \-D\-D\-T represents a 2\-D array containing number of right pairs. 
+\end{DoxyReturn}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a114fedd486da22fbe4e4da1cd0c7ed17}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!xddt\-\_\-free@{xddt\-\_\-free}}
+\index{xddt\-\_\-free@{xddt\-\_\-free}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{xddt\-\_\-free}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xddt\-\_\-free} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t $\ast$$\ast$$\ast$}]{\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a114fedd486da22fbe4e4da1cd0c7ed17}
+\-Free the memory reserved from a previous call to \hyperlink{adp-tea-f-fk-ddt_8cc_a0396966a9a11ad40f31edafc85db591f}{xddt\-\_\-alloc()} 
+\begin{DoxyParams}{\-Parameters}
+{\em \-T} & an array of \-D\-D\-Ts\-: each \-D\-D\-T is a 2\-D array containing number of right pairs. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a4e360a46043422c7b7db4bfabd0d0c49}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!xrsddt\-\_\-alloc@{xrsddt\-\_\-alloc}}
+\index{xrsddt\-\_\-alloc@{xrsddt\-\_\-alloc}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{xrsddt\-\_\-alloc}]{\setlength{\rightskip}{0pt plus 5cm}{\bf differential\-\_\-t}$\ast$$\ast$$\ast$ {\bf xrsddt\-\_\-alloc} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a4e360a46043422c7b7db4bfabd0d0c49}
+\-Allocate memory for a an array of \hyperlink{common_8hh_ad918c7df882adba39ac2777fbf01248e}{\-N\-D\-E\-L\-T\-A} \-D\-D\-Ts. \-Each \-D\-D\-T represents a 2\-D array of differentials, generated for a fixed value of the $\delta$ constant of the \-T\-E\-A \-F-\/function. \begin{DoxyReturn}{\-Returns}
+array of \-D\-D\-Ts\-: each \-D\-D\-T represents a 2\-D array of differentials. 
+\end{DoxyReturn}
+\hypertarget{adp-tea-f-fk-ddt_8hh_acadd780577508f5e7d25e1193123fb6d}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!xrsddt\-\_\-free@{xrsddt\-\_\-free}}
+\index{xrsddt\-\_\-free@{xrsddt\-\_\-free}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{xrsddt\-\_\-free}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xrsddt\-\_\-free} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$$\ast$}]{\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_acadd780577508f5e7d25e1193123fb6d}
+\-Free the memory reserved from a previous call to \hyperlink{adp-tea-f-fk-ddt_8cc_a4e360a46043422c7b7db4bfabd0d0c49}{xrsddt\-\_\-alloc()} 
+\begin{DoxyParams}{\-Parameters}
+{\em \-T} & an array of \-D\-D\-Ts\-: each \-D\-D\-T is a 2\-D array of differentials. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a183a6ef0f00ff0803797f5f236edb226}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!xsddt\-\_\-alloc@{xsddt\-\_\-alloc}}
+\index{xsddt\-\_\-alloc@{xsddt\-\_\-alloc}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{xsddt\-\_\-alloc}]{\setlength{\rightskip}{0pt plus 5cm}{\bf differential\-\_\-t}$\ast$$\ast$ {\bf xsddt\-\_\-alloc} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a183a6ef0f00ff0803797f5f236edb226}
+\-Allocate memory for a an array of \hyperlink{common_8hh_ad918c7df882adba39ac2777fbf01248e}{\-N\-D\-E\-L\-T\-A} \-D\-D\-Ts. \-Each \-D\-D\-T represents a 1\-D list of differentials, generated for a fixed value of the $\delta$ constant of the \-T\-E\-A \-F-\/function. \begin{DoxyReturn}{\-Returns}
+array of \-D\-D\-Ts\-: each \-D\-D\-T represents a 1\-D list of differentials, 
+\end{DoxyReturn}
+\hypertarget{adp-tea-f-fk-ddt_8hh_a5d58f7c0cd651607df464887025b38d1}{\index{adp-\/tea-\/f-\/fk-\/ddt.\-hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}!xsddt\-\_\-free@{xsddt\-\_\-free}}
+\index{xsddt\-\_\-free@{xsddt\-\_\-free}!adp-tea-f-fk-ddt.hh@{adp-\/tea-\/f-\/fk-\/ddt.\-hh}}
+\paragraph[{xsddt\-\_\-free}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xsddt\-\_\-free} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-S\-T}
+\end{DoxyParamCaption}
+)}}\label{adp-tea-f-fk-ddt_8hh_a5d58f7c0cd651607df464887025b38d1}
+\-Free the memory reserved from a previous call to \hyperlink{adp-tea-f-fk-ddt_8cc_acadd780577508f5e7d25e1193123fb6d}{xrsddt\-\_\-free()} 
+\begin{DoxyParams}{\-Parameters}
+{\em \-S\-T} & an array of \-D\-D\-Ts\-: each \-D\-D\-T is a 1\-D list of differentials. \\
+\hline
+\end{DoxyParams}

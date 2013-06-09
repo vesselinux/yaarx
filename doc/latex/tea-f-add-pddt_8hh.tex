@@ -1,0 +1,401 @@
+\hypertarget{tea-f-add-pddt_8hh}{\subsection{include/tea-\/f-\/add-\/pddt.hh \-File \-Reference}
+\label{tea-f-add-pddt_8hh}\index{include/tea-\/f-\/add-\/pddt.\-hh@{include/tea-\/f-\/add-\/pddt.\-hh}}
+}
+
+
+\-Header file for \hyperlink{tea-f-add-pddt_8cc}{tea-\/f-\/add-\/pddt.\-cc}. \-Computing an \-A\-D\-D partial difference distribution table (p\-D\-D\-T) for the \-F-\/function of block cipher \-T\-E\-A. .  
+
+
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \hyperlink{tea-f-add-pddt_8hh_a9a9b0ca87b727a966ffb1842ffa389e3}{rsh\-\_\-condition\-\_\-is\-\_\-sat} (const uint32\-\_\-t k, const uint32\-\_\-t new\-\_\-da, const uint32\-\_\-t new\-\_\-dc)
+\item 
+bool \hyperlink{tea-f-add-pddt_8hh_a55f531edb6fd0ce85c20b47e890475e3}{lsh\-\_\-condition\-\_\-is\-\_\-sat} (const uint32\-\_\-t k, const uint32\-\_\-t new\-\_\-da, const uint32\-\_\-t new\-\_\-db)
+\item 
+void \hyperlink{tea-f-add-pddt_8hh_ae8e09fe95cc3eb4257b868d91f8924ec}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i} (const uint32\-\_\-t k, const uint32\-\_\-t n, const uint32\-\_\-t lsh\-\_\-const, const uint32\-\_\-t rsh\-\_\-const, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-C, uint32\-\_\-t $\ast$da, uint32\-\_\-t $\ast$db, uint32\-\_\-t $\ast$dc, uint32\-\_\-t $\ast$dd, double $\ast$p, const double p\-\_\-thres, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+void \hyperlink{tea-f-add-pddt_8hh_af962bfb5724a4f1dd45fdb2fdeac49f4}{tea\-\_\-f\-\_\-add\-\_\-pddt} (uint32\-\_\-t n, double p\-\_\-thres, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+bool \hyperlink{tea-f-add-pddt_8hh_a82603f2a5c7ada2fad8d82f93287ff05}{is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy} (uint32\-\_\-t dy, uint32\-\_\-t dx\-\_\-prev, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+\hypertarget{tea-f-add-pddt_8hh_aa6c5708f75451dca26796f0e644651e6}{void {\bfseries tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt\-\_\-i} (const uint32\-\_\-t k, const uint32\-\_\-t n, const uint32\-\_\-t lsh\-\_\-const, const uint32\-\_\-t rsh\-\_\-const, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-C, const uint32\-\_\-t da, uint32\-\_\-t $\ast$db, uint32\-\_\-t $\ast$dc, uint32\-\_\-t $\ast$dd, double $\ast$p, const double p\-\_\-thres, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p, uint32\-\_\-t $\ast$cnt\-\_\-new)}\label{tea-f-add-pddt_8hh_aa6c5708f75451dca26796f0e644651e6}
+
+\item 
+uint32\-\_\-t \hyperlink{tea-f-add-pddt_8hh_a379d6e4054b1bf78e6068f4cbdd06065}{tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt} (uint32\-\_\-t n, double p\-\_\-thres, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, const uint32\-\_\-t da, const uint32\-\_\-t da\-\_\-prev, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$hways\-\_\-diff\-\_\-set\-\_\-dx\-\_\-dy, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$hways\-\_\-diff\-\_\-mset\-\_\-p, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p)
+\item 
+void \hyperlink{tea-f-add-pddt_8hh_aa60ac75c659872644ff116ea451bed41}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key} (uint32\-\_\-t nrounds, uint32\-\_\-t npairs, uint32\-\_\-t key\mbox{[}4\mbox{]}, double p\-\_\-thres, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+void \hyperlink{tea-f-add-pddt_8hh_a6334dfbee70edb6980086f15da98f826}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp} (std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p, const std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+void \hyperlink{tea-f-add-pddt_8hh_ad6e23f144fd280b089361de9cad58121}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-exper} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, uint32\-\_\-t n, double p\-\_\-thres, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p)
+\item 
+void \hyperlink{tea-f-add-pddt_8hh_a630bf3eeaef1d61366bfc0ab790f6ab7}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-fk\-\_\-exper} (uint32\-\_\-t n, double p\-\_\-thres, uint32\-\_\-t delta, uint32\-\_\-t k0, uint32\-\_\-t k1, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Header file for \hyperlink{tea-f-add-pddt_8cc}{tea-\/f-\/add-\/pddt.\-cc}. \-Computing an \-A\-D\-D partial difference distribution table (p\-D\-D\-T) for the \-F-\/function of block cipher \-T\-E\-A. . \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{tea-f-add-pddt_8hh_a82603f2a5c7ada2fad8d82f93287ff05}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy@{is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy}}
+\index{is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy@{is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{dy, }
+\item[{uint32\-\_\-t}]{dx\-\_\-prev, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_a82603f2a5c7ada2fad8d82f93287ff05}
+\-For a given difference dx, check if in the list of differentials set\-\_\-dx\-\_\-dy exists an entry (dx -\/$>$ dy) \hypertarget{tea-f-add-pddt_8hh_a55f531edb6fd0ce85c20b47e890475e3}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!lsh\-\_\-condition\-\_\-is\-\_\-sat@{lsh\-\_\-condition\-\_\-is\-\_\-sat}}
+\index{lsh\-\_\-condition\-\_\-is\-\_\-sat@{lsh\-\_\-condition\-\_\-is\-\_\-sat}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{lsh\-\_\-condition\-\_\-is\-\_\-sat}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf lsh\-\_\-condition\-\_\-is\-\_\-sat} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{new\-\_\-da, }
+\item[{const uint32\-\_\-t}]{new\-\_\-db}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_a55f531edb6fd0ce85c20b47e890475e3}
+\-Check if two differences $da$ and $dc$, partially constructed up to bit $k$ (\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} $> k \ge 0$), are valid input and output difference respectively, for the \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} operation.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em k} & bit position\-: \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} $> k \ge 0$. \\
+\hline
+{\em new\-\_\-da} & input difference to \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} partially constructed up to bit $k$. \\
+\hline
+{\em new\-\_\-db} & output difference from \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} partially constructed up to bit $k$. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+\-T\-R\-U\-E if $dc$, after being fully constructed, will be a valid output difference from \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H}, given the input difference $da$; \-F\-A\-L\-S\-E otherwise.
+\end{DoxyReturn}
+{\bfseries \-More} {\bfseries \-Details\-:} 
+
+
+\begin{DoxyEnumerate}
+\item \-If $ k < L $\-: check if $db[k:0] = 0$.
+\item \-If $k \ge L$\-: check if $(db \gg L)[n-(k-L+1):0] = da[n-(k-L+1):0]$.
+\end{DoxyEnumerate}
+
+where $L =$\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T, $n=$\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}.
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-f-add-pddt_8hh_a9a9b0ca87b727a966ffb1842ffa389e3}{rsh\-\_\-condition\-\_\-is\-\_\-sat} 
+\end{DoxySeeAlso}
+\hypertarget{tea-f-add-pddt_8hh_a9a9b0ca87b727a966ffb1842ffa389e3}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!rsh\-\_\-condition\-\_\-is\-\_\-sat@{rsh\-\_\-condition\-\_\-is\-\_\-sat}}
+\index{rsh\-\_\-condition\-\_\-is\-\_\-sat@{rsh\-\_\-condition\-\_\-is\-\_\-sat}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{rsh\-\_\-condition\-\_\-is\-\_\-sat}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf rsh\-\_\-condition\-\_\-is\-\_\-sat} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{new\-\_\-da, }
+\item[{const uint32\-\_\-t}]{new\-\_\-dc}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_a9a9b0ca87b727a966ffb1842ffa389e3}
+\-Check if two differences $da$ and $dc$, partially constructed up to bit $k$ (\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} $> k \ge 0$), are valid input and output difference respectively, for the \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} operation. \-From the partial information for $dc$, the algorithm estimates if $dc$ belongs to one of the four possible differences after the \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} operation (see \hyperlink{adp-shift_8hh_a06fffd781af6662482922889bc562caf}{adp\-\_\-rsh})\-: $\{(da \gg R),~ (da \gg R) + 1,~ (da \gg R) - 2^{n-R},~ (da \gg R) - 2^{n-R} + 1\}$, where $R$ is the \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T).
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em k} & bit position\-: \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} $> k \ge 0$. \\
+\hline
+{\em new\-\_\-da} & input difference to \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} partially constructed up to bit $k$. \\
+\hline
+{\em new\-\_\-dc} & output difference from \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} partially constructed up to bit $k$. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+\-T\-R\-U\-E if $dc$, after being fully constructed, will be a valid output difference from \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H}, given the input difference $da$; \-F\-A\-L\-S\-E otherwise.
+\end{DoxyReturn}
+\begin{DoxyAttention}{\-Attention}
+\-The function is {\itshape not\/} optimal, meaning that it is overly-\/restrictive\-: all diferences $(da,dc)$ which pass the checks are valid, but there also exist valid differences that do not pass the checks. \-The reason is that it is hard to detect all valid differences before they have been fully constructed.
+\end{DoxyAttention}
+{\bfseries \-More} {\bfseries \-Details\-:} 
+
+\-Given are two differences $da$ and $dc$, that are only partially constructed up to bit $k$ (counting from the \-L\-S\-B $k = 0$). \hyperlink{tea-f-add-pddt_8hh_a9a9b0ca87b727a966ffb1842ffa389e3}{rsh\-\_\-condition\-\_\-is\-\_\-sat} performs checks on $da$ and $dc$ and outputs if $dc$ is such that $dc = da \gg R$, where $R$ = \-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T. \-The idea is to be able to discard pairs of diferences $(da, dc)$ before they have been fully constructed. \-This allows to more efficiently constrct a list of valid differentials for the \-T\-E\-A \-F-\/function recursively. \-We use these conditions in \hyperlink{tea-f-add-pddt_8hh_ae8e09fe95cc3eb4257b868d91f8924ec}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i} to discard invalid entries early in the recursion.
+
+\-To perform the checks, the following relations are used\-:
+
+$dc = (da \gg R) \Longrightarrow dc \in \{dc_0, dc_1, dc_2, dc_3\}$ where\-:
+
+
+\begin{DoxyItemize}
+\item $dc_0 = (da \gg R)$.
+\item $dc_2 = (da \gg R) - 2^{n-R}$.
+\item $dc_1 = (da \gg R) + 1$.
+\item $dc_3 = (da \gg R) - 2^{n-R} + 1$.
+\end{DoxyItemize}
+
+\-Depending on the bit position $k$ (some of) the following checks are performed\-:
+
+
+\begin{DoxyEnumerate}
+\item \-If $(k \ge R)$ perform check on the $(k-R)$ \-L\-S bits. \-If $(k >= R)$ we check if the first $(k-R)$ \-L\-S\-B bits of $(da \gg R)$ are equal to the first $(k-R)$ bits of $dc_i,~ 0 \le i < 4$ according to the above equations. \-So we check if any of the following four equations hold\-:
+\begin{DoxyItemize}
+\item $(da \gg R)[0:(k - R)] = (dc_0)[0:(k - R)]$.
+\item $(da \gg R)[0:(k - R)] = (dc_0 + 2^{n-R})[0:(k - R)]$.
+\item $(da \gg R)[0:(k - R)] = (dc_0 - 1)[0:(k - R)]$.
+\item $(da \gg R)[0:(k - R)] = (dc_0 + 2^{n-R} - 1)[0:(k - R)]$.
+\end{DoxyItemize}
+\item \-Check that the $R$ \-L\-S bits of $da$ are not zero $da[(r-1):0] \neq 0$.
+\item \-If $(k >= R) \wedge (k > (n - R))$ check the $(n-R)$ \-M\-S bits. \-When $(k > (n - R))$, $(da \gg R)[k] = 0$ and we check the top $(n-R)$ \-M\-S bits of $dc$. \-More specifically, we check if the initial four equations hold for the $(n-R)$ \-M\-S bits of the operands\-:
+\begin{DoxyItemize}
+\item $dc_0[(n-1):(n-R+1)] = (da \gg R)[(n-1):(n-R+1)]$.
+\item $dc_1[(n-1):(n-R+1)] = ((da \gg R) + 1)[(n-1):(n-R+1)]$.
+\item $dc_2[(n-1):(n-R+1)] = ((da \gg R) - 2^{n-R})[(n-1):(n-R+1)]$.
+\item $dc_3[(n-1):(n-R+1)] = ((da \gg R) - 2^{n-R} + 1)[(n-1):(n-R+1)]$. 
+\end{DoxyItemize}
+\end{DoxyEnumerate}\hypertarget{tea-f-add-pddt_8hh_af962bfb5724a4f1dd45fdb2fdeac49f4}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!tea\-\_\-f\-\_\-add\-\_\-pddt@{tea\-\_\-f\-\_\-add\-\_\-pddt}}
+\index{tea\-\_\-f\-\_\-add\-\_\-pddt@{tea\-\_\-f\-\_\-add\-\_\-pddt}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{tea\-\_\-f\-\_\-add\-\_\-pddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-f\-\_\-add\-\_\-pddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{n, }
+\item[{double}]{p\-\_\-thres, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_af962bfb5724a4f1dd45fdb2fdeac49f4}
+\-Compute a partial \-D\-D\-T (p\-D\-D\-T) for the \-T\-E\-A \-F-\/function\-: wrapper function of \hyperlink{tea-f-add-pddt_8hh_ae8e09fe95cc3eb4257b868d91f8924ec}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i} . \-By definition a p\-D\-D\-T contains only differentials that have probability above a fixed probability thershold.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & word size (default is \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em p\-\_\-thres} & probability threshold (default is \-T\-E\-A\-\_\-\-A\-D\-D\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx \rightarrow dy)$ in the p\-D\-D\-T ordered by index $i = (dx~ 2^{n} + dy)$; stored in an \-S\-T\-L set structure, internally implemented as a \-Red-\/\-Black binary search tree.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-f-add-pddt_8hh_ae8e09fe95cc3eb4257b868d91f8924ec}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i}. 
+\end{DoxySeeAlso}
+\hypertarget{tea-f-add-pddt_8hh_aa60ac75c659872644ff116ea451bed41}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key}}
+\index{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{nrounds, }
+\item[{uint32\-\_\-t}]{npairs, }
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{double}]{p\-\_\-thres, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_aa60ac75c659872644ff116ea451bed41}
+\-Adjust the probabailities of the differentials in a p\-D\-D\-T computed with \hyperlink{tea-f-add-pddt_8hh_af962bfb5724a4f1dd45fdb2fdeac49f4}{tea\-\_\-f\-\_\-add\-\_\-pddt} , to the value of a fixed key by performing one-\/round \-T\-E\-A encryptions over a number of chosen plaintext pairs drawn uniformly at random.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em key} & cryptographic key of \-T\-E\-A. \\
+\hline
+{\em p\-\_\-thres} & probability threshold (\-T\-E\-A\-\_\-\-A\-D\-D\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials (the p\-D\-D\-T) ordered by index $i = (dx~ 2^{n} + dy)$ -\/ smallest first. \\
+\hline
+\end{DoxyParams}
+\hypertarget{tea-f-add-pddt_8hh_a6334dfbee70edb6980086f15da98f826}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp}}
+\index{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp} (
+\begin{DoxyParamCaption}
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p, }
+\item[{const std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_a6334dfbee70edb6980086f15da98f826}
+\-From a p\-D\-D\-T represented in the form of a set of differentials ordered by index, compute a p\-D\-D\-T as a set of differentials ordered by probability.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em diff\-\_\-mset\-\_\-p} & output p\-D\-D\-T\-: set of differentials $(dx \rightarrow dy)$ ordered by probability; stored in an \-S\-T\-L multiset structure, internally implemented as a \-Red-\/\-Black binary search tree. \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & input p\-D\-D\-T\-: set of differentials $(dx \rightarrow dy)$ ordered by index $i = (dx~ 2^{n} + dy)$; stored in an \-S\-T\-L set structure, internally implemented as a \-Red-\/\-Black binary search tree. \\
+\hline
+\end{DoxyParams}
+\hypertarget{tea-f-add-pddt_8hh_ad6e23f144fd280b089361de9cad58121}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-exper@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-exper}}
+\index{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-exper@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-exper}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{uint32\-\_\-t}]{n, }
+\item[{double}]{p\-\_\-thres, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_ad6e23f144fd280b089361de9cad58121}
+\-Experimentally compute the full \-D\-D\-T of the \-T\-E\-A \-F-\/function containining expected probabilities, averaged over all keys and round constants. \-An exhautive search is performed over all input and output differences. {\bfseries \-Complexity\-:} $O(2^{2n})$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $\mathrm{adp}^{3\oplus}$ (\hyperlink{adp-xor3_8hh_a229a19749624926d15eb5b1731379855}{adp\-\_\-xor3\-\_\-sf}). \\
+\hline
+{\em n} & word size (default is \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em p\-\_\-thres} & probability threshold (default is \-T\-E\-A\-\_\-\-A\-D\-D\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em diff\-\_\-mset\-\_\-p} & set of differentials $(dx \rightarrow dy)$ ordered by probability (the \-D\-D\-T). \\
+\hline
+\end{DoxyParams}
+\hypertarget{tea-f-add-pddt_8hh_a630bf3eeaef1d61366bfc0ab790f6ab7}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-fk\-\_\-exper@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-fk\-\_\-exper}}
+\index{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-fk\-\_\-exper@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-fk\-\_\-exper}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-fk\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-fk\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{n, }
+\item[{double}]{p\-\_\-thres, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{k0, }
+\item[{uint32\-\_\-t}]{k1, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_a630bf3eeaef1d61366bfc0ab790f6ab7}
+\-Experimentally compute the full \-D\-D\-T of the \-T\-E\-A \-F-\/function containining probabilities for a fixed key and round constant. \-An exhautive search is performed over all input and output differences. {\bfseries \-Complexity\-:} $O(2^{2n})$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & word size (default is \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em p\-\_\-thres} & probability threshold (default is \-T\-E\-A\-\_\-\-A\-D\-D\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em k0} & first round key. \\
+\hline
+{\em k1} & second round key. \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em diff\-\_\-mset\-\_\-p} & set of differentials $(dx \rightarrow dy)$ ordered by probability (the \-D\-D\-T). \\
+\hline
+\end{DoxyParams}
+\hypertarget{tea-f-add-pddt_8hh_ae8e09fe95cc3eb4257b868d91f8924ec}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i}}
+\index{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i@{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{n, }
+\item[{const uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-C, }
+\item[{uint32\-\_\-t $\ast$}]{da, }
+\item[{uint32\-\_\-t $\ast$}]{db, }
+\item[{uint32\-\_\-t $\ast$}]{dc, }
+\item[{uint32\-\_\-t $\ast$}]{dd, }
+\item[{double $\ast$}]{p, }
+\item[{const double}]{p\-\_\-thres, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_ae8e09fe95cc3eb4257b868d91f8924ec}
+\-Computes a partial difference distribution table (p\-D\-D\-T) for the \-F-\/function of block cipher \-T\-E\-A.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em k} & current bit position in the recursion. \\
+\hline
+{\em n} & word size (default is \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (default is 4). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (default is 5). \\
+\hline
+{\em \-A} & transition probability matrices for $\mathrm{adp}^{3\oplus}$ (\hyperlink{adp-xor3_8hh_a229a19749624926d15eb5b1731379855}{adp\-\_\-xor3\-\_\-sf}). \\
+\hline
+{\em \-C} & unit column vector for computing $ \mathrm{adp}^{3\oplus}$ (\hyperlink{adp-xor3_8hh_a980a22f6faf155e031f0d9f7e8ca9361}{adp\-\_\-xor3}). \\
+\hline
+{\em da} & first input difference to the \-X\-O\-R operation in \-F. \\
+\hline
+{\em db} & second input difference to the \-X\-O\-R operation in \-F. \\
+\hline
+{\em dc} & third input difference to the \-X\-O\-R operation in \-F. \\
+\hline
+{\em dd} & output difference from the \-X\-O\-R operation in \-F. \\
+\hline
+{\em p} & probability of the partially constructed differential $(da[k:0], db[k:0], dc[k:0] \rightarrow dd[k:0])$. \\
+\hline
+{\em p\-\_\-thres} & probability threshold (default is \-T\-E\-A\-\_\-\-A\-D\-D\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx \rightarrow dy)$ in the p\-D\-D\-T ordered by index $i = (dx~ 2^{n} + dy)$; stored in an \-S\-T\-L set structure, internally implemented as a \-Red-\/\-Black binary search tree.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyAttention}{\-Attention}
+\-The computed p\-D\-D\-T is based on the expected additive differential probability of the \-T\-E\-A \-F-\/function (\hyperlink{eadp-tea-f_8hh_a2b46cad5e0dd22f116160ef8fde6e15f}{eadp\-\_\-tea\-\_\-f}), averaged over all round keys and round constants $\delta$ and therefore contains average (as opposed to fixed-\/key fixed-\/constants \hyperlink{adp-tea-f-fk_8hh_a197140aa874649bb8dc119db47f6b139}{adp\-\_\-f\-\_\-fk}) probabilities.
+\end{DoxyAttention}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+\-Applies conceptually the same logic as \hyperlink{adp-xor-pddt_8hh_a390612775ec87908fbb044d375ff9010}{adp\-\_\-xor\-\_\-pddt\-\_\-i}. \-It recursively constructs all differentials for the \-X\-O\-R operation with three inputs $(da, db, dc \rightarrow dd)$, with the additional requirement that they must satisfy the following properties\-:
+
+
+\begin{DoxyEnumerate}
+\item $\mathrm{adp}^{3\oplus}(da, db, dc \rightarrow dd) > p_\mathrm{thres}$.
+\item $db = da \ll 4$.
+\item $dc \in {(da \ll R), (da \ll R) + 1, (da \ll R) - 2^{n-R}, (da \ll R) - 2^{n-R} + 1}$, so that $dc = (da \ll R)$ where $R =$\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T.
+\end{DoxyEnumerate}
+
+\-Only the entries for which $\mathrm{eadp}^{F}(da \rightarrow dd) > p_\mathrm{thres}$ are stored.
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-xor-pddt_8hh_a390612775ec87908fbb044d375ff9010}{adp\-\_\-xor\-\_\-pddt\-\_\-i}, \hyperlink{tea-f-add-pddt_8hh_a55f531edb6fd0ce85c20b47e890475e3}{lsh\-\_\-condition\-\_\-is\-\_\-sat}, \hyperlink{tea-f-add-pddt_8hh_a9a9b0ca87b727a966ffb1842ffa389e3}{rsh\-\_\-condition\-\_\-is\-\_\-sat}. 
+\end{DoxySeeAlso}
+\hypertarget{tea-f-add-pddt_8hh_a379d6e4054b1bf78e6068f4cbdd06065}{\index{tea-\/f-\/add-\/pddt.\-hh@{tea-\/f-\/add-\/pddt.\-hh}!tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt@{tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt}}
+\index{tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt@{tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt}!tea-f-add-pddt.hh@{tea-\/f-\/add-\/pddt.\-hh}}
+\paragraph[{tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{n, }
+\item[{double}]{p\-\_\-thres, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{da\-\_\-prev, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{hways\-\_\-diff\-\_\-set\-\_\-dx\-\_\-dy, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{hways\-\_\-diff\-\_\-mset\-\_\-p, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p}
+\end{DoxyParamCaption}
+)}}\label{tea-f-add-pddt_8hh_a379d6e4054b1bf78e6068f4cbdd06065}
+\-Wrapper for \hyperlink{tea-f-add-pddt_8cc_a8139a197e7fe5a69368a2746bc4e6ca5}{tea\-\_\-f\-\_\-da\-\_\-db\-\_\-dc\-\_\-add\-\_\-pddt\-\_\-i} . \-Returns the number of new entries that were added .
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & word size (default is \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em p\-\_\-thres} & probability threshold (default is \-T\-E\-A\-\_\-\-A\-D\-D\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (default is \-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (default is \-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em da} & input difference to \-F. \\
+\hline
+{\em da\-\_\-prev} & input difference to the previous round. \\
+\hline
+{\em hways\-\_\-diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx,dy,p)$ (\-Highways) ordered by index $i = (dx~ 2^{n} + dy)$. \\
+\hline
+{\em hways\-\_\-diff\-\_\-mset\-\_\-p} & set of differentials $(dx,dy,p)$ (\-Highways) ordered by probability p. \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx,dy,p)$ (\-Countryroads) ordered by index $i = (dx~ 2^{n} + dy)$. \\
+\hline
+{\em diff\-\_\-mset\-\_\-p} & temporrary set of differentials $(dx,dy,p)$ (\-Countryroads) ordered by probability p. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+number of output differences that were added to {\ttfamily diff\-\_\-set\-\_\-dx\-\_\-dy} . 
+\end{DoxyReturn}

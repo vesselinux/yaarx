@@ -1,0 +1,247 @@
+\hypertarget{xtea-xor-threshold-search_8cc}{\subsection{src/xtea-\/xor-\/threshold-\/search.cc \-File \-Reference}
+\label{xtea-xor-threshold-search_8cc}\index{src/xtea-\/xor-\/threshold-\/search.\-cc@{src/xtea-\/xor-\/threshold-\/search.\-cc}}
+}
+
+
+\-Automatic search for \-X\-O\-R differential trails in block cipher \-X\-T\-E\-A.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}xdp-\/add.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}max-\/xdp-\/add.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}xtea.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}xdp-\/xtea-\/f-\/fk.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}xtea-\/f-\/xor-\/pddt.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{xtea-xor-threshold-search_8cc_a91f5b9d37a2c3701676d92f8402a2d8d}{xtea\-\_\-xor\-\_\-init\-\_\-estimate} (uint32\-\_\-t next\-\_\-round, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, uint32\-\_\-t npairs, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy, uint32\-\_\-t round\-\_\-key\mbox{[}64\mbox{]}, uint32\-\_\-t round\-\_\-delta\mbox{[}64\mbox{]})
+\item 
+void \hyperlink{xtea-xor-threshold-search_8cc_a04cc0c55d61b755d6b9435e301420f0f}{xtea\-\_\-xor\-\_\-threshold\-\_\-search} (const int n, const int nrounds, const uint32\-\_\-t npairs, const uint32\-\_\-t round\-\_\-key\mbox{[}64\mbox{]}, const uint32\-\_\-t round\-\_\-delta\mbox{[}64\mbox{]}, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, double $\ast$\-Bn, const \hyperlink{structdifferential__t}{differential\-\_\-t} diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy, uint32\-\_\-t dxx\-\_\-init, uint32\-\_\-t $\ast$dxx\-\_\-init\-\_\-in)
+\item 
+uint32\-\_\-t \hyperlink{xtea-xor-threshold-search_8cc_a755f7a2a412e54249912f5d79dd089d0}{xtea\-\_\-xor\-\_\-trail\-\_\-search} (uint32\-\_\-t key\mbox{[}4\mbox{]}, uint32\-\_\-t round\-\_\-key\mbox{[}64\mbox{]}, uint32\-\_\-t round\-\_\-delta\mbox{[}64\mbox{]}, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+void \hyperlink{xtea-xor-threshold-search_8cc_ac36a9286201c9538d7a164cd02ca2c65}{xtea\-\_\-xor\-\_\-threshold\-\_\-search\-\_\-full} (const int n, const int nrounds, const uint32\-\_\-t npairs, const uint32\-\_\-t round\-\_\-key\mbox{[}64\mbox{]}, const uint32\-\_\-t round\-\_\-delta\mbox{[}64\mbox{]}, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, double $\ast$\-Bn, const \hyperlink{structdifferential__t}{differential\-\_\-t} diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy, uint32\-\_\-t dxx\-\_\-init, uint32\-\_\-t $\ast$dxx\-\_\-init\-\_\-in)
+\item 
+uint32\-\_\-t \hyperlink{xtea-xor-threshold-search_8cc_a85aae29867c82160c8871fa17a34e5bb}{xtea\-\_\-xor\-\_\-trail\-\_\-search\-\_\-full} (uint32\-\_\-t key\mbox{[}4\mbox{]}, uint32\-\_\-t round\-\_\-key\mbox{[}64\mbox{]}, uint32\-\_\-t round\-\_\-delta\mbox{[}64\mbox{]}, double \-B\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Automatic search for \-X\-O\-R differential trails in block cipher \-X\-T\-E\-A. \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{xtea-xor-threshold-search_8cc_a91f5b9d37a2c3701676d92f8402a2d8d}{\index{xtea-\/xor-\/threshold-\/search.\-cc@{xtea-\/xor-\/threshold-\/search.\-cc}!xtea\-\_\-xor\-\_\-init\-\_\-estimate@{xtea\-\_\-xor\-\_\-init\-\_\-estimate}}
+\index{xtea\-\_\-xor\-\_\-init\-\_\-estimate@{xtea\-\_\-xor\-\_\-init\-\_\-estimate}!xtea-xor-threshold-search.cc@{xtea-\/xor-\/threshold-\/search.\-cc}}
+\paragraph[{xtea\-\_\-xor\-\_\-init\-\_\-estimate}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf xtea\-\_\-xor\-\_\-init\-\_\-estimate} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{next\-\_\-round, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{npairs, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy, }
+\item[{uint32\-\_\-t}]{round\-\_\-key\mbox{[}64\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-delta\mbox{[}64\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{xtea-xor-threshold-search_8cc_a91f5b9d37a2c3701676d92f8402a2d8d}
+\-Compute an initial estimate of the probability of a differential trail on $(n+1)$ rounds, by greedily extending the best found trail for $n$ rounds.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em next\-\_\-round} & index of round $(n+1)$ to which a trail on $n$ rounds will be extended. \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em \-A} & transition probability matrices for $\mathrm{xdp}^{+}$ (\hyperlink{xdp-add_8hh_af484105ee4ba34f7f20d63b798ebe851}{xdp\-\_\-add\-\_\-sf}). \\
+\hline
+{\em \-B} & array containing the best differential probabilities for i rounds\-: $0 \le i < n$. \\
+\hline
+{\em trail} & best found differential trail for {\ttfamily n} rounds. \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & p\-D\-D\-T as a set of differentials $(dx,dy,p)$ ordered by index $i = (dx~ 2^{n} + dy)$. \\
+\hline
+{\em round\-\_\-key} & all round keys for the full \-X\-T\-E\-A. \\
+\hline
+{\em round\-\_\-delta} & all round constants for the full \-X\-T\-E\-A.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea-xor-threshold-search_8hh_a755f7a2a412e54249912f5d79dd089d0}{xtea\-\_\-xor\-\_\-trail\-\_\-search} 
+\end{DoxySeeAlso}
+\hypertarget{xtea-xor-threshold-search_8cc_a04cc0c55d61b755d6b9435e301420f0f}{\index{xtea-\/xor-\/threshold-\/search.\-cc@{xtea-\/xor-\/threshold-\/search.\-cc}!xtea\-\_\-xor\-\_\-threshold\-\_\-search@{xtea\-\_\-xor\-\_\-threshold\-\_\-search}}
+\index{xtea\-\_\-xor\-\_\-threshold\-\_\-search@{xtea\-\_\-xor\-\_\-threshold\-\_\-search}!xtea-xor-threshold-search.cc@{xtea-\/xor-\/threshold-\/search.\-cc}}
+\paragraph[{xtea\-\_\-xor\-\_\-threshold\-\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xtea\-\_\-xor\-\_\-threshold\-\_\-search} (
+\begin{DoxyParamCaption}
+\item[{const int}]{n, }
+\item[{const int}]{nrounds, }
+\item[{const uint32\-\_\-t}]{npairs, }
+\item[{const uint32\-\_\-t}]{round\-\_\-key\mbox{[}64\mbox{]}, }
+\item[{const uint32\-\_\-t}]{round\-\_\-delta\mbox{[}64\mbox{]}, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{double $\ast$}]{\-Bn, }
+\item[{const {\bf differential\-\_\-t}}]{diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy, }
+\item[{uint32\-\_\-t}]{dxx\-\_\-init, }
+\item[{uint32\-\_\-t $\ast$}]{dxx\-\_\-init\-\_\-in}
+\end{DoxyParamCaption}
+)}}\label{xtea-xor-threshold-search_8cc_a04cc0c55d61b755d6b9435e301420f0f}
+\-Automatic search for \-X\-O\-R differential trails in block cipher \-T\-E\-A. using p\-D\-D\-T.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & index of the current round\-: $0 \le n < \mathrm{nrounds}$. \\
+\hline
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em round\-\_\-key} & all round keys for the full \-X\-T\-E\-A. \\
+\hline
+{\em round\-\_\-delta} & all round constants for the full \-X\-T\-E\-A. \\
+\hline
+{\em \-A} & transition probability matrices for $\mathrm{xdp}^{+}$ (\hyperlink{xdp-add_8hh_af484105ee4ba34f7f20d63b798ebe851}{xdp\-\_\-add\-\_\-sf}). \\
+\hline
+{\em \-B} & array containing the best differential probabilities for i rounds\-: $0 \le i < n$. \\
+\hline
+{\em \-Bn} & the best found probability on $n$ rounds, updated dynamically. \\
+\hline
+{\em diff\-\_\-in} & array of differentials. \\
+\hline
+{\em trail} & best found differential trail for {\ttfamily nrounds}. \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em diff\-\_\-mset\-\_\-p} & p\-D\-D\-T as a set of differentials $(dx,dy,p)$ ordered by probability p. \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & p\-D\-D\-T as a set of differentials $(dx,dy,p)$ ordered by index $i = (dx~ 2^{n} + dy)$. \\
+\hline
+{\em dxx\-\_\-init} & initial left input difference to \-X\-T\-E\-A \\
+\hline
+{\em dxx\-\_\-init\-\_\-in} & the initial left input difference to \-X\-T\-E\-A corresponding to the best found trail (initialized to {\ttfamily dxx\-\_\-init} and updated dynamically).\\
+\hline
+\end{DoxyParams}
+\begin{DoxyAttention}{\-Attention}
+\-The p\-D\-D\-T contains differentials and their probabilities for the \-X\-T\-E\-A \-F-\/function $F$ (\hyperlink{xtea_8hh_a6c0b7a7bc47458fb343e66188fe4abda}{xtea\-\_\-f}) as opposed to the function $F'$ (\hyperlink{xtea_8hh_a3ff97f349faa35a728c6cdd128fca853}{xtea\-\_\-f2}) that also includes the second \-A\-D\-D operation. \-In other words, the p\-D\-D\-T does {\itshape not\/} take into account the differential probabilities arising from the second \-A\-D\-D operation. \-The latter are computed during the search.
+\end{DoxyAttention}
+\-The outline of the array of bounds $B$ is the following\-:
+
+
+\begin{DoxyItemize}
+\item $B[0]$\-: best probability for $1$ round.
+\item $B[1]$\-: best probability for $2$ rounds.
+\item $\ldots$
+\item $B[i]$\-: best probability for $(i+1)$ rounds.
+\item $\ldots$
+\item $B[n-2]$\-: best probability for $(n-1)$ rounds.
+\item $B[n-1]$\-: best probability for $n$ rounds.
+\end{DoxyItemize}
+
+{\bfseries \-More} {\bfseries \-Details} 
+
+\-The differential probability (\-D\-P) for one round of \-X\-T\-E\-A is computed as the product of the \-D\-P of $F$ (\hyperlink{xtea_8hh_a6c0b7a7bc47458fb343e66188fe4abda}{xtea\-\_\-f}) and the \-D\-P of the modular addition in \-F' (\hyperlink{xtea_8hh_a3ff97f349faa35a728c6cdd128fca853}{xtea\-\_\-f2}). \-The functions $F$ and $F'$ are defined as\-: $F(x) = y = x + ((x \ll 4) \oplus (x \gg 5))$, $ F'(xx, x) = yy = xx + (y \oplus (\delta + \mathrm{key}))$. \-Thus the \-D\-P of one round of \-X\-T\-E\-A is essentiallly the \-D\-P of $F'$ and is approximated as\-:
+
+$\mathrm{xdp}^{F'}(dxx, dx \rightarrow dyy) = \mathrm{xdp}^{F}(dx \rightarrow dy) \cdot \mathrm{xdp}^{+}(dy, dxx \rightarrow dyy)$.
+
+\begin{DoxyAttention}{\-Attention}
+\-The p\-D\-D\-T contais entries of the form $(dx,~ dy,~ \mathrm{xdp}^{F}(dx \rightarrow dy))$. \-However, every entry in the arrays of differentials {\ttfamily trail} and {\ttfamily diff\-\_\-in} contains elements of the form\-: $(dx,~ dyy,~ \mathrm{xdp}^{F'}(dxx, dx \rightarrow dyy))$. \-Although {\ttfamily trail} and {\ttfamily dif\-\_\-in} do not contain the difference $dxx$, the latter can be easily computed noting that $dxx = dx_{-1}$, where $dx_{-1}$ is the input difference to $F$ from the previous round.
+\end{DoxyAttention}
+\-For more details on the search algorithm see \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} .
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea-xor-threshold-search_8hh_a755f7a2a412e54249912f5d79dd089d0}{xtea\-\_\-xor\-\_\-trail\-\_\-search} 
+\end{DoxySeeAlso}
+\hypertarget{xtea-xor-threshold-search_8cc_ac36a9286201c9538d7a164cd02ca2c65}{\index{xtea-\/xor-\/threshold-\/search.\-cc@{xtea-\/xor-\/threshold-\/search.\-cc}!xtea\-\_\-xor\-\_\-threshold\-\_\-search\-\_\-full@{xtea\-\_\-xor\-\_\-threshold\-\_\-search\-\_\-full}}
+\index{xtea\-\_\-xor\-\_\-threshold\-\_\-search\-\_\-full@{xtea\-\_\-xor\-\_\-threshold\-\_\-search\-\_\-full}!xtea-xor-threshold-search.cc@{xtea-\/xor-\/threshold-\/search.\-cc}}
+\paragraph[{xtea\-\_\-xor\-\_\-threshold\-\_\-search\-\_\-full}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xtea\-\_\-xor\-\_\-threshold\-\_\-search\-\_\-full} (
+\begin{DoxyParamCaption}
+\item[{const int}]{n, }
+\item[{const int}]{nrounds, }
+\item[{const uint32\-\_\-t}]{npairs, }
+\item[{const uint32\-\_\-t}]{round\-\_\-key\mbox{[}64\mbox{]}, }
+\item[{const uint32\-\_\-t}]{round\-\_\-delta\mbox{[}64\mbox{]}, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{double $\ast$}]{\-Bn, }
+\item[{const {\bf differential\-\_\-t}}]{diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy, }
+\item[{uint32\-\_\-t}]{dxx\-\_\-init, }
+\item[{uint32\-\_\-t $\ast$}]{dxx\-\_\-init\-\_\-in}
+\end{DoxyParamCaption}
+)}}\label{xtea-xor-threshold-search_8cc_ac36a9286201c9538d7a164cd02ca2c65}
+\-Full threshold search. \hypertarget{xtea-xor-threshold-search_8cc_a755f7a2a412e54249912f5d79dd089d0}{\index{xtea-\/xor-\/threshold-\/search.\-cc@{xtea-\/xor-\/threshold-\/search.\-cc}!xtea\-\_\-xor\-\_\-trail\-\_\-search@{xtea\-\_\-xor\-\_\-trail\-\_\-search}}
+\index{xtea\-\_\-xor\-\_\-trail\-\_\-search@{xtea\-\_\-xor\-\_\-trail\-\_\-search}!xtea-xor-threshold-search.cc@{xtea-\/xor-\/threshold-\/search.\-cc}}
+\paragraph[{xtea\-\_\-xor\-\_\-trail\-\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-xor\-\_\-trail\-\_\-search} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-key\mbox{[}64\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-delta\mbox{[}64\mbox{]}, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{xtea-xor-threshold-search_8cc_a755f7a2a412e54249912f5d79dd089d0}
+\-Search for \-X\-O\-R differential trails in block cipher \-X\-T\-E\-A\-: wrapper function for \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search}.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & cryptographic key of \-X\-T\-E\-A. \\
+\hline
+{\em round\-\_\-key} & all round keys for the full \-X\-T\-E\-A. \\
+\hline
+{\em round\-\_\-delta} & all round constants for the full \-X\-T\-E\-A.\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+\-The procedure operates as follows\-:
+
+
+\begin{DoxyEnumerate}
+\item \-Compute a p\-D\-D\-T for \-F (\hyperlink{xtea-f-xor-pddt_8hh_a7b7008eb382fd5465162899639968376}{xtea\-\_\-f\-\_\-xor\-\_\-pddt}).
+\item \-Execute the search for differential trails for $n$ rounds (n = \-N\-R\-O\-U\-N\-D\-S) through a successive application of \hyperlink{xtea-xor-threshold-search_8hh_a04cc0c55d61b755d6b9435e301420f0f}{xtea\-\_\-xor\-\_\-threshold\-\_\-search} \-:
+\begin{DoxyItemize}
+\item \-Compute the best found probability on 1 round\-: $B[0]$.
+\item \-Using $B[0]$ compute the best found probability on 2 rounds\-: $B[1]$.
+\item $\ldots$
+\item \-Using $B[0],\ldots,B[i-1]$ compute the best found probability on $(i+1)$ rounds\-: $B[i]$.
+\item $\ldots$
+\item \-Using $B[0],\ldots,B[n-2]$ compute the best found probability on $n$ rounds\-: $B[n-1]$.
+\end{DoxyItemize}
+\item \-Print the best found trail on $n$ rounds on standrad output and terminate.
+\end{DoxyEnumerate}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea-xor-threshold-search_8hh_a04cc0c55d61b755d6b9435e301420f0f}{xtea\-\_\-xor\-\_\-threshold\-\_\-search} 
+\end{DoxySeeAlso}
+\hypertarget{xtea-xor-threshold-search_8cc_a85aae29867c82160c8871fa17a34e5bb}{\index{xtea-\/xor-\/threshold-\/search.\-cc@{xtea-\/xor-\/threshold-\/search.\-cc}!xtea\-\_\-xor\-\_\-trail\-\_\-search\-\_\-full@{xtea\-\_\-xor\-\_\-trail\-\_\-search\-\_\-full}}
+\index{xtea\-\_\-xor\-\_\-trail\-\_\-search\-\_\-full@{xtea\-\_\-xor\-\_\-trail\-\_\-search\-\_\-full}!xtea-xor-threshold-search.cc@{xtea-\/xor-\/threshold-\/search.\-cc}}
+\paragraph[{xtea\-\_\-xor\-\_\-trail\-\_\-search\-\_\-full}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-xor\-\_\-trail\-\_\-search\-\_\-full} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-key\mbox{[}64\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-delta\mbox{[}64\mbox{]}, }
+\item[{double}]{\-B\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{xtea-xor-threshold-search_8cc_a85aae29867c82160c8871fa17a34e5bb}
+\-Full threshold search using \hyperlink{xtea-xor-threshold-search_8cc_ac36a9286201c9538d7a164cd02ca2c65}{xtea\-\_\-xor\-\_\-threshold\-\_\-search\-\_\-full} 

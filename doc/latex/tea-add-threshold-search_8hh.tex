@@ -1,0 +1,118 @@
+\hypertarget{tea-add-threshold-search_8hh}{\subsection{include/tea-\/add-\/threshold-\/search.hh \-File \-Reference}
+\label{tea-add-threshold-search_8hh}\index{include/tea-\/add-\/threshold-\/search.\-hh@{include/tea-\/add-\/threshold-\/search.\-hh}}
+}
+
+
+\-Header for \hyperlink{tea-add-threshold-search_8cc}{tea-\/add-\/threshold-\/search.\-cc}. \-Automatic search for \-A\-D\-D differential trails in block cipher \-T\-E\-A. .  
+
+
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint32\-\_\-t \hyperlink{tea-add-threshold-search_8hh_a50a3716bc83febae5e18ba2934aea8ab}{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp} (\hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t trail\-\_\-len, double p\-\_\-thres)
+\item 
+uint32\-\_\-t \hyperlink{tea-add-threshold-search_8hh_aa0f68e80d4599027b9a5c581891af32f}{tea\-\_\-add\-\_\-trail\-\_\-search} (uint32\-\_\-t key\mbox{[}4\mbox{]}, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+uint32\-\_\-t \hyperlink{tea-add-threshold-search_8hh_ad67aee37c1fb58e3236ddbe912574538}{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full} (uint32\-\_\-t key\mbox{[}4\mbox{]}, double \-B\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t num\-\_\-rounds)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Header for \hyperlink{tea-add-threshold-search_8cc}{tea-\/add-\/threshold-\/search.\-cc}. \-Automatic search for \-A\-D\-D differential trails in block cipher \-T\-E\-A. . \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{tea-add-threshold-search_8hh_a50a3716bc83febae5e18ba2934aea8ab}{\index{tea-\/add-\/threshold-\/search.\-hh@{tea-\/add-\/threshold-\/search.\-hh}!tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp@{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp}}
+\index{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp@{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp}!tea-add-threshold-search.hh@{tea-\/add-\/threshold-\/search.\-hh}}
+\paragraph[{tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf tea\-\_\-add\-\_\-threshold\-\_\-count\-\_\-lp} (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{trail\-\_\-len, }
+\item[{double}]{p\-\_\-thres}
+\end{DoxyParamCaption}
+)}}\label{tea-add-threshold-search_8hh_a50a3716bc83febae5e18ba2934aea8ab}
+\-Count the number of differentials in a {\ttfamily trail} that have probabilities below a given threshold.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em trail} & a differential trail for {\ttfamily trail\-\_\-len} rounds. \\
+\hline
+{\em trail\-\_\-len} & length of the differential trail. \\
+\hline
+{\em p\-\_\-thres} & probability threshold. \\
+\hline
+\end{DoxyParams}
+\hypertarget{tea-add-threshold-search_8hh_aa0f68e80d4599027b9a5c581891af32f}{\index{tea-\/add-\/threshold-\/search.\-hh@{tea-\/add-\/threshold-\/search.\-hh}!tea\-\_\-add\-\_\-trail\-\_\-search@{tea\-\_\-add\-\_\-trail\-\_\-search}}
+\index{tea\-\_\-add\-\_\-trail\-\_\-search@{tea\-\_\-add\-\_\-trail\-\_\-search}!tea-add-threshold-search.hh@{tea-\/add-\/threshold-\/search.\-hh}}
+\paragraph[{tea\-\_\-add\-\_\-trail\-\_\-search}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf tea\-\_\-add\-\_\-trail\-\_\-search} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{tea-add-threshold-search_8hh_aa0f68e80d4599027b9a5c581891af32f}
+\-Search for \-A\-D\-D differential trails in block cipher \-T\-E\-A\-: wrapper function for \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search}.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & cryptographic key of \-T\-E\-A. \\
+\hline
+{\em \-B} & array of bounds. \\
+\hline
+{\em trail} & best found differential trail.\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+\-The procedure operates as follows\-:
+
+
+\begin{DoxyEnumerate}
+\item \-Compute a p\-D\-D\-T for \-F (\hyperlink{tea-f-add-pddt_8hh_af962bfb5724a4f1dd45fdb2fdeac49f4}{tea\-\_\-f\-\_\-add\-\_\-pddt}).
+\item \-Adjust the probabilities of the p\-D\-D\-T to the round key and constant (\hyperlink{tea-f-add-pddt_8hh_aa60ac75c659872644ff116ea451bed41}{tea\-\_\-f\-\_\-add\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key}).
+\item \-Execute the search for differential trails for $n$ rounds (n = \-N\-R\-O\-U\-N\-D\-S) through a successive application of \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} \-:
+\begin{DoxyItemize}
+\item \-Compute the best found probability on 1 round\-: $B[0]$.
+\item \-Using $B[0]$ compute the best found probability on 2 rounds\-: $B[1]$.
+\item $\ldots$
+\item \-Using $B[0],\ldots,B[i-1]$ compute the best found probability on $(i+1)$ rounds\-: $B[i]$.
+\item $\ldots$
+\item \-Using $B[0],\ldots,B[n-2]$ compute the best found probability on $n$ rounds\-: $B[n-1]$.
+\end{DoxyItemize}
+\item \-Print the best found trail on $n$ rounds on standrad output and terminate.
+\end{DoxyEnumerate}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-threshold-search_8hh_ad67aee37c1fb58e3236ddbe912574538}{\index{tea-\/add-\/threshold-\/search.\-hh@{tea-\/add-\/threshold-\/search.\-hh}!tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full@{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full}}
+\index{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full@{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full}!tea-add-threshold-search.hh@{tea-\/add-\/threshold-\/search.\-hh}}
+\paragraph[{tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf tea\-\_\-add\-\_\-trail\-\_\-search\-\_\-full} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{double}]{\-B\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{num\-\_\-rounds}
+\end{DoxyParamCaption}
+)}}\label{tea-add-threshold-search_8hh_ad67aee37c1fb58e3236ddbe912574538}
+\-Full threshold search using bounds pre-\/computed with \hyperlink{tea-add-threshold-search_8hh_aa0f68e80d4599027b9a5c581891af32f}{tea\-\_\-add\-\_\-trail\-\_\-search} ; basically a wrapper function for \hyperlink{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full} .
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & cryptographic key of \-T\-E\-A. \\
+\hline
+{\em \-B\-B} & array of bounds. \\
+\hline
+{\em trail} & best found differential trail.\\
+\hline
+\end{DoxyParams}
+\-The function takes as input an array of initial bounds {\ttfamily \-B} and the corresponding best found trail, computed with a prior call to {\ttfamily tea\-\_\-add\-\_\-trail\-\_\-search} and outputs a trail that is at least as good as the niput.
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-threshold-search_8cc_a760f25356b1203a35c8ece3f4e8a038c}{tea\-\_\-add\-\_\-threshold\-\_\-search\-\_\-full} 
+\end{DoxySeeAlso}

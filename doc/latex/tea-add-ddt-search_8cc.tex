@@ -1,0 +1,306 @@
+\hypertarget{tea-add-ddt-search_8cc}{\subsection{src/tea-\/add-\/ddt-\/search.cc \-File \-Reference}
+\label{tea-add-ddt-search_8cc}\index{src/tea-\/add-\/ddt-\/search.\-cc@{src/tea-\/add-\/ddt-\/search.\-cc}}
+}
+
+
+\-Automatic search for \-A\-D\-D differential trails in \-T\-E\-A using full \-D\-D\-T-\/s.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}tea.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}adp-\/tea-\/f-\/fk-\/ddt.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{tea-add-ddt-search_8cc_ac37bdb6b6b92aab26ba068877b6591e4}{verify\-\_\-trail} (uint64\-\_\-t npairs, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, uint32\-\_\-t nrounds, uint32\-\_\-t key\mbox{[}4\mbox{]}, uint32\-\_\-t delta, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+void \hyperlink{tea-add-ddt-search_8cc_a06a1cdac8a817642490ecdb7371de378}{round\-\_\-ddt} (const int n, const int nrounds, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-R\-S\-D\-D\-T\-\_\-\-E, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-R\-S\-D\-D\-T\-\_\-\-O, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$\-S\-D\-D\-T\-\_\-\-O, double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, double $\ast$\-Bn, const \hyperlink{structdifferential__t}{differential\-\_\-t} diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+void \hyperlink{tea-add-ddt-search_8cc_a5519276063a08ee4fc0d2f580899b9c9}{tea\-\_\-search\-\_\-ddt} (uint32\-\_\-t key\mbox{[}4\mbox{]})
+\item 
+void \hyperlink{tea-add-ddt-search_8cc_a6421afe69f9ebf929f3f33acb75fd680}{round\-\_\-xddt} (const int n, const int nrounds, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$$\ast$\-X\-R\-S\-D\-D\-T\-\_\-\-E, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$$\ast$\-X\-R\-S\-D\-D\-T\-\_\-\-O, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-X\-S\-D\-D\-T\-\_\-\-O, const double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, double $\ast$\-Bn, \hyperlink{structdifferential__t}{differential\-\_\-t} diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+void \hyperlink{tea-add-ddt-search_8cc_adeb95c6bad2674864ec015054f307247}{tea\-\_\-search\-\_\-xddt} (uint32\-\_\-t key\mbox{[}4\mbox{]})
+\item 
+void \hyperlink{tea-add-ddt-search_8cc_ae2fedba8b096ccade5bd0e53baa5a14a}{round\-\_\-xddt\-\_\-bottom\-\_\-up} (const int n, const int nrounds, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$$\ast$\-X\-R\-S\-D\-D\-T\-\_\-\-E, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$$\ast$\-X\-R\-S\-D\-D\-T\-\_\-\-O, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-X\-S\-D\-D\-T\-\_\-\-E, \hyperlink{structdifferential__t}{differential\-\_\-t} $\ast$$\ast$\-X\-S\-D\-D\-T\-\_\-\-O, const double \-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, double $\ast$\-Bn, \hyperlink{structdifferential__t}{differential\-\_\-t} diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+void \hyperlink{tea-add-ddt-search_8cc_a81fe3c22914ca668a27f24be429dfcb3}{tea\-\_\-search\-\_\-xddt\-\_\-bottom\-\_\-up} (uint32\-\_\-t key\mbox{[}4\mbox{]})
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Automatic search for \-A\-D\-D differential trails in \-T\-E\-A using full \-D\-D\-T-\/s. \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyAttention}{\-Attention}
+\-Exponential complexity in the word size; infeasible for word sizes bigger than \$11\$ bits. \-Used only for tests and verification. 
+\end{DoxyAttention}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{tea-add-ddt-search_8cc_a06a1cdac8a817642490ecdb7371de378}{\index{tea-\/add-\/ddt-\/search.\-cc@{tea-\/add-\/ddt-\/search.\-cc}!round\-\_\-ddt@{round\-\_\-ddt}}
+\index{round\-\_\-ddt@{round\-\_\-ddt}!tea-add-ddt-search.cc@{tea-\/add-\/ddt-\/search.\-cc}}
+\paragraph[{round\-\_\-ddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf round\-\_\-ddt} (
+\begin{DoxyParamCaption}
+\item[{const int}]{n, }
+\item[{const int}]{nrounds, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-R\-S\-D\-D\-T\-\_\-\-E, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-R\-S\-D\-D\-T\-\_\-\-O, }
+\item[{{\bf differential\-\_\-t} $\ast$}]{\-S\-D\-D\-T\-\_\-\-O, }
+\item[{double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{double $\ast$}]{\-Bn, }
+\item[{const {\bf differential\-\_\-t}}]{diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{tea-add-ddt-search_8cc_a06a1cdac8a817642490ecdb7371de378}
+\-Automatic search for \-A\-D\-D differential trails using precomputed full difference distribution tables (\-D\-D\-T) for {\bfseries a} {\bfseries modified} {\bfseries version} {\bfseries of} {\bfseries \-T\-E\-A} that uses the same round constant $\delta$ in every round.
+
+\begin{DoxyAttention}{\-Attention}
+
+\begin{DoxyEnumerate}
+\item \-Assumes the same $\delta$ constant is used at every round of \-T\-E\-A.
+\item \-Two \-D\-D\-T-\/s are computed\-: {\ttfamily \-D\-D\-T\-\_\-\-E} contains fixed-\/key probabilities for the round keys applied in all even rounds\-: $0,2,4,\ldots$; {\ttfamily \-D\-D\-T\-\_\-\-O} contains fixed-\/key probabilities for the round keys applied in all odd rounds\-: $1,3,5,\ldots$.
+\end{DoxyEnumerate}
+\end{DoxyAttention}
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & index of the current round\-: $0 \le n < \mathrm{nrounds}$. \\
+\hline
+{\em \-R\-S\-D\-D\-T\-\_\-\-E} & a \-D\-D\-T for the keys of all even rounds $0,2,4,\ldots$ with the elements in each row (i.\-e. for a fixed input difference) sorted in descending order of their probability (a \-Row-\/\-Sorted {\ttfamily \-D\-D\-T\-\_\-\-E}). \\
+\hline
+{\em \-R\-S\-D\-D\-T\-\_\-\-O} & a \-D\-D\-T for the keys of all odd rounds $1,3,5,\ldots$ with the elements in each row (i.\-e. for a fixed input difference) sorted in descending order of their probability (a \-Row-\/\-Sorted {\ttfamily \-D\-D\-T\-\_\-\-O}). \\
+\hline
+{\em \-S\-D\-D\-T\-\_\-\-O} & a \-D\-D\-T for the keys of all odd rounds will all elements sorted in descending order of their probability (a \-Sorted {\ttfamily \-D\-D\-T\-\_\-\-O}). \\
+\hline
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em \-B} & array containing the best differential probabilities for i rounds\-: $0 \le i < n$. \\
+\hline
+{\em \-Bn} & the best probability on $n$ rounds, updated dynamically. \\
+\hline
+{\em diff\-\_\-in} & array of differentials. \\
+\hline
+{\em trail} & best differential trail for {\ttfamily nrounds}.\\
+\hline
+\end{DoxyParams}
+\-The outline of the array of bounds $B$ is the following\-:
+
+
+\begin{DoxyItemize}
+\item $B[0]$\-: best probability for $1$ round.
+\item $B[1]$\-: best probability for $2$ rounds.
+\item $\ldots$
+\item $B[i]$\-: best probability for $(i+1)$ rounds.
+\item $\ldots$
+\item $B[n-2]$\-: best probability for $(n-1)$ rounds.
+\item $B[n-1]$\-: best probability for $n$ rounds.
+\end{DoxyItemize}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-ddt-search_8cc_a6421afe69f9ebf929f3f33acb75fd680}{\index{tea-\/add-\/ddt-\/search.\-cc@{tea-\/add-\/ddt-\/search.\-cc}!round\-\_\-xddt@{round\-\_\-xddt}}
+\index{round\-\_\-xddt@{round\-\_\-xddt}!tea-add-ddt-search.cc@{tea-\/add-\/ddt-\/search.\-cc}}
+\paragraph[{round\-\_\-xddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf round\-\_\-xddt} (
+\begin{DoxyParamCaption}
+\item[{const int}]{n, }
+\item[{const int}]{nrounds, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$$\ast$}]{\-X\-R\-S\-D\-D\-T\-\_\-\-E, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$$\ast$}]{\-X\-R\-S\-D\-D\-T\-\_\-\-O, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-X\-S\-D\-D\-T\-\_\-\-O, }
+\item[{const double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{double $\ast$}]{\-Bn, }
+\item[{{\bf differential\-\_\-t}}]{diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{tea-add-ddt-search_8cc_a6421afe69f9ebf929f3f33acb75fd680}
+\-Automatic search for \-A\-D\-D differential trails using precomputed full difference distribution tables (\-D\-D\-T) for {\bfseries the} {\bfseries original} {\bfseries version} {\bfseries of} {\bfseries \-T\-E\-A}.
+
+\begin{DoxyAttention}{\-Attention}
+\-For every round constant $\delta$, two \-D\-D\-T-\/s are computed\-: {\ttfamily \-D\-D\-T\-\_\-\-E} containing the fixed-\/key fixed-\/ $\delta$ probabilities for the round keys applied in all even rounds\-: $0,2,4,\ldots$ and {\ttfamily \-D\-D\-T\-\_\-\-O} containing the fixed-\/key fixed-\/ $\delta$ probabilities for the round keys applied in all odd rounds\-: $1,3,5,\ldots$. \-Since $\delta$ is updated every second round, for $N$ rounds $2(N/2)$ \-D\-D\-T-\/s will be computed.
+\end{DoxyAttention}
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & index of the current round\-: $0 \le n < \mathrm{nrounds}$. \\
+\hline
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em \-X\-R\-S\-D\-D\-T\-\_\-\-E} & an array of fixed-\/key fixed-\/ $\delta$ \-D\-D\-T-\/s for all even rounds $0,2,4,\ldots$ with the elements in each row (i.\-e. for a fixed input difference) sorted in descending order of their probability (an e\-Xtended \-Row-\/\-Sorted {\ttfamily \-D\-D\-T\-\_\-\-E}). \\
+\hline
+{\em \-X\-R\-S\-D\-D\-T\-\_\-\-O} & an array of fixed-\/key fixed-\/ $\delta$ \-D\-D\-T-\/s for all odd rounds $1,3,5,\ldots$ with the elements in each row (i.\-e. for a fixed input difference) sorted in descending order of their probability (an e\-Xtended \-Row-\/\-Sorted {\ttfamily \-D\-D\-T\-\_\-\-O}). \\
+\hline
+{\em \-X\-S\-D\-D\-T\-\_\-\-O} & an array of fixed-\/key fixed-\/ $\delta$ \-D\-D\-T-\/s for all odd rounds will all elements sorted in descending order of their probability (an e\-Xtended \-Sorted {\ttfamily \-D\-D\-T\-\_\-\-O}). \\
+\hline
+{\em \-B} & array containing the best differential probabilities for i rounds\-: $0 \le i < n$. \\
+\hline
+{\em \-Bn} & the best probability on $n$ rounds, updated dynamically. \\
+\hline
+{\em diff\-\_\-in} & array of differentials. \\
+\hline
+{\em trail} & best differential trail for {\ttfamily nrounds}.\\
+\hline
+\end{DoxyParams}
+\-The outline of the array of bounds $B$ is the following\-:
+
+
+\begin{DoxyItemize}
+\item $B[0]$\-: best probability for $1$ round.
+\item $B[1]$\-: best probability for $2$ rounds.
+\item $\ldots$
+\item $B[i]$\-: best probability for $(i+1)$ rounds.
+\item $\ldots$
+\item $B[n-2]$\-: best probability for $(n-1)$ rounds.
+\item $B[n-1]$\-: best probability for $n$ rounds.
+\end{DoxyItemize}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-ddt-search_8hh_a06a1cdac8a817642490ecdb7371de378}{round\-\_\-ddt} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-ddt-search_8cc_ae2fedba8b096ccade5bd0e53baa5a14a}{\index{tea-\/add-\/ddt-\/search.\-cc@{tea-\/add-\/ddt-\/search.\-cc}!round\-\_\-xddt\-\_\-bottom\-\_\-up@{round\-\_\-xddt\-\_\-bottom\-\_\-up}}
+\index{round\-\_\-xddt\-\_\-bottom\-\_\-up@{round\-\_\-xddt\-\_\-bottom\-\_\-up}!tea-add-ddt-search.cc@{tea-\/add-\/ddt-\/search.\-cc}}
+\paragraph[{round\-\_\-xddt\-\_\-bottom\-\_\-up}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf round\-\_\-xddt\-\_\-bottom\-\_\-up} (
+\begin{DoxyParamCaption}
+\item[{const int}]{n, }
+\item[{const int}]{nrounds, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$$\ast$}]{\-X\-R\-S\-D\-D\-T\-\_\-\-E, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$$\ast$}]{\-X\-R\-S\-D\-D\-T\-\_\-\-O, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-X\-S\-D\-D\-T\-\_\-\-E, }
+\item[{{\bf differential\-\_\-t} $\ast$$\ast$}]{\-X\-S\-D\-D\-T\-\_\-\-O, }
+\item[{const double}]{\-B\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{double $\ast$}]{\-Bn, }
+\item[{{\bf differential\-\_\-t}}]{diff\-\_\-in\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{tea-add-ddt-search_8cc_ae2fedba8b096ccade5bd0e53baa5a14a}
+\-Automatic search for \-A\-D\-D differential trails using precomputed full difference distribution tables (\-D\-D\-T) for {\bfseries the} {\bfseries original} {\bfseries version} {\bfseries of} {\bfseries \-T\-E\-A}.
+
+\hyperlink{tea-add-ddt-search_8hh_a37ca7b3dde466f9519bcfcbbbea19ef6}{round\-\_\-xddt\-\_\-bottom\-\_\-up} is conceptually the same as \hyperlink{tea-add-ddt-search_8hh_ae5a533dd8d6c3d5712343627e0156e6f}{round\-\_\-xddt}, except that {\bfseries the} {\bfseries search} {\bfseries proceeds} {\bfseries from} {\bfseries the} {\bfseries bottom} {\bfseries up} i.\-e. first finds the best 1-\/round trail for the last round $N$, next finds the best 2-\/round trail for rounds $N-1, N$, etc. finds the best $i$-\/round trail for rounds $i, i+1, \ldots, N$ and finally finds the best $N$-\/round trail.
+
+\begin{DoxyAttention}{\-Attention}
+\-For every round constant $\delta$, two \-D\-D\-T-\/s are computed\-: {\ttfamily \-D\-D\-T\-\_\-\-E} containing the fixed-\/key fixed-\/ $\delta$ probabilities for the round keys applied in all even rounds\-: $0,2,4,\ldots$ and {\ttfamily \-D\-D\-T\-\_\-\-O} containing the fixed-\/key fixed-\/ $\delta$ probabilities for the round keys applied in all odd rounds\-: $1,3,5,\ldots$. \-Since $\delta$ is updated every second round, for $N$ rounds $2(N/2)$ \-D\-D\-T-\/s will be computed.
+\end{DoxyAttention}
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & index of the current round\-: $0 \le n < \mathrm{nrounds}$. \\
+\hline
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em \-X\-R\-S\-D\-D\-T\-\_\-\-E} & an array of fixed-\/key fixed-\/ $\delta$ \-D\-D\-T-\/s for all even rounds $0,2,4,\ldots$ with the elements in each row (i.\-e. for a fixed input difference) sorted in descending order of their probability (an e\-Xtended \-Row-\/\-Sorted {\ttfamily \-D\-D\-T\-\_\-\-E}). \\
+\hline
+{\em \-X\-R\-S\-D\-D\-T\-\_\-\-O} & an array of fixed-\/key fixed-\/ $\delta$ \-D\-D\-T-\/s for all odd rounds $1,3,5,\ldots$ with the elements in each row (i.\-e. for a fixed input difference) sorted in descending order of their probability (an e\-Xtended \-Row-\/\-Sorted {\ttfamily \-D\-D\-T\-\_\-\-O}). \\
+\hline
+{\em \-X\-S\-D\-D\-T\-\_\-\-O} & an array of fixed-\/key fixed-\/ $\delta$ \-D\-D\-T-\/s for all odd rounds will all elements sorted in descending order of their probability (an e\-Xtended \-Sorted {\ttfamily \-D\-D\-T\-\_\-\-O}). \\
+\hline
+{\em \-X\-S\-D\-D\-T\-\_\-\-E} & an array of fixed-\/key fixed-\/ $\delta$ \-D\-D\-T-\/s for all even rounds will all elements sorted in descending order of their probability (an e\-Xtended \-Sorted {\ttfamily \-D\-D\-T\-\_\-\-E}). \\
+\hline
+{\em \-B} & array containing the best differential probabilities for i rounds\-: $0 \le i < n$. \\
+\hline
+{\em \-Bn} & the best probability on $n$ rounds, updated dynamically. \\
+\hline
+{\em diff\-\_\-in} & array of differentials. \\
+\hline
+{\em trail} & best differential trail for {\ttfamily nrounds}.\\
+\hline
+\end{DoxyParams}
+\-The outline of the array of bounds $B$ is the following\-:
+
+
+\begin{DoxyItemize}
+\item $B[0]$\-: best probability for $n$ rounds.
+\item $B[1]$\-: best probability for $(n-1)$ rounds.
+\item $\ldots$
+\item $B[i]$\-: best probability for $(n-i)$ rounds (rounds $n-i, n-i+1, \ldots, n$).
+\item $\ldots$
+\item $B[n-2]$\-: best probability for $2$ rounds (rounds $n-1,n$).
+\item $B[n-1]$\-: best probability for $1$ round (round $n$).
+\end{DoxyItemize}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-ddt-search_8hh_ae5a533dd8d6c3d5712343627e0156e6f}{round\-\_\-xddt} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-ddt-search_8cc_a5519276063a08ee4fc0d2f580899b9c9}{\index{tea-\/add-\/ddt-\/search.\-cc@{tea-\/add-\/ddt-\/search.\-cc}!tea\-\_\-search\-\_\-ddt@{tea\-\_\-search\-\_\-ddt}}
+\index{tea\-\_\-search\-\_\-ddt@{tea\-\_\-search\-\_\-ddt}!tea-add-ddt-search.cc@{tea-\/add-\/ddt-\/search.\-cc}}
+\paragraph[{tea\-\_\-search\-\_\-ddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-search\-\_\-ddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{tea-add-ddt-search_8cc_a5519276063a08ee4fc0d2f580899b9c9}
+\-Search for \-A\-D\-D differential trails in a modified version of block cipher \-T\-E\-A that uses the same round constant $\delta$ in every round. \-Computes full difference distribution tables (\-D\-D\-T) for every key and the same round constant\-: a wrapper function for \hyperlink{tea-add-ddt-search_8hh_a06a1cdac8a817642490ecdb7371de378}{round\-\_\-ddt}.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & cryptographic key of \-T\-E\-A.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyAttention}{\-Attention}
+\-Assumes the same $\delta$ constant is used at every round of \-T\-E\-A.
+\end{DoxyAttention}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-threshold-search_8hh_aa0f68e80d4599027b9a5c581891af32f}{tea\-\_\-add\-\_\-trail\-\_\-search} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-ddt-search_8cc_adeb95c6bad2674864ec015054f307247}{\index{tea-\/add-\/ddt-\/search.\-cc@{tea-\/add-\/ddt-\/search.\-cc}!tea\-\_\-search\-\_\-xddt@{tea\-\_\-search\-\_\-xddt}}
+\index{tea\-\_\-search\-\_\-xddt@{tea\-\_\-search\-\_\-xddt}!tea-add-ddt-search.cc@{tea-\/add-\/ddt-\/search.\-cc}}
+\paragraph[{tea\-\_\-search\-\_\-xddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-search\-\_\-xddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{tea-add-ddt-search_8cc_adeb95c6bad2674864ec015054f307247}
+\-Search for \-A\-D\-D differential trails in the original version of block cipher \-T\-E\-A. \-Computes full difference distribution tables (\-D\-D\-T) for every key and every round constant\-: a wrapper function for \hyperlink{tea-add-ddt-search_8hh_ae5a533dd8d6c3d5712343627e0156e6f}{round\-\_\-xddt}.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & cryptographic key of \-T\-E\-A.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-ddt-search_8hh_ae5a533dd8d6c3d5712343627e0156e6f}{round\-\_\-xddt} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-ddt-search_8cc_a81fe3c22914ca668a27f24be429dfcb3}{\index{tea-\/add-\/ddt-\/search.\-cc@{tea-\/add-\/ddt-\/search.\-cc}!tea\-\_\-search\-\_\-xddt\-\_\-bottom\-\_\-up@{tea\-\_\-search\-\_\-xddt\-\_\-bottom\-\_\-up}}
+\index{tea\-\_\-search\-\_\-xddt\-\_\-bottom\-\_\-up@{tea\-\_\-search\-\_\-xddt\-\_\-bottom\-\_\-up}!tea-add-ddt-search.cc@{tea-\/add-\/ddt-\/search.\-cc}}
+\paragraph[{tea\-\_\-search\-\_\-xddt\-\_\-bottom\-\_\-up}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf tea\-\_\-search\-\_\-xddt\-\_\-bottom\-\_\-up} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{tea-add-ddt-search_8cc_a81fe3c22914ca668a27f24be429dfcb3}
+\-Search for \-A\-D\-D differential trails in the original version of block cipher \-T\-E\-A. \-Computes full difference distribution tables (\-D\-D\-T) for every key and every round constant. \-Conceptually the same as \hyperlink{tea-add-ddt-search_8hh_adeb95c6bad2674864ec015054f307247}{tea\-\_\-search\-\_\-xddt}, except that the search starts from the last round and proceeds up to the first (i.\-e. in a bottom-\/up amnner). \-This function is a wrapper for \hyperlink{tea-add-ddt-search_8hh_a37ca7b3dde466f9519bcfcbbbea19ef6}{round\-\_\-xddt\-\_\-bottom\-\_\-up}.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & cryptographic key of \-T\-E\-A.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-add-ddt-search_8hh_a37ca7b3dde466f9519bcfcbbbea19ef6}{round\-\_\-xddt\-\_\-bottom\-\_\-up} 
+\end{DoxySeeAlso}
+\hypertarget{tea-add-ddt-search_8cc_ac37bdb6b6b92aab26ba068877b6591e4}{\index{tea-\/add-\/ddt-\/search.\-cc@{tea-\/add-\/ddt-\/search.\-cc}!verify\-\_\-trail@{verify\-\_\-trail}}
+\index{verify\-\_\-trail@{verify\-\_\-trail}!tea-add-ddt-search.cc@{tea-\/add-\/ddt-\/search.\-cc}}
+\paragraph[{verify\-\_\-trail}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf verify\-\_\-trail} (
+\begin{DoxyParamCaption}
+\item[{uint64\-\_\-t}]{npairs, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}, }
+\item[{uint32\-\_\-t}]{nrounds, }
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{tea-add-ddt-search_8cc_ac37bdb6b6b92aab26ba068877b6591e4}
+\-Experimentally verify the probabilities of the 1-\/round differentials composing an \-N-\/round differential trail for block cipher \-T\-E\-A, against the exact probabilities from a \-D\-D\-T.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em trail} & best differential trail for {\ttfamily nrounds}. \\
+\hline
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em key} & cryptographic key of \-T\-E\-A. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+\end{DoxyParams}

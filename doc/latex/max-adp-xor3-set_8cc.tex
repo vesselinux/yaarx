@@ -1,0 +1,171 @@
+\hypertarget{max-adp-xor3-set_8cc}{\subsection{src/max-\/adp-\/xor3-\/set.cc \-File \-Reference}
+\label{max-adp-xor3-set_8cc}\index{src/max-\/adp-\/xor3-\/set.\-cc@{src/max-\/adp-\/xor3-\/set.\-cc}}
+}
+
+
+\-The maximum \-A\-D\-D differential probability of \-X\-O\-R with three inputs, where one of the inputs satisfies a {\itshape set\/} of \-A\-D\-D differences\-: $\max_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}adp-\/xor3.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}max-\/adp-\/xor3.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}max-\/adp-\/xor3-\/set.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{max-adp-xor3-set_8cc_a338bdbbb9210c9ed8cc6c053ab42aa68}{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i} (const int i, const uint32\-\_\-t k, const uint32\-\_\-t n, double $\ast$p, uint32\-\_\-t $\ast$dd, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-B\mbox{[}\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}+1\mbox{]}, gsl\-\_\-vector $\ast$\-C\mbox{[}\hyperlink{max-adp-xor3-set_8hh_a6b52658f2068b1daef8ed31dd70ead0c}{\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E}\mbox{]}, const uint32\-\_\-t da, const uint32\-\_\-t db, const uint32\-\_\-t dc\mbox{[}\hyperlink{max-adp-xor3-set_8hh_a6b52658f2068b1daef8ed31dd70ead0c}{\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E}\mbox{]}, uint32\-\_\-t $\ast$dd\-\_\-max, double $\ast$p\-\_\-max)
+\item 
+double \hyperlink{max-adp-xor3-set_8cc_a64619e5349dd07dc017b0469b4066fce}{max\-\_\-adp\-\_\-xor3\-\_\-set} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, const uint32\-\_\-t da, const uint32\-\_\-t db, const uint32\-\_\-t dc\mbox{[}\hyperlink{max-adp-xor3-set_8hh_a6b52658f2068b1daef8ed31dd70ead0c}{\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E}\mbox{]}, double p\-\_\-dc\mbox{[}\hyperlink{max-adp-xor3-set_8hh_a6b52658f2068b1daef8ed31dd70ead0c}{\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E}\mbox{]}, uint32\-\_\-t $\ast$dd\-\_\-max)
+\item 
+double \hyperlink{max-adp-xor3-set_8cc_a0a37e7b1b1aed6c625c2c64f9fc710f6}{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-exper} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, const uint32\-\_\-t da, const uint32\-\_\-t db, const uint32\-\_\-t dc\mbox{[}\hyperlink{max-adp-xor3-set_8hh_a6b52658f2068b1daef8ed31dd70ead0c}{\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E}\mbox{]}, double p\-\_\-dc\mbox{[}\hyperlink{max-adp-xor3-set_8hh_a6b52658f2068b1daef8ed31dd70ead0c}{\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E}\mbox{]}, uint32\-\_\-t $\ast$dd\-\_\-max)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-The maximum \-A\-D\-D differential probability of \-X\-O\-R with three inputs, where one of the inputs satisfies a {\itshape set\/} of \-A\-D\-D differences\-: $\max_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$. \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{max-adp-xor3-set_8cc_a64619e5349dd07dc017b0469b4066fce}{\index{max-\/adp-\/xor3-\/set.\-cc@{max-\/adp-\/xor3-\/set.\-cc}!max\-\_\-adp\-\_\-xor3\-\_\-set@{max\-\_\-adp\-\_\-xor3\-\_\-set}}
+\index{max\-\_\-adp\-\_\-xor3\-\_\-set@{max\-\_\-adp\-\_\-xor3\-\_\-set}!max-adp-xor3-set.cc@{max-\/adp-\/xor3-\/set.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-xor3\-\_\-set}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-xor3\-\_\-set} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{const uint32\-\_\-t}]{dc\mbox{[}\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E\mbox{]}, }
+\item[{double}]{p\-\_\-dc\mbox{[}\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E\mbox{]}, }
+\item[{uint32\-\_\-t $\ast$}]{dd\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-xor3-set_8cc_a64619e5349dd07dc017b0469b4066fce}
+\-Compute the maximum differential probability over all output differences for a set of input differenecs\-: $\max_{dd} \mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$.
+
+{\bfseries \-Complexity} c\-: $O(n R) \le c \le O(2^{nR})$, where $R$ is the size of the set of input differences $dc_r$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dc} & set of input difference. \\
+\hline
+{\em dd\-\_\-max} & maximum probability output difference. \\
+\hline
+{\em p\-\_\-dc} & probabilities of the set of differentials corresponding to the set of differences (used for testing and debug only). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{max}_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$.
+\end{DoxyReturn}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+
+\begin{DoxyItemize}
+\item \-Compute the bounds for each of the differences in the set {\itshape independently\/} using \hyperlink{max-adp-xor_8hh_ab44746fae93c11ea36bd24f4f874669d}{max\-\_\-adp\-\_\-xor\-\_\-bounds} i.\-e. compute $B_{r}[k]$ -\/ the bounds ror the $R$ differentials\-: $\mathrm{dp}(da[n-1:k],db[n-1:k],dc_r[n-1:k] \rightarrow dd[n-1:k])$ corresponding to the r-\/th input differences $dc_{r}$ in the set.
+\item \-Compute a single array of bounds $B_{\mathrm{max}}$ as the maximum of the bounds $B_{r}[k]$ at every bit position $0 \le k \le n$ for every \-S-\/function state $0 \le i < A_{\mathrm{size}}$\-: $B_{\mathrm{max}}[k][i] = \mathrm{max}_{r}~B[k][i],~ 0 \le k \le n,~ 0 \le i < A_{\mathrm{size}}$.
+\item \-Call \hyperlink{max-adp-xor3-set_8hh_a338bdbbb9210c9ed8cc6c053ab42aa68}{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i} with the array of bounds $B_{\mathrm{max}}[k][i]$ to compute the final maximum probability $\mathrm{max}_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}$.
+\end{DoxyItemize}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-xor3-set_8hh_a338bdbbb9210c9ed8cc6c053ab42aa68}{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i}, \hyperlink{max-adp-xor_8hh_ab44746fae93c11ea36bd24f4f874669d}{max\-\_\-adp\-\_\-xor\-\_\-bounds}, \hyperlink{max-adp-xor_8hh_aa66f59ae4d29988f90f525ce600d6045}{max\-\_\-adp\-\_\-xor} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-xor3-set_8cc_a0a37e7b1b1aed6c625c2c64f9fc710f6}{\index{max-\/adp-\/xor3-\/set.\-cc@{max-\/adp-\/xor3-\/set.\-cc}!max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-exper@{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-exper}}
+\index{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-exper@{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-exper}!max-adp-xor3-set.cc@{max-\/adp-\/xor3-\/set.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{const uint32\-\_\-t}]{dc\mbox{[}\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E\mbox{]}, }
+\item[{double}]{p\-\_\-dc\mbox{[}\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E\mbox{]}, }
+\item[{uint32\-\_\-t $\ast$}]{dd\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-xor3-set_8cc_a0a37e7b1b1aed6c625c2c64f9fc710f6}
+\-Compute the maximum differential probability by exhaustive search over all output differences. {\bfseries \-Complexity\-:} $O(2^n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dc} & set of input difference. \\
+\hline
+{\em dd\-\_\-max} & maximum probability output difference. \\
+\hline
+{\em p\-\_\-dc} & probabilities of the set of differentials corresponding to the set of differences; normally set to 1 (used for testing and debug only). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{max}_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-xor3-set_8hh_a64619e5349dd07dc017b0469b4066fce}{max\-\_\-adp\-\_\-xor3\-\_\-set} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-xor3-set_8cc_a338bdbbb9210c9ed8cc6c053ab42aa68}{\index{max-\/adp-\/xor3-\/set.\-cc@{max-\/adp-\/xor3-\/set.\-cc}!max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i@{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i}}
+\index{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i@{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i}!max-adp-xor3-set.cc@{max-\/adp-\/xor3-\/set.\-cc}}
+\paragraph[{max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf max\-\_\-adp\-\_\-xor3\-\_\-set\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{const int}]{i, }
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{n, }
+\item[{double $\ast$}]{p, }
+\item[{uint32\-\_\-t $\ast$}]{dd, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-B\mbox{[}\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E+1\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-C\mbox{[}\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E\mbox{]}, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{const uint32\-\_\-t}]{dc\mbox{[}\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-S\-I\-Z\-E\mbox{]}, }
+\item[{uint32\-\_\-t $\ast$}]{dd\-\_\-max, }
+\item[{double $\ast$}]{p\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-xor3-set_8cc_a338bdbbb9210c9ed8cc6c053ab42aa68}
+\-Compute an upper bound $B[k][i]$ on the maximum probability of the differential $(da[n-1:k],db[n-1:k],\{dc_0[n-1:k],dc_1[n-1:k],\ldots\} \rightarrow dd[n-1:k])$, starting from initial state {\ttfamily i} of the \-S-\/function and given the upper bounds $B[k][i]$ on the probabilities of the differentials $(da[n-1:j],db[n-1:j],\{dc_0[n-1:j],dc_1[n-1:j],\ldots\} \rightarrow dd[n-1:j])$ for $j = k+1, k+2, \ldots, n-1$, where $\{dc_0[n-1:k],dc_1[n-1:k],\ldots\}$ is a finite set of input differences.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em i} & index of the state of the \-S-\/function\-: {\ttfamily \-A\-\_\-size} $> i \ge 0$. \\
+\hline
+{\em k} & current bit position\-: $ n > k \ge 0$. \\
+\hline
+{\em n} & word size. \\
+\hline
+{\em p} & the estimated probability at bit position {\ttfamily k}. \\
+\hline
+{\em dd} & output difference. \\
+\hline
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em \-B} & array of size {\ttfamily \-A\-\_\-size} rows by ({\ttfamily n} + 1) columns containing upper bounds on the maximum probabilities of all {\ttfamily j} bit differentials $n \ge j \ge 1$ beginning from any state {\ttfamily i\-:} {\ttfamily \-A\-\_\-size} $> i \ge 0$. \\
+\hline
+{\em \-C} & unit row vector of size {\ttfamily \-A\-\_\-size} rows, initialized with 1 at state index {\ttfamily i}. \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dc} & set of input differences. \\
+\hline
+{\em dd\-\_\-max} & maximum probability output difference. \\
+\hline
+{\em p\-\_\-max} & the maximum probability.\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+\-The bound for the set of differences is computed as the sum of the bounds of the differentials obtained from each of the elements of the set\-: $B[k][i] = \sum_{r}~B_{r}[k][i]$, where $B_{r}[k][i]$ is an upper bound on the maximum probability of the differential corresponding to the r-\/th input difference $dc_{r}$ i.\-e. $\mathrm{dp}(da[n-1:k],db[n-1:k],dc_r[n-1:k] \rightarrow dd[n-1:k])$ computed as in \hyperlink{max-adp-xor_8hh_a2c8bd5dba3223b07f3606c2240d0a4b2}{max\-\_\-adp\-\_\-xor\-\_\-i}.
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-xor3-set_8hh_a64619e5349dd07dc017b0469b4066fce}{max\-\_\-adp\-\_\-xor3\-\_\-set}, \hyperlink{max-adp-xor_8hh_a2c8bd5dba3223b07f3606c2240d0a4b2}{max\-\_\-adp\-\_\-xor\-\_\-i} 
+\end{DoxySeeAlso}

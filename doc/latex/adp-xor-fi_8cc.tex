@@ -1,0 +1,156 @@
+\hypertarget{adp-xor-fi_8cc}{\subsection{src/adp-\/xor-\/fi.cc \-File \-Reference}
+\label{adp-xor-fi_8cc}\index{src/adp-\/xor-\/fi.\-cc@{src/adp-\/xor-\/fi.\-cc}}
+}
+
+
+\-The \-A\-D\-D differential probability of \-X\-O\-R with one fixed input (\-F\-I)\-: $\mathrm{adp}^{\oplus}_{\mathrm{FI}}(a,db \rightarrow db)$.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}adp-\/xor-\/fi.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{adp-xor-fi_8cc_a605b1bc0ca9dd17b1dfc2b818bb1fcc4}{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-alloc\-\_\-matrices} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+void \hyperlink{adp-xor-fi_8cc_acb74304054bfcdeb6ab52fd2aeadc9fe}{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-free\-\_\-matrices} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+void \hyperlink{adp-xor-fi_8cc_a2c0e217c519708b43b9b18866874f252}{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-normalize\-\_\-matrices} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+void \hyperlink{adp-xor-fi_8cc_a37c75fcba5d5904b75461ab35ff8d80d}{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-sf} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]})
+\item 
+double \hyperlink{adp-xor-fi_8cc_a99d9ef4f2707e61bbd739aa41c93dcb4}{adp\-\_\-xor\-\_\-fixed\-\_\-input} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, uint32\-\_\-t a, uint32\-\_\-t db, uint32\-\_\-t dc)
+\item 
+double \hyperlink{adp-xor-fi_8cc_a3e8bb4c4a614a447a18d727c1adf219a}{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-exper} (const uint32\-\_\-t a, const uint32\-\_\-t db, const uint32\-\_\-t dc)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-The \-A\-D\-D differential probability of \-X\-O\-R with one fixed input (\-F\-I)\-: $\mathrm{adp}^{\oplus}_{\mathrm{FI}}(a,db \rightarrow db)$. \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-xor_8cc}{adp-\/xor.\-cc} 
+\end{DoxySeeAlso}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{adp-xor-fi_8cc_a99d9ef4f2707e61bbd739aa41c93dcb4}{\index{adp-\/xor-\/fi.\-cc@{adp-\/xor-\/fi.\-cc}!adp\-\_\-xor\-\_\-fixed\-\_\-input@{adp\-\_\-xor\-\_\-fixed\-\_\-input}}
+\index{adp\-\_\-xor\-\_\-fixed\-\_\-input@{adp\-\_\-xor\-\_\-fixed\-\_\-input}!adp-xor-fi.cc@{adp-\/xor-\/fi.\-cc}}
+\paragraph[{adp\-\_\-xor\-\_\-fixed\-\_\-input}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-xor\-\_\-fixed\-\_\-input} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{uint32\-\_\-t}]{a, }
+\item[{uint32\-\_\-t}]{db, }
+\item[{uint32\-\_\-t}]{dc}
+\end{DoxyParamCaption}
+)}}\label{adp-xor-fi_8cc_a99d9ef4f2707e61bbd739aa41c93dcb4}
+\-The additive differential probability (\-A\-D\-P) of $\mathrm{adp}^{\oplus}_{\mathrm{FI}}$. {\bfseries \-Complexity\-:} $O(n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $\mathrm{adp}^{\oplus}_{\mathrm{FI}}$ computed with \hyperlink{adp-xor-fi_8hh_a37c75fcba5d5904b75461ab35ff8d80d}{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-sf}. \\
+\hline
+{\em a} & input value. \\
+\hline
+{\em db} & input difference. \\
+\hline
+{\em dc} & output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{\oplus}(a,db \rightarrow db)$. 
+\end{DoxyReturn}
+\hypertarget{adp-xor-fi_8cc_a605b1bc0ca9dd17b1dfc2b818bb1fcc4}{\index{adp-\/xor-\/fi.\-cc@{adp-\/xor-\/fi.\-cc}!adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-alloc\-\_\-matrices@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-alloc\-\_\-matrices}}
+\index{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-alloc\-\_\-matrices@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-alloc\-\_\-matrices}!adp-xor-fi.cc@{adp-\/xor-\/fi.\-cc}}
+\paragraph[{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-alloc\-\_\-matrices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-alloc\-\_\-matrices} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-xor-fi_8cc_a605b1bc0ca9dd17b1dfc2b818bb1fcc4}
+\-Allocate memory for the transition probability matrices for $\mathrm{adp}^{\oplus}_{\mathrm{FI}}$. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $\mathrm{adp}^{\oplus}_{\mathrm{FI}}$. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-xor-fi_8hh_acb74304054bfcdeb6ab52fd2aeadc9fe}{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-free\-\_\-matrices} 
+\end{DoxySeeAlso}
+\hypertarget{adp-xor-fi_8cc_a3e8bb4c4a614a447a18d727c1adf219a}{\index{adp-\/xor-\/fi.\-cc@{adp-\/xor-\/fi.\-cc}!adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-exper@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-exper}}
+\index{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-exper@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-exper}!adp-xor-fi.cc@{adp-\/xor-\/fi.\-cc}}
+\paragraph[{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{a, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{const uint32\-\_\-t}]{dc}
+\end{DoxyParamCaption}
+)}}\label{adp-xor-fi_8cc_a3e8bb4c4a614a447a18d727c1adf219a}
+\-The additive differential probability (\-A\-D\-P) of $\mathrm{adp}^{\oplus}_{\mathrm{FI}}$ computed experimentally over all inputs. \-Complexity\-: $O(2^{n})$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em a} & input value. \\
+\hline
+{\em db} & input difference. \\
+\hline
+{\em dc} & output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{\oplus}(a,db \rightarrow db)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-xor-fi_8hh_a99d9ef4f2707e61bbd739aa41c93dcb4}{adp\-\_\-xor\-\_\-fixed\-\_\-input} 
+\end{DoxySeeAlso}
+\hypertarget{adp-xor-fi_8cc_acb74304054bfcdeb6ab52fd2aeadc9fe}{\index{adp-\/xor-\/fi.\-cc@{adp-\/xor-\/fi.\-cc}!adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-free\-\_\-matrices@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-free\-\_\-matrices}}
+\index{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-free\-\_\-matrices@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-free\-\_\-matrices}!adp-xor-fi.cc@{adp-\/xor-\/fi.\-cc}}
+\paragraph[{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-free\-\_\-matrices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-free\-\_\-matrices} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-xor-fi_8cc_acb74304054bfcdeb6ab52fd2aeadc9fe}
+\-Free memory reserved by a previous call to adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-alloc\-\_\-matrices. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $\mathrm{adp}^{\oplus}_{\mathrm{FI}}$. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-xor-fi_8cc_a2c0e217c519708b43b9b18866874f252}{\index{adp-\/xor-\/fi.\-cc@{adp-\/xor-\/fi.\-cc}!adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-normalize\-\_\-matrices@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-normalize\-\_\-matrices}}
+\index{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-normalize\-\_\-matrices@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-normalize\-\_\-matrices}!adp-xor-fi.cc@{adp-\/xor-\/fi.\-cc}}
+\paragraph[{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-normalize\-\_\-matrices}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-normalize\-\_\-matrices} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-xor-fi_8cc_a2c0e217c519708b43b9b18866874f252}
+\-Transform the elements of \-A into probabilities. 
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices for $\mathrm{adp}^{\oplus}_{\mathrm{FI}}$. \\
+\hline
+\end{DoxyParams}
+\hypertarget{adp-xor-fi_8cc_a37c75fcba5d5904b75461ab35ff8d80d}{\index{adp-\/xor-\/fi.\-cc@{adp-\/xor-\/fi.\-cc}!adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-sf@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-sf}}
+\index{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-sf@{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-sf}!adp-xor-fi.cc@{adp-\/xor-\/fi.\-cc}}
+\paragraph[{adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-sf}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-xor\-\_\-fixed\-\_\-input\-\_\-sf} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{adp-xor-fi_8cc_a37c75fcba5d5904b75461ab35ff8d80d}
+\-S-\/function for $\mathrm{adp}^{\oplus}_{\mathrm{FI}}$\-: $\mathrm{adp}^{\oplus}(a,db \rightarrow db)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & zero-\/initialized set of matrices. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+\-Transition probability matrices \-A.
+\end{DoxyReturn}
+\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]} = \-A\mbox{[}a\mbox{[}i\mbox{]}\mbox{]}\mbox{[}db\mbox{[}i\mbox{]}\mbox{]}\mbox{[}dc\mbox{[}i\mbox{]}\mbox{]}, where
+
+
+\begin{DoxyItemize}
+\item a\mbox{[}i\mbox{]} \-: the i-\/th bit of the fixed input.
+\item db\mbox{[}i\mbox{]} \-: the i-\/th bit of the input difference.
+\item dc\mbox{[}i\mbox{]} \-: the i-\/th bit of the output difference. 
+\end{DoxyItemize}

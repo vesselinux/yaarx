@@ -1,0 +1,158 @@
+\hypertarget{adp-shift_8hh}{\subsection{include/adp-\/shift.hh \-File \-Reference}
+\label{adp-shift_8hh}\index{include/adp-\/shift.\-hh@{include/adp-\/shift.\-hh}}
+}
+
+
+\-Header file for \hyperlink{adp-shift_8cc}{adp-\/shift.\-cc}\-: \-The \-A\-D\-D differential probability of left shift (\-L\-S\-H)\-: $\mathrm{adp}^{\ll}$ and right shift (\-R\-S\-H)\-: $\mathrm{adp}^{\gg}$. .  
+
+
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{adp-shift_8hh_a862d37a2421ed62045358ce6e9bb9dcb}{adp\-\_\-lsh\-\_\-exper} (uint32\-\_\-t da, uint32\-\_\-t db, int l)
+\item 
+double \hyperlink{adp-shift_8hh_a48f94900b0d370c44ef16256310d073f}{adp\-\_\-lsh} (uint32\-\_\-t da, uint32\-\_\-t db, int l)
+\item 
+double \hyperlink{adp-shift_8hh_a6a874c5f39e73547bf93fb1356e6e580}{adp\-\_\-rsh\-\_\-exper} (const uint32\-\_\-t da, const uint32\-\_\-t db, const int r)
+\item 
+double \hyperlink{adp-shift_8hh_a06fffd781af6662482922889bc562caf}{adp\-\_\-rsh} (uint32\-\_\-t da, uint32\-\_\-t db, int r)
+\item 
+void \hyperlink{adp-shift_8hh_aa68814fb7eac34b923f42cfa1445a6b1}{adp\-\_\-rsh\-\_\-odiffs} (uint32\-\_\-t dx\mbox{[}4\mbox{]}, const uint32\-\_\-t da, int r)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Header file for \hyperlink{adp-shift_8cc}{adp-\/shift.\-cc}\-: \-The \-A\-D\-D differential probability of left shift (\-L\-S\-H)\-: $\mathrm{adp}^{\ll}$ and right shift (\-R\-S\-H)\-: $\mathrm{adp}^{\gg}$. . \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{adp-shift_8hh_a48f94900b0d370c44ef16256310d073f}{\index{adp-\/shift.\-hh@{adp-\/shift.\-hh}!adp\-\_\-lsh@{adp\-\_\-lsh}}
+\index{adp\-\_\-lsh@{adp\-\_\-lsh}!adp-shift.hh@{adp-\/shift.\-hh}}
+\paragraph[{adp\-\_\-lsh}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-lsh} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{da, }
+\item[{uint32\-\_\-t}]{db, }
+\item[{int}]{l}
+\end{DoxyParamCaption}
+)}}\label{adp-shift_8hh_a48f94900b0d370c44ef16256310d073f}
+\-The \-A\-D\-D differential probability of $({\ll})$ (\-L\-S\-H). \-Complexity\-: $O(1)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em da} & input difference. \\
+\hline
+{\em db} & output difference. \\
+\hline
+{\em l} & shift constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{\ll}(l |~ da \rightarrow db)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-shift_8hh_a862d37a2421ed62045358ce6e9bb9dcb}{adp\-\_\-lsh\-\_\-exper} 
+\end{DoxySeeAlso}
+\hypertarget{adp-shift_8hh_a862d37a2421ed62045358ce6e9bb9dcb}{\index{adp-\/shift.\-hh@{adp-\/shift.\-hh}!adp\-\_\-lsh\-\_\-exper@{adp\-\_\-lsh\-\_\-exper}}
+\index{adp\-\_\-lsh\-\_\-exper@{adp\-\_\-lsh\-\_\-exper}!adp-shift.hh@{adp-\/shift.\-hh}}
+\paragraph[{adp\-\_\-lsh\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-lsh\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{da, }
+\item[{uint32\-\_\-t}]{db, }
+\item[{int}]{l}
+\end{DoxyParamCaption}
+)}}\label{adp-shift_8hh_a862d37a2421ed62045358ce6e9bb9dcb}
+\-The \-A\-D\-D differential probability of $({\ll})$ (\-L\-S\-H) computed experimentally over all inputs. \-Complexity\-: $O(2^n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em da} & input difference. \\
+\hline
+{\em db} & output difference. \\
+\hline
+{\em l} & shift constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{\ll}(l |~ da \rightarrow db)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-shift_8hh_a48f94900b0d370c44ef16256310d073f}{adp\-\_\-lsh} 
+\end{DoxySeeAlso}
+\hypertarget{adp-shift_8hh_a06fffd781af6662482922889bc562caf}{\index{adp-\/shift.\-hh@{adp-\/shift.\-hh}!adp\-\_\-rsh@{adp\-\_\-rsh}}
+\index{adp\-\_\-rsh@{adp\-\_\-rsh}!adp-shift.hh@{adp-\/shift.\-hh}}
+\paragraph[{adp\-\_\-rsh}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-rsh} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{da, }
+\item[{uint32\-\_\-t}]{db, }
+\item[{int}]{r}
+\end{DoxyParamCaption}
+)}}\label{adp-shift_8hh_a06fffd781af6662482922889bc562caf}
+\-The \-A\-D\-D differential probability of $({\gg})$ (\-R\-S\-H). \-Complexity\-: $O(1)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em da} & input difference. \\
+\hline
+{\em db} & output difference. \\
+\hline
+{\em r} & shift constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{\gg}(r |~ da \rightarrow db)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-shift_8hh_a6a874c5f39e73547bf93fb1356e6e580}{adp\-\_\-rsh\-\_\-exper}
+\end{DoxySeeAlso}
+\begin{DoxyNote}{\-Note}
+$db \in \{(da \gg 5), (da \gg 5) + 1, (da \gg 5) - 2^{n-5}, (da \gg 5) - 2^{n-5} + 1\}$. 
+\end{DoxyNote}
+\hypertarget{adp-shift_8hh_a6a874c5f39e73547bf93fb1356e6e580}{\index{adp-\/shift.\-hh@{adp-\/shift.\-hh}!adp\-\_\-rsh\-\_\-exper@{adp\-\_\-rsh\-\_\-exper}}
+\index{adp\-\_\-rsh\-\_\-exper@{adp\-\_\-rsh\-\_\-exper}!adp-shift.hh@{adp-\/shift.\-hh}}
+\paragraph[{adp\-\_\-rsh\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf adp\-\_\-rsh\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{const int}]{r}
+\end{DoxyParamCaption}
+)}}\label{adp-shift_8hh_a6a874c5f39e73547bf93fb1356e6e580}
+\-The \-A\-D\-D differential probability of $({\gg})$ (\-R\-S\-H) computed experimentally over all inputs. \-Complexity\-: $O(2^n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em da} & input difference. \\
+\hline
+{\em db} & output difference. \\
+\hline
+{\em r} & shift constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{adp}^{\gg}(r |~ da \rightarrow db)$. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{adp-shift_8hh_a06fffd781af6662482922889bc562caf}{adp\-\_\-rsh} 
+\end{DoxySeeAlso}
+\hypertarget{adp-shift_8hh_aa68814fb7eac34b923f42cfa1445a6b1}{\index{adp-\/shift.\-hh@{adp-\/shift.\-hh}!adp\-\_\-rsh\-\_\-odiffs@{adp\-\_\-rsh\-\_\-odiffs}}
+\index{adp\-\_\-rsh\-\_\-odiffs@{adp\-\_\-rsh\-\_\-odiffs}!adp-shift.hh@{adp-\/shift.\-hh}}
+\paragraph[{adp\-\_\-rsh\-\_\-odiffs}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf adp\-\_\-rsh\-\_\-odiffs} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{dx\mbox{[}4\mbox{]}, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{int}]{r}
+\end{DoxyParamCaption}
+)}}\label{adp-shift_8hh_aa68814fb7eac34b923f42cfa1445a6b1}
+\-Compute the set of possible output differences dx after a right shift by r 
+\begin{DoxyParams}{\-Parameters}
+{\em da} & input difference. \\
+\hline
+{\em r} & shift constant. \\
+\hline
+{\em dx} & the set of all 4 possible output differences. \\
+\hline
+\end{DoxyParams}

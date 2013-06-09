@@ -1,0 +1,115 @@
+\hypertarget{index_what_sec}{}\subsection{\-What is Y\-A\-A\-R\-X}\label{index_what_sec}
+\-Y\-A\-A\-R\-X is a set of programs for the differential analysis of \-A\-R\-X cryptographic algorithms. \-The latter represent a broad class of symmetric-\/key algorithms designed by combining a small set of simple operations such as modular addition, bit rotation, bit shift and \-X\-O\-R. \-More notable representatives of the \-A\-R\-X class of algorithms are the block ciphers \href{https://en.wikipedia.org/wiki/FEAL}{\tt \-F\-E\-A\-L}, \href{https://en.wikipedia.org/wiki/RC5}{\tt \-R\-C5}, \href{https://en.wikipedia.org/wiki/Tiny_Encryption_Algorithm}{\tt \-T\-E\-A} and \href{https://en.wikipedia.org/wiki/XTEA}{\tt \-X\-T\-E\-A}, the stream cipher \href{https://en.wikipedia.org/wiki/Salsa20}{\tt \-Salsa20}, the hash functions \href{https://en.wikipedia.org/wiki/MD4}{\tt \-M\-D4}, \href{https://en.wikipedia.org/wiki/MD5}{\tt \-M\-D5}, \href{https://en.wikipedia.org/wiki/Skein_%28hash_function%29}{\tt \-Skein} and \href{https://en.wikipedia.org/wiki/BLAKE_%28hash_function%29}{\tt \-B\-L\-A\-K\-E} as well as the recently proposed hash function for short messages \href{https://131002.net/siphash/}{\tt \-Sip\-Hash}.\hypertarget{index_why_sec}{}\subsection{\-How Does it Compare to Other A\-R\-X Tools}\label{index_why_sec}
+\-Y\-A\-A\-R\-X complements existing toolkits such as \href{http://www.di.ens.fr/~leurent/arxtools.html}{\tt \-A\-R\-Xtools} and significantly extends others, such as \href{http://www.ecrypt.eu.org/tools/s-function-toolkit}{\tt \-The \-S-\/function \-Toolkit}. \-More specifically, \-Y\-A\-A\-R\-X provides methods for the computation of the differential probabilities of various \-A\-R\-X operations (\-X\-O\-R, modular addition, multiplication, bit shift, bit rotation) as well as of several larger components built from them. \-Y\-A\-A\-R\-X also provides means to search for high-\/probability differential trails in \-A\-R\-X algorithms in a fully automatic way. \-The latter has been a notoriously difficult task for ciphers that do not have \-S-\/boxes, such as \-A\-R\-X.\hypertarget{index_how_sec}{}\subsection{\-What Can Y\-A\-A\-R\-X Do for You}\label{index_how_sec}
+\-Y\-A\-A\-R\-X can help the cryptanalyst in the process of analyzing \-A\-R\-X-\/based constructions in at least two ways.\hypertarget{index_scenario1_sec}{}\subsubsection{\-Using the Tools Directly}\label{index_scenario1_sec}
+\-One way is to use the tools directly to compute differential probabilities for a target cipher. \-To this end \-Y\-A\-A\-R\-X provides a set of programs for the computation of the differential probabilities (\-D\-P) of several operations with user provided inputs. \-Such are for example the programs for computing the \-D\-P of modular addition, \-X\-O\-R, bit shift, etc.\-: \hyperlink{adp-xor_8hh_ac720722a292fc8bb277b751e0b0be072}{adp\-\_\-xor}, \hyperlink{xdp-add_8hh_a25473697bd215fe5eb997574be30e6f3}{xdp\-\_\-add}, \hyperlink{adp-xor3_8hh_a980a22f6faf155e031f0d9f7e8ca9361}{adp\-\_\-xor3}, \hyperlink{adp-xor-fi_8hh_a99d9ef4f2707e61bbd739aa41c93dcb4}{adp\-\_\-xor\-\_\-fixed\-\_\-input}, \hyperlink{adp-shift_8hh_a06fffd781af6662482922889bc562caf}{adp\-\_\-rsh}, \hyperlink{adp-shift_8hh_a48f94900b0d370c44ef16256310d073f}{adp\-\_\-lsh}, \hyperlink{max-adp-xor_8hh_aa66f59ae4d29988f90f525ce600d6045}{max\-\_\-adp\-\_\-xor}, \hyperlink{max-xdp-add_8hh_a19d57935afe7dabc0628a3ea44c1f135}{max\-\_\-xdp\-\_\-add}, \hyperlink{max-adp-xor3_8hh_aa606808c54de33ad16170106454312a7}{max\-\_\-adp\-\_\-xor3}, \hyperlink{max-adp-xor-fi_8hh_ab2a3ba6507c5a4b456487c3f8009511b}{max\-\_\-adp\-\_\-xor\-\_\-fixed\-\_\-input}, \hyperlink{eadp-tea-f_8hh_a2b46cad5e0dd22f116160ef8fde6e15f}{eadp\-\_\-tea\-\_\-f}, \hyperlink{eadp-tea-f_8hh_afecdbe906e7af3483f251d65512f85f7}{max\-\_\-eadp\-\_\-tea\-\_\-f} .
+
+\-A conceivable scenario in this category would be the case in which the cryptanalyst constructs a differential characteristic by hand and wants to estimate its probability by computing the probabilities with which differences propagate through the \-A\-R\-X operations. \-In this case \-Y\-A\-A\-R\-X can provide answer to questions such as\-:
+
+
+\begin{DoxyItemize}
+\item \-Given input differences $da$ and $db$ to an operation $F$, and an output difference $dc$, what is the probability of the differential $(da,~ db \rightarrow dc)$?  
+\item \-Given input differences $da$ and $db$ to $F$, what is the output difference $dc$ that has maximum probability?  
+\item \-Given an input difference $da$ and an input value $b$ to $F$ and an output difference $dc$, what is the probability of the differential $(da,~ b \rightarrow dc)$?  
+\item \-Given input difference $da$ and a set of input differences $\{db_0,~db_1,\ldots\}$ to $F$, and an output difference $dc$, what is the probability of the differential $(da,~ \{db_0,~db_1,\ldots\} \rightarrow dc)$?  
+\item etc. ...  
+\end{DoxyItemize}
+
+\-The differences $da$, $db$ and $dc$ can be \-X\-O\-R or additive (\-A\-D\-D) differences and the operation $F$ can either be one of the basic \-A\-R\-X operation, such as \-X\-O\-R, addition, etc. or a larger component e.\-g. a sequence of bit shift and \-X\-O\-R or of addition, rotation and \-X\-O\-R.\hypertarget{index_scenario2_sec}{}\subsubsection{\-Modifying the Source Code}\label{index_scenario2_sec}
+\-The second way in which \-Y\-A\-A\-R\-X can be useful would require a bit more effort and some programming literacy on the part of the cryptanalyst. \-The idea is, prior to using one of the \-Y\-A\-A\-R\-X tools, to first modify it according to ones' specific needs. \-This scenario is realistic in a case in which none of the \-Y\-A\-A\-R\-X tools is capable of directly addressing a problem for a given target cipher.
+
+\-Scenarios in this category are likely to occur for example when one wants to automatically search for differential trails in a given cipher. \-While \-Y\-A\-A\-R\-X supports a general strategy for automatic search of trails, that is potentially applicable to many \-A\-R\-X algorithms, it is implemented for two specific ciphers, namely \href{https://en.wikipedia.org/wiki/Tiny_Encryption_Algorithm}{\tt \-T\-E\-A} and \href{https://en.wikipedia.org/wiki/XTEA}{\tt \-X\-T\-E\-A}\-: \hyperlink{tea-add-threshold-search_8cc_ab59db616cde68bf9245c7d24c98e3a6c}{tea\-\_\-add\-\_\-threshold\-\_\-search}, \hyperlink{xtea-add-threshold-search_8hh_a18a7f48b1b44dcf0c408b2988cec4cf5}{xtea\-\_\-add\-\_\-threshold\-\_\-search}, \hyperlink{xtea-xor-threshold-search_8hh_a04cc0c55d61b755d6b9435e301420f0f}{xtea\-\_\-xor\-\_\-threshold\-\_\-search}. \-Since the algorithmic technique underlying these implementations is general, the latter can be applied to other \-A\-R\-X algorithms after appropriate modifications. \-To facilitate this process, the source code is accompanied by extensive \href{file:///home/vpv/skcrypto/trunk/work/src/yaarx/doc/html/files.html}{\tt documentation}.\hypertarget{index_compilation_sec}{}\subsection{\-Compilation}\label{index_compilation_sec}
+\-For successful compilation it is required to install the development version of the \-G\-N\-U \-Scientific \-Library (\-G\-S\-L) and the \-Multiprecision arithmetic library (\-G\-M\-P) developers tools . \-Under \-Ubuntu/\-Debian \-Linux the name of the packages are resp. libgsl0-\/dev and libgmp-\/dev .
+
+\-After downloading the \-Y\-A\-A\-R\-X source code, it can be compiled by running the make command from within the top directory of the source tree. \-The pre-\/compiled programs are stored in the ./bin directoy .\hypertarget{index_tools_sec}{}\subsection{\-The Y\-A\-A\-R\-X Tools}\label{index_tools_sec}
+\-A list of the tools provided by \-Y\-A\-A\-R\-X, together with their computaional complexities is given in the table below. \-For more details on a specific algorithm refer to the \href{file:///home/vpv/skcrypto/trunk/work/src/yaarx/doc/html/files.html}{\tt documentation}. \par
+ \par
+
+
+\begin{TabularC}{4}
+\hline
+{\bfseries  $\Delta$ \-Operator} &{\bfseries \-Algorithm} &{\bfseries \-Description}, (\-D\-P = differential probability, \-A\-D\-D = modular addition) &{\bfseries \-Complexity}, ( $n$ = word size, bits) 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{\ll}(da \rightarrow db)$ &\-The \-A\-D\-D \-D\-P of left shift (\-L\-S\-H). &$O(1)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{\gg}(da \rightarrow db)$ &\-The \-A\-D\-D \-D\-P of right shift (\-R\-S\-H). &$O(1)$ 
+
+\\\cline{1-4}
+$\oplus$ &$\mathrm{xdp}^{+}(da,db \rightarrow dc)$ &\-The \-X\-O\-R \-D\-P (\-X\-D\-P) of \-A\-D\-D. &$O(n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{\oplus}(da,db \rightarrow dc)$ &\-The \-A\-D\-D \-D\-P (\-A\-D\-P) of \-X\-O\-R. &$O(n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{\oplus}_{\mathrm{FI}}(a,db \rightarrow db)$ &\-The \-A\-D\-D \-D\-P of \-X\-O\-R with one fixed input. &$O(n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{3\oplus}(da,db,dc \rightarrow dd)$ &\-The \-A\-D\-D \-D\-P of \-X\-O\-R with three inputs. &$O(n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{\gg\oplus}(da,db \rightarrow dc)$ &\-The \-A\-D\-D \-D\-P of \-R\-S\-H followed by \-X\-O\-R. &$O(n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{eadp}^{F}(da \rightarrow dd)$. &\-The expected additive \-D\-P (\-E\-A\-D\-P) of the \-F-\/function of \-T\-E\-A, averaged over all round keys and constants\-: $F(k_0,k_1,\delta |~ x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$. &$O(n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{F'}(k_0, k_1, \delta |~ da \rightarrow db)$ &\-The additive \-D\-P (\-A\-D\-P) of a modified version of the \-F-\/function of \-T\-E\-A with the shift operations removed\-: $F'(k_0, k_1, \delta |~ x) = (x + k_0) \oplus (x + \delta) \oplus (x + k_1)$.  &$O(n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{\mathrm{ARX}}(r,da,db,dd \rightarrow de)$ &\-The \-A\-D\-D \-D\-P of the sequence of operations \-A\-D\-D, \-R\-O\-T by $r$ positions, \-X\-O\-R. &$O(4n)$ 
+
+\\\cline{1-4}
+$\oplus$ &$\max_{dc}~\mathrm{xdp}^{+}(da, db \rightarrow dc)$ &\-The maximum \-X\-O\-R \-D\-P of \-A\-D\-D. &$O(n) \le c \ll O(2^n)$ 
+
+\\\cline{1-4}
+$+$ &$\max_{dc}~\mathrm{adp}^{\oplus}(da, db \rightarrow dc)$ &\-The maximum \-A\-D\-D \-D\-P of \-X\-O\-R. &$O(n) \le c \ll O(2^n)$ 
+
+\\\cline{1-4}
+$+$ &$\max_{dc}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}(a, db \rightarrow dc)$. &\-The maximum \-A\-D\-D \-D\-P of \-X\-O\-R with one fixed input\-: &$O(n) \le c \ll O(2^n)$ 
+
+\\\cline{1-4}
+$+$ &$\max_{dd}~\mathrm{adp}^{3\oplus}(da, db, dc \rightarrow dd)$ &\-The maximum \-A\-D\-D \-D\-P of \-X\-O\-R with three inputs\-: &$O(n) \le c \ll O(2^n)$ 
+
+\\\cline{1-4}
+$+$ &$\max_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$ &\-The maximum \-A\-D\-D \-D\-P of \-X\-O\-R with three inputs, where one of the inputs satisfies a {\itshape set\/} of \-A\-D\-D differences. &$O(n) \le c \ll O(2^n)$ 
+
+\\\cline{1-4}
+$\oplus$ &$\max_{de}~\mathrm{adp}^{\mathrm{ARX}}(r, da, db, dd \rightarrow de)$ &\-The maximum \-A\-D\-D \-D\-P of \-A\-R\-X. &$O(n) \le c \ll O(2^n)$ 
+
+\\\cline{1-4}
+$+$ &$\max_{dd} \mathrm{eadp}^{F}(da \rightarrow dd)$ &\-The maximum expected additive \-D\-P (\-E\-A\-D\-P) of the \-F-\/function of \-T\-E\-A, averaged over all round keys and constants\-: $ F(x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$. &$ O(n) \le c \ll O(2^n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$ &\-The \-A\-D\-D \-D\-P of the \-F-\/function of \-T\-E\-A for a fixed key and round constants\-: $F(k_0, k_1, \delta |~ x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$. &$ O(n) \ll c \le O(2^n)$ 
+
+\\\cline{1-4}
+$\oplus$ &$\mathrm{xdp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$. &\-The \-X\-O\-R \-D\-P of the \-F-\/function of \-T\-E\-A for a fixed key and round constants\-: $F(k_0, k_1, \delta |~ x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$. &$ O(n) \ll c \le O(2^n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{adp}^{F}(k, \delta |~ da \rightarrow dd)$. &\-The \-A\-D\-D \-D\-P of the \-F-\/function of \-X\-T\-E\-A for a fixed key and round constants\-: $F(k, \delta |~ x) = ((((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$. &$ O(n) \ll c \le O(2^n) $. 
+
+\\\cline{1-4}
+$\oplus$ &$\mathrm{xdp}^{F}(k, \delta |~ da \rightarrow dd)$. &\-The \-X\-O\-R \-D\-P of the \-F-\/function of \-X\-T\-E\-A for a fixed key and round constants\-: $F(k, \delta |~ x) = ((((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$. &$ O(n) \ll c \le O(2^n)$ 
+
+\\\cline{1-4}
+$+$ &$\mathrm{pDDT}~\mathrm{adp}^{\oplus}$ &\-Partial difference distribution table (p\-D\-D\-T) for $\mathrm{adp}^{\oplus}$ for a fixed probability threshold $p_\mathrm{thres}$ &$c = f(p_\mathrm{thres})$ 
+
+\\\cline{1-4}
+$\oplus$ &$\mathrm{pDDT}~\mathrm{xdp}^{+}$ &\-Partial difference distribution table (p\-D\-D\-T) for $\mathrm{xdp}^{+}$ for a fixed probability threshold $p_\mathrm{thres}$ &$c = f(p_\mathrm{thres})$ 
+
+\\\cline{1-4}
+$+$ &{\ttfamily tea\-\_\-add\-\_\-threshold\-\_\-search} &\-Automatic search for \-A\-D\-D differential trails in block cipher \-T\-E\-A. &
+
+\\\cline{1-4}
+$+$ &{\ttfamily xtea\-\_\-add\-\_\-threshold\-\_\-search} &\-Automatic search for \-A\-D\-D differential trails in block cipher \-X\-T\-E\-A. &\\\cline{1-4}
+$\oplus$ &{\ttfamily xtea\-\_\-xor\-\_\-threshold\-\_\-search} &\-Automatic search for \-X\-O\-R differential trails in block cipher \-X\-T\-E\-A. &
+
+\\\cline{1-4}
+\end{TabularC}
+\hypertarget{index_copyright_sec}{}\subsection{\-Copyright}\label{index_copyright_sec}
+\-Y\-A\-A\-R\-X is developed in the \href{http://wwwen.uni.lu/research/fstc/laboratory_of_algorithmics_cryptology_and_security_lacs}{\tt \-Laboratory of \-Algorithmics, \-Cryptology and \-Security} (\-L\-A\-C\-S) of \href{http://wwwen.uni.lu/}{\tt \-Luxembourg \-University} and is licensed under \href{https://www.gnu.org/licenses/}{\tt \-G\-P\-L} (c) 2012-\/2013.
+
+\par
+ 

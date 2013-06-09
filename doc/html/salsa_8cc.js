@@ -1,0 +1,26 @@
+var salsa_8cc =
+[
+    [ "salsa20", "salsa_8cc.html#a075c010da91440a44535de65daeddf05", null ],
+    [ "salsa_arx", "salsa_8cc.html#ac75c839e87aefc0ff30e55455db27be1", null ],
+    [ "salsa_compute_prob_rand", "salsa_8cc.html#a0497e7b685ebd10996738b4fd2326d74", null ],
+    [ "salsa_gen_rand_input_state", "salsa_8cc.html#aa499af8d8d1dc95497226dd8949bbe79", null ],
+    [ "salsa_gen_rand_shift_const", "salsa_8cc.html#a496fa3f57622f1769cd5b6a72178bdaf", null ],
+    [ "salsa_gen_word_deps", "salsa_8cc.html#a7cab03787ed6c27e77407c57d3870603", null ],
+    [ "salsa_print_prob", "salsa_8cc.html#a0010e7e3d0dbc6640950be30a496ec1e", null ],
+    [ "salsa_print_prob_vs_rand", "salsa_8cc.html#a4cd595a2aec8057b648c8414e6fdbe7f", null ],
+    [ "salsa_print_state_uint32", "salsa_8cc.html#ae95929608c990de68d87198dc8bfe36c", null ],
+    [ "salsa_print_state_uint8", "salsa_8cc.html#a5df83dc88782e57a1288c66047d67aa5", null ],
+    [ "salsa_print_trail", "salsa_8cc.html#a45063cc798f47435afc6969418d1b280", null ],
+    [ "salsa_sigma_to_uint32", "salsa_8cc.html#afdb439bf4231467c38a2a94c04946b19", null ],
+    [ "salsa_state_uint32_to_uint8", "salsa_8cc.html#a88c3d454fe1dd19fad385a8da5977073", null ],
+    [ "salsa_state_uint8_to_uint32", "salsa_8cc.html#a30e43f0a4a7b3b29508a28d7c35bb56b", null ],
+    [ "salsa_uint32_to_uint8", "salsa_8cc.html#a438585255c425543024693c96fd7134e", null ],
+    [ "salsa_uint8_to_uint32", "salsa_8cc.html#aec235ccc18eea1de3674c3e8ba9e458e", null ],
+    [ "salsa_word_probs", "salsa_8cc.html#a286f3009b9c24e47535b0c0e0383e9b4", null ],
+    [ "salsa_word_probs_v2", "salsa_8cc.html#a2f556091ae55b7ba91f3e4268bb95003", null ],
+    [ "xdp_add_dset_salsa20", "salsa_8cc.html#a87c47e09c7ee4b307288ff0eae8a7516", null ],
+    [ "xdp_add_dset_salsa20_exper", "salsa_8cc.html#ad1843b8eae9d9ec19b88d98c3fe65ed2", null ],
+    [ "xdp_add_dset_salsa_arx", "salsa_8cc.html#a287bafe63e9e494be9e4691f3e62166a", null ],
+    [ "E", "salsa_8cc.html#ab44999d45b6e0fee6f910387230b783a", null ],
+    [ "sigma", "salsa_8cc.html#a1b1fdf102eeb20a215fff45d40a5683e", null ]
+];

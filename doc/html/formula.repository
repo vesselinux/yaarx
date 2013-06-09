@@ -1,0 +1,738 @@
+\form#0:$\mathrm{adp}^{\oplus}$
+\form#1:$\mathrm{xdp}^{+}$
+\form#2:$p = \mathrm{adp}^{\oplus}(da, db \rightarrow dc)$
+\form#3:$\mathrm{xdp}^{+}(da, db \rightarrow dc)$
+\form#4:$p = \mathrm{xdp}^{+}(da, db \rightarrow dc)$
+\form#5:$\max_{dc} \mathrm{adp}^{\oplus}(a, db \rightarrow dc)$
+\form#6:$\max_{dc} \mathrm{adp}^{\oplus}(da, db \rightarrow dc)$
+\form#7:$\max_{dc} \mathrm{xdp}^{+}(da, db \rightarrow dc)$
+\form#8:$\mathrm{adp}^{3\oplus}$
+\form#9:$\max_{dd} \mathrm{adp}^{\oplus}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$
+\form#10:$\max_{dd} \mathrm{adp}^{3\oplus}(da, db, dc \rightarrow dd)$
+\form#11:$\max_{dd} \mathrm{adp}^{\oplus}(da, db, dc \rightarrow dd)$
+\form#12:$\mathrm{adp}^{\ll}$
+\form#13:$\mathrm{adp}^{\gg}$
+\form#14:$\mathrm{adp}^{\gg\oplus}$
+\form#15:$\mathrm{eadp}^{F}(da \rightarrow dd)$
+\form#16:$\max_{dd} \mathrm{eadp}^{F}(da \rightarrow dd)$
+\form#17:$\mathrm{adp}^{F}(k_0, k_1, \delta | da \rightarrow dd)$
+\form#18:$\mathrm{xdp}^{F}(k_0, k_1, \delta | da \rightarrow dd)$
+\form#19:$\delta$
+\form#20:$\gg\oplus$
+\form#21:$\gg\oplus $
+\form#22:$ b = a \oplus (x \gg r) $
+\form#23:$O(2^{2n})$
+\form#24:$\mathrm{adp}^{\gg\oplus}(da, dx \rightarrow{r} db)$
+\form#25:$\mathrm{adp}^{\gg\oplus}(da, dx, r \rightarrow db)$
+\form#26:$\mathrm{adp}^{\gg\oplus}(r | da, dx \rightarrow db)$
+\form#27:$\mathrm{adp}^{\gg\oplus}(r, da, dx \rightarrow db)$
+\form#28:$({\gg\oplus})$
+\form#29:$ A[3][2][2][2] \equiv A[bit_pos][da[i]][dx[i+r][db[i]] $
+\form#30:$O(n)$
+\form#31:$ j = 0 : 0 <= i < n - r$
+\form#32:$ j = 1 : n - r < i < n$
+\form#33:$ j = 2 : i = n - r$
+\form#34:$ j = 0 : 0 \le i < n - r$
+\form#35:$(\gg\oplus)$
+\form#36:$\mathrm{adp}^{\gg\oplus}(r | da, dx \rightarrow db) \approx \mathrm{adp}^{\gg} \mathrm{adp}^{\oplus} $
+\form#37:$\mathrm{adp}^{\gg\oplus}(r | da, dx \rightarrow db) \approx \mathrm{adp}^{\gg} \cdot \mathrm{adp}^{\oplus} $
+\form#38:$({\ll})$
+\form#39:$O(2^n)$
+\form#40:$\mathrm{adp}^{\gg\oplus}(r | da \rightarrow db)$
+\form#41:$\mathrm{adp}^{\gg\oplus}(l | da \rightarrow db)$
+\form#42:$({\gg})$
+\form#43:$\mathrm{adp}^{\ll}(l | da \rightarrow db)$
+\form#44:$\mathrm{adp}^{\gg}(r | da \rightarrow db)$
+\form#45:$O(1)$
+\form#46:$n \le 10$
+\form#47:$\max_{dd} \mathrm{adp}^{F}(k_0, k_1, \delta | da \rightarrow dd)$
+\form#48:$\max_{dd} \mathrm{adp}^{F}(k_0, k_1, \delta | dx \rightarrow dy)$
+\form#49:$y = F'(k_0, k_1, \delta | x) = ((x \ll 4) + k_0) \oplus (x + \delta) ^ ((x \gg 5) + k_1)$
+\form#50:$y = F'(k_0, k_1, \delta | x) = (x + k_0) \oplus (x + \delta) ^ (x + k_1)$
+\form#51:$y = F'(k_0, k_1, \delta | x) = (x + k_0) \oplus (x + \delta) \oplus (x + k_1)$
+\form#52:$F'$
+\form#53:$F$
+\form#54:$\max_{dd} \mathrm{adp}^{F'}(k_0, k_1, \delta | da \rightarrow db)$
+\form#55:$\mathrm{adp}^{F'}(k_0, k_1, \delta | da \rightarrow db)$
+\form#56:$F'(k_0, k_1, \delta | x) = (x + k_0) \oplus (x + \delta) \oplus (x + k_1)$
+\form#57:$k_0,k_1,\delta,da$
+\form#58:$ O(n) < c \le O(2^n) $
+\form#59:$dy = F(k_0, k_1, \delta |~ x + dx) - F(k_0, k_1, \delta |~ x)$
+\form#60:$k_0, k_1, \delta:~ dy = F(x + dx) - F(x)$
+\form#61:$(dx \rightarrow dy)$
+\form#62:$k_0, k_1, \delta:~ dy[i-1:0] = F(x[i-1:0] + dx[i-1:0]) - F(x[i-1:0) \mathrm{mod} 2^{i}$
+\form#63:\[k_0, k_1, \delta:~ dy[i-1:0] = F(x[i-1:0] + dx[i-1:0]) - F(x[i-1:0) ~\mathrm{mod} 2^{i}\]
+\form#64:$(i + R)$
+\form#65:$k_0, k_1, \delta:~ dy[i-1:0] = F(x[i-1:0] + dx[i-1:0]) - F(x[i-1:0) ~\mathrm{mod} 2^{i}$
+\form#66:$k_0, k_1, \delta:~ dy[i-1:0] = F(x[i-1:0] + dx[i-1:0]) - F(x[i-1:0) ~\mathrm{mod} ~2^{i}$
+\form#67:$(i+1)$
+\form#68:$\mathrm{adp}^{F}(k_0, k_1, \delta | dx \rightarrow dy)$
+\form#69:$x[i-1:0]$
+\form#70:$(dx[i-1:0] \rightarrow dy[i-1:0])$
+\form#71:$\mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#72:$4 \cdot 2^n$
+\form#73:$\mathrm{max}_{dx} ~\mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#74:$2^n$
+\form#75:$\mathrm{max}_{dy} ~\mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#76:$ O(2n) < c \le O(2^{2n}) $
+\form#77:$ O(3n) < c \le O(2^{3n}) $
+\form#78:$12 \cdot 2^{2n}$
+\form#79:$2^{2n}$
+\form#80:$\mathrm{max}_{dy,dy} ~\mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#81:$\mathrm{max}_{dx,dy} ~\mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#82:$ O(4n) < c \le O(2^{4n}) $
+\form#83:$12 \cdot 2^{3n}$
+\form#84:$2^{3n}$
+\form#85:$\mathrm{max}_{dx,k_0,k_1} ~\mathrm{adp}^{F}(\delta |~ dx \rightarrow dy)$
+\form#86:$\mathrm{max}_{dx,k_0,k_1} ~\mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#87:$O(2^{3n})$
+\form#88:$\mathrm{adp}^{\oplus}(a,db \rightarrow db)$
+\form#89:$\mathrm{adp}^{\oplus}(da,db \rightarrow db)$
+\form#90:$O(2^{n})$
+\form#91:$\mathrm{xdp}^{+}(da,db \rightarrow db)$
+\form#92:$(da, db \rightarrow dc)$
+\form#93:$\mathrm{adp^{\oplus}}$
+\form#94:$(da[i:0], db[i:0] \rightarrow dc[i:0])$
+\form#95:$(da[n-1:0], db[n-1:0] \rightarrow dc[n-1:0])$
+\form#96:$(da[k:0], db[k:0] \rightarrow dc[k:0])$
+\form#97:$\mathrm{xdp^{+}}$
+\form#98:$3\oplus$
+\form#99:$\mathrm{adp}^{3\oplus}(da,db,dc \rightarrow dd)$
+\form#100:$i = (s_4 + 1)2^3 + s_3 2^2 + s_2 2 + s_1$
+\form#101:$\mathrm{adp}^{F}(k, \delta | da \rightarrow dd)$
+\form#102:$y = F(k, \delta~ | x) = (((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$
+\form#103:$ F(k_0, k_1, \delta~ | x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$
+\form#104:$ F(k, \delta~ | x) = (((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$
+\form#105:$ F(k_0, k_1, \delta |~ x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$
+\form#106:$ F(k, \delta |~ x) = (((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$
+\form#107:$\mathrm{adp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$
+\form#108:$\mathrm{adp}^{F}(k, \delta |~ da \rightarrow dd)$
+\form#109:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy)$
+\form#110:$\mathrm{max}_{dy} ~\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy)$
+\form#111:$\mathrm{max}_{dx} ~\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy)$
+\form#112:$k, \delta:~ dy = F(x + dx) - F(x)$
+\form#113:$k, \delta:~ dy[i-1:0] = F(x[i-1:0] + dx[i-1:0]) - F(x[i-1:0) ~\mathrm{mod} ~2^{i}$
+\form#114:$f_{\mathrm{LXR}}$
+\form#115:$ f_{\mathrm{LXR}} = (((x \ll 4) \oplus (x \gg 5)) $
+\form#116:$f_{\mathrm{LXR}}(x)$
+\form#117:$\mathrm(adp)^{f_\mathrm{LXR}}(da \rightarrow db)$
+\form#118:$ F(x) = ((((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$
+\form#119:$F(x)$
+\form#120:$ F(x) = ((((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta) = ((f_{\mathrm{LXR}}(x) + x) \oplus (k + \delta)$
+\form#121:$ F(x) = (f_{\mathrm{LXR}}(x) + x) \oplus (k + \delta)$
+\form#122:$F(x) \mathrm{mod}~ 2^i$
+\form#123:$F(x) \mathrm{mod}\quad 2^i$
+\form#124:$F2$
+\form#125:$ F2(xx, x) = xx + F(x)$
+\form#126:$F(x, xx)$
+\form#127:$ XF(xx, x) = xx + F(x)$
+\form#128:$ FF(xx, x) = xx + F(x)$
+\form#129:$ F'(xx, x) = xx + F(x)$
+\form#130:$F'(x,xx) \mathrm{mod}\quad 2^i$
+\form#131:$F'(x,xx)~ \mathrm{mod}~ 2^i$
+\form#132:$F(x)~ \mathrm{mod}~ 2^i$
+\form#133:$\le$
+\form#134:$f_{\mathrm{LXR}}~ \mathrm{mod}~ 2^i$
+\form#135:$f_{\mathrm{LXR}}(x)~ \mathrm{mod}~ 2^i$
+\form#136:$ F(x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$
+\form#137:$\mathrm{adp}^{f_\mathrm{LXR}}(da \rightarrow db)$
+\form#138:$dy = f_{\mathrm{LXR}}(x + dx) - f_{\mathrm{LXR}}(x)$
+\form#139:$dy[i-1:0] = f_{\mathrm{LXR}}(x[i-1:0] + dx[i-1:0]) - f_{\mathrm{LXR}}(x[i-1:0) ~\mathrm{mod} ~2^{i}$
+\form#140:$\mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dy)$
+\form#141:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) \approx \mathrm{adp}^{f_\mathrm{LXR}} \mathrm{adp}^{\oplus}_{\mathrm{FI}}$
+\form#142:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) ~= \mathrm{adp}^{f_\mathrm{LXR}} \mathrm{adp}^{\oplus}_{\mathrm{FI}}$
+\form#143:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) \tilde \mathrm{adp}^{f_\mathrm{LXR}}~ \mathrm{adp}^{\oplus}_{\mathrm{FI}}$
+\form#144:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{f_\mathrm{LXR}}~ \mathrm{adp}^{\oplus}_{\mathrm{FI}}$
+\form#145:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt)~ \mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dx+ dt \rightarrow dy)$
+\form#146:\[\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt)~ \mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dx+ dt \rightarrow dy)\]
+\form#147:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy)\ = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt)~ \mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dx+ dt \rightarrow dy)$
+\form#148:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt)\quad \mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dx+ dt \rightarrow dy)$
+\form#149:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt) \cdot \mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dx+ dt \rightarrow dy)$
+\form#150:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt) \cdot \mathrm{max}_{dt}\mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dx+ dt \rightarrow dy)$
+\form#151:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt) \cdot \mathrm{max}_{dt}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dx+ dt \rightarrow dy)$
+\form#152:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt) \cdot \mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dx + dt \rightarrow dy)$
+\form#153:$\mathrm{max}_{dz}\mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dy \rightarrow dz)$
+\form#154:$dz$
+\form#155:$\mathrm{max}_{dz}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dy \rightarrow dz)$
+\form#156:$ = \mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dz \rightarrow dy)$
+\form#157:$\mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dy \rightarrow dz) = \mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dz \rightarrow dy)$
+\form#158:$f_{\mathrm{LXR}}: $
+\form#159:$ dt = dz - dx$
+\form#160:$dt = dz - dx$
+\form#161:$p_1 = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt)$
+\form#162:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = p_1 \cdot p_2$
+\form#163:$p_2 = \mathrm{max}_{dz}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dy \rightarrow dz)$
+\form#164:$p_1 = \mathrm{max}_{dz}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}(k + \delta, dy \rightarrow dz)$
+\form#165:$p_2 = \mathrm{adp}^{f_\mathrm{LXR}}(dx \rightarrow dt)$
+\form#166:$\mathrm{adp}^{f_\mathrm{LXR}} \cdot \mathrm{adp}^{\oplus}_{\mathrm{FI}}$
+\form#167:$(da \rightarrow dd)$
+\form#168:$\mathrm{adp}^{F}(k, \delta |~ dx \rightarrow dy) = \mathrm{adp}^{\oplus} \cdot \mathrm{adp}^{\gg} \cdot \mathrm{adp}^{\oplus}_{\mathrm{FI}}$
+\form#169:$ dy: \mathrm{max}_{dc[i]}~\mathrm{adp}^{\oplus}(db, dc[i] \rightarrow dy) $
+\form#170:$dc[i] \in \{(da \gg 5), (da \gg 5) + 1, (da \gg 5) - 2^{n-5}, (da \gg 5) - 2^{n-5} + 1\}$
+\form#171:$dt = dy + da$
+\form#172:$ dd:\mathrm{max}_{dd}~\mathrm{adp}^{\oplus}((k + \delta), dt \rightarrow dd)$
+\form#173:$\mathrm{adp}^{\oplus}_{\mathrm{FI}}(a,db \rightarrow db)$
+\form#174:$\mathrm{eadp}^{F}(da \rightarrow dd) = 2^{-4n}~\{\#(k_0,k_1,\delta,x) : F(x + da) - F(x) = db\}$
+\form#175:$\mathrm{eadp}^{F}(da \rightarrow db) = 2^{-4n}~\{\#(k_0,k_1,\delta,x) : F(x + da) - F(x) = db\}$
+\form#176:$\mathrm{eadp}^{F}(da \rightarrow db)$
+\form#177:$O(4n)$
+\form#178:$dd:~\mathrm{max}_{dd}~\mathrm{eadp}^{F}(da \rightarrow dd) = 2^{-4n}~\{\#(k_0,k_1,\delta,x) : F(x + da) - F(x) = db\}$
+\form#179:$\mathrm{max}_{dd}~\mathrm{eadp}^{F}(da \rightarrow dd) = 2^{-4n}~\{\#(k_0,k_1,\delta,x) : F(x + da) - F(x) = db\}$
+\form#180:$\mathrm{eadp}^{F}(da \rightarrow db) = \sum^3_{i=0} $
+\form#181:$\mathrm{eadp}^{F}$
+\form#182:$\mathrm{eadp}^{F}(da \rightarrow db) = \sum^3_{i=0} \mathrm{adp}^{\gg 5}(da, dc_i) \cdot \mathrm{adp}^{3\oplus}((da \ll 4), da, dc_i)$
+\form#183:$dc_i \in \{(da \gg 5), (da \gg 5) + 1, (da \gg 5) - 2^{n-5}, (da \gg 5) - 2^{n-5} + 1\}$
+\form#184:$\mathrm{eadp}^{F}(da \rightarrow db) = sum^3_{i=0} \mathrm{adp}^{\gg 5}(da, dc_i) \cdot \mathrm{adp}^{3\oplus}((da \ll 4), da, dc_i)$
+\form#185:$\mathrm{eadp}^{F}(da \rightarrow db) = (\sum^3_{i=0} (\mathrm{adp}^{\gg 5}(da, dc_i)) \cdot \mathrm{adp}^{3\oplus}_{\mathrm{SET}}((da \ll 4), da, \{dc_0, dc_1, dc_2, dc_3\} \rightarrow db))$
+\form#186:$\mathrm{adp}^{3\oplus}_{\mathrm{SET}}$
+\form#187:$\mathrm{eadp}^{F}(da \rightarrow db) = (\sum^3_{i=0} (\mathrm{adp}^{\gg 5}(da, dc_i)) \cdot \mathrm{max}_{db}~\mathrm{adp}^{3\oplus}_{\mathrm{SET}}((da \ll 4), da, \{dc_0, dc_1, dc_2, dc_3\} \rightarrow db))$
+\form#188:$\mathrm{max}_{db}\mathrm{adp}^{3\oplus}_{\mathrm{SET}}$
+\form#189:$\mathrm{max}_{db}\mathrm{eadp}^{F}(da \rightarrow db)$
+\form#190:$\mathrm{eadp}^{F}(da \rightarrow db) = (\sum^3_{i=0} (\mathrm{adp}^{\gg 5}(da, dc_i))) \cdot \mathrm{adp}^{3\oplus}_{\mathrm{SET}}((da \ll 4), da, \{dc_0, dc_1, dc_2, dc_3\} \rightarrow db)$
+\form#191:\[\mathrm{eadp}^{F}(da \rightarrow db) = (\sum^3_{i=0} (\mathrm{adp}^{\gg 5}(da, dc_i))) \cdot \mathrm{adp}^{3\oplus}_{\mathrm{SET}}((da \ll 4), da, \{dc_0, dc_1, dc_2, dc_3\} \rightarrow db)\]
+\form#192:\[\mathrm{eadp}^{F}(da \rightarrow db) = (\sum^3_{i=0} (\mathrm{adp}^{\gg 5}(da, dc_i)))~ \cdot~ \mathrm{adp}^{3\oplus}_{\mathrm{SET}}((da \ll 4), da, \{dc_0, dc_1, dc_2, dc_3\} \rightarrow db)\]
+\form#193:\[\mathrm{eadp}^{F}(da \rightarrow db) = (\sum^3_{i=0} (\mathrm{adp}^{\gg 5}(da, dc_i))) \cdot \mathrm{max}_{db}~\mathrm{adp}^{3\oplus}_{\mathrm{SET}}((da \ll 4), da, \{dc_0, dc_1, dc_2, dc_3\} \rightarrow db)\]
+\form#194:\[\mathrm{eadp}^{F}(da \rightarrow db) = (\sum^3_{i=0} (\mathrm{adp}^{\gg 5}(da, dc_i)))~ \cdot~ \mathrm{max}_{db}~\mathrm{adp}^{3\oplus}_{\mathrm{SET}}((da \ll 4), da, \{dc_0, dc_1, dc_2, dc_3\} \rightarrow db)\]
+\form#195:$O(5n)$
+\form#196:$O(2^{4n})$
+\form#197:$O(2^{5n})$
+\form#198:$\mathrm{eadp}^{F}(da \rightarrow dd) > 0.0$
+\form#199:$O(n) \le c \le O(2^n)$
+\form#200:$(da[i:0], db[i:0], dc[i:0] \rightarrow dd[i:0])$
+\form#201:$dd[n-1:0]$
+\form#202:$(da[k:0], db[k:0], dc[k:0] \rightarrow dd[k:0])$
+\form#203:$\mathrm{eadp}^{F}(da \rightarrow dd) > 0$
+\form#204:$O(n) \le c \ll O(2^n)$
+\form#205:$\mathrm{max}_{dd}~\mathrm{eadp}^{F}(da \rightarrow dd) = 2^{-4n}~\{\#(k_0,k_1,\delta,x) : F(x + da) - F(x) = dd\}$
+\form#206:\[\mathrm{eadp}^{F}(da \rightarrow dd) = (\sum^3_{i=0} (\mathrm{adp}^{\gg 5}(da, dc_i)))~ \cdot~ \mathrm{max}_{dd}~\mathrm{adp}^{3\oplus}_{\mathrm{SET}}((da \ll 4), da, \{dc_0, dc_1, dc_2, dc_3\} \rightarrow dd)\]
+\form#207:$\mathrm{max}_{dd}\mathrm{adp}^{3\oplus}_{\mathrm{SET}}$
+\form#208:$\mathrm{max}_{db}\mathrm{eadp}^{F}(da \rightarrow dd)$
+\form#209:$ n > k \ge 0$
+\form#210:$ A_{\mathrm{size}} > k \ge 0$
+\form#211:$> k \ge 0$
+\form#212:$> i \ge 0$
+\form#213:$ B[k][i] = \bar{p}$
+\form#214:$ B[k][i] = \hat{p}$
+\form#215:$\bar{p}$
+\form#216:$dc[k:0]$
+\form#217:$(k+1)$
+\form#218:$H[k] = A_{k} A_{k-1} \ldots A_{0}$
+\form#219:$dc[n-1:k+1]$
+\form#220:$(n-k-1)$
+\form#221:$G[k] = L A_{n-1} A_{n-2} \ldots A_{k+1}$
+\form#222:$\mathrm{dp}(da,db \rightarrow dc) = G[k] H[k] \le B[k] H[k]$
+\form#223:$G[k][i]$
+\form#224:$B[k][i]$
+\form#225:$G = A_{n-1} A_{n-2} \ldots A_{}$
+\form#226:$\mathrm{dp}(da,db \rightarrow dc) = $
+\form#227:$B[k][i] \leftarrow p_{\mathrm{max}} = 0$
+\form#228:$j = k$
+\form#229:$j + 1$
+\form#230:$p_j$
+\form#231:$(da[j:k], db[j:k] \rightarrow dc[j:k])$
+\form#232:$p_{\mathrm{max}}$
+\form#233:$j = n$
+\form#234:$p_{\mathrm{max}} \leftarrow p_j = \mathrm{dp}(da,db \rightarrow dc)$
+\form#235:$B[n][0 \ldots )A_{\mathrm{size}} - 1)] \leftarrow [1 1 \ldots 1]$
+\form#236:$B[n][0 \ldots A_{\mathrm{size}} - 1)] \leftarrow [1 1 \ldots 1]$
+\form#237:$B[n][0 \ldots (A_{\mathrm{size}} - 1)] \leftarrow [1 1 \ldots 1]$
+\form#238:$B[n][k] \leftarrow 1,~\forall k:~0 \le k < (A_{\mathrm{size}} - 1)$
+\form#239:$B[n][i] \leftarrow 1,~\forall i:~0 \le i < (A_{\mathrm{size}} - 1)$
+\form#240:$i:~0 \le i < (A_{\mathrm{size}} - 1)$
+\form#241:$(A_{\mathrm{size}} - 1)$
+\form#242:$C_i$
+\form#243:$ L A_{n-1} A_{n-2} \ldots A_{k+1} C_i$
+\form#244:$B[k][i] C_i$
+\form#245:$dc[k-1:0]$
+\form#246:$k$
+\form#247:$H[k-1] = A_{k-1} A_{k-2} \ldots A_{0}$
+\form#248:$dc[n-1:k]$
+\form#249:$(n-k)$
+\form#250:$G[k] = L A_{n-1} A_{n-2} \ldots A_{k}$
+\form#251:$\mathrm{dp}(da,db \rightarrow dc) = G[k] H[k-1] \le B[k] H[k-1]$
+\form#252:$C^{i}_{k-1}$
+\form#253:$(da[j:k], db[j:k] \rightarrow dc[j:k]) = L A_{n-1} A_{n-2} \ldots A_{k} C^{i}_{k-1}$
+\form#254:$ L A_{n-1} A_{n-2} \ldots A_{k} C^i_{k-1}$
+\form#255:$B[k][i] C^i_{k-1}$
+\form#256:\[(da[j:k], db[j:k] \rightarrow dc[j:k]) = L A_{n-1} A_{n-2} \ldots A_{k} C^{i}_{k-1}\]
+\form#257:$\mathrm{dp}(da,db \rightarrow dc) = G[k] H[k-1] \le B[k] H[k-1] \le B[k] H[k-1]$
+\form#258:\[\mathrm{dp}(da,db \rightarrow dc) = G[k] H[k-1] \le B[k] H[k-1] \le B[k] H[k-1]\]
+\form#259:\[\mathrm{dp}(da,db \rightarrow dc) = G[k] H[k-1] \le B[k] H[k-1]\]
+\form#260:$B[j+1]$
+\form#261:$B[j+] A_{j} A_{j-1} \ldots A_{k} C^{i}_{k-1}$
+\form#262:$B[j+1] A_{j} A_{j-1} \ldots A_{k} C^{i}_{k-1}$
+\form#263:$B[k][i] \leftarrow p_{\mathrm{max}}$
+\form#264:$B[j+1] A_{j} A_{j-1} \ldots A_{k} C^{i}_{k-1} > p_{\mathrm{max}}$
+\form#265:$p_{\mathrm{max}} \leftarrow p_j = \mathrm{dp}(da[n-1:k],db[n-1:k] \rightarrow dc[n-1:k])$
+\form#266:$p_{\mathrm{max}} \leftarrow p_{n-1} = \mathrm{dp}(da[n-1:k],db[n-1:k] \rightarrow dc[n-1:k])$
+\form#267:$H[k-1] = A_{k-1} A_{k-2} \ldots A_{0} C^i_{k-1}$
+\form#268:$k = 0$
+\form#269:$\mathrm{dp}(da,db \rightarrow dc) = \mathrm{max}_{dc}~\mathrm{dp}(da,db \rightarrow dc) = B[0] H[k-1]$
+\form#270:$H[-1] = C$
+\form#271:$\mathrm{dp}(da,db \rightarrow dc) = \mathrm{max}_{dc}~\mathrm{dp}(da,db \rightarrow dc) = B[0] C$
+\form#272:$\mathrm{dp}(da,db \rightarrow dc) = \mathrm{max}_{dc}~\mathrm{dp}(da,db \rightarrow dc) = G[0] C = [0] C$
+\form#273:$\mathrm{dp}(da,db \rightarrow dc) = \mathrm{max}_{dc}~\mathrm{dp}(da,db \rightarrow dc) = G[0] C = B[0] C$
+\form#274:$k+1, k+2, \ldots, n-1$
+\form#275:$(da[n-1:k], db[n-1:k] \rightarrow dc[n-1:k])$
+\form#276:$\mathrm{dp}(da[n-1:k],db[n-1:k] \rightarrow dc[n-1:k]) = L A_{n-1} A_{n-2} \ldots A_{k} C^{i}_{k-1}$
+\form#277:$(da[n-1:j], db[n-1:j] \rightarrow dc[n-1:j])$
+\form#278:$j = k+1, k+2, \ldots, n-1$
+\form#279:$L = [1~1~\ldots~1]$
+\form#280:$i$
+\form#281:$C^{i}_{-1} = C$
+\form#282:$n \le j \le 1$
+\form#283:$< j \le 0$
+\form#284:$< i \le 0$
+\form#285:$n \ge j \ge 1$
+\form#286:$\mathrm{max}_{dc}~\mathrm{dp}(da,db \rightarrow dc)$
+\form#287:$O(n) \ge c \le O(2^n)$
+\form#288:$\max_{dc} \mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db \rightarrow dc)$
+\form#289:$\max_{dc} \mathrm{adp}^{\oplus}_{\mathrm{FI}}(da, db \rightarrow dc)$
+\form#290:$\max_{dc} \mathrm{adp}^{\oplus}_{\mathrm{FI}}(a, db \rightarrow dc)$
+\form#291:$\mathrm{max}_{dc}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}(da,db \rightarrow dc)$
+\form#292:$\mathrm{max}_{dc}~\mathrm{adp}^{\oplus}(da,db \rightarrow dc)$
+\form#293:$\max_{dd} \mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$
+\form#294:$(da[n-1:k], db[n-1:k], dc[n-1:k] \rightarrow dd[n-1:k])$
+\form#295:$(da[n-1:j], db[n-1:j], dc[n-1:j] \rightarrow dd[n-1:j])$
+\form#296:$\mathrm{max}_{dc}~\mathrm{adp}^{\oplus}(da,db,dc \rightarrow dd)$
+\form#297:$k+1$
+\form#298:$k = n$
+\form#299:$\mathrm{max}_{dc}~\mathrm{adp}^{\oplus}(da[n-1:k],db[n-1:k],dc[n-1:k] \rightarrow dd[n-1:k])$
+\form#300:$\mathrm{max}_{dd}~\mathrm{adp}^{\oplus}(da[n-1:k],db[n-1:k],dc[n-1:k] \rightarrow dd[n-1:k])$
+\form#301:$\mathrm{max}_{dd}~\mathrm{adp}^{\oplus}(da,db,dc \rightarrow dd)$
+\form#302:$(da[n-1:k],db[n-1:k],\{dc_0[n-1:k],dc_1[n-1:k],\ldots\} \rightarrow dd[n-1:k])$
+\form#303:$(da[n-1:j],db[n-1:j],\{dc_0[n-1:j],dc_1[n-1:j],\ldots\} \rightarrow dd[n-1:j])$
+\form#304:$\{dc_0[n-1:k],dc_1[n-1:k],\ldots\}$
+\form#305:$B[k][i] = \sum_{j}~B_{j}[k][i]$
+\form#306:$B_{j}[k][i]$
+\form#307:$dc_{j}$
+\form#308:$\mathrm{dp}(da[n-1:k],db[n-1:k],dc_j[n-1:k] \rightarrow dd[n-1:k])$
+\form#309:$B[k][i] = \sum_{r}~B_{r}[k][i]$
+\form#310:$B_{r}[k][i]$
+\form#311:$dc_{r}$
+\form#312:$\mathrm{dp}(da[n-1:k],db[n-1:k],dc_r[n-1:k] \rightarrow dd[n-1:k])$
+\form#313:$B_{r}[k]$
+\form#314:$r$
+\form#315:$B_{\mathrm{max}}$
+\form#316:$0 \le k \le n$
+\form#317:$O(n R) \le c \le O(2^{nR})$
+\form#318:$R$
+\form#319:$\mathrm{max}_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$
+\form#320:$0 \le i < A_{\mathrm{size}}$
+\form#321:$B_{\mathrm{max}}[k][i] = \mathrm{max}_{r}~B[k][i]$
+\form#322:$B_{\mathrm{max}}[k][i]$
+\form#323:$dc_r$
+\form#324:$B_{\mathrm{max}}[k][i] = \mathrm{max}_{r}~B[k][i],~ 0 \le k \le n,~ 0 \le i < A_{\mathrm{size}}$
+\form#325:$\mathrm{max}_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}$
+\form#326:$\mathrm{max}_{dc}~\mathrm{xdp}^{+}(da,db \rightarrow dc)$
+\form#327:$\mathrm{xdp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$
+\form#328:$\mathrm{xdp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#329:$\mathrm{max}_{dx} ~\mathrm{xdp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#330:$\mathrm{max}_{dy} ~\mathrm{xdp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#331:$k_0, k_1, \delta:~ dy[i-1:0] = F(x[i-1:0] \oplus dx[i-1:0]) \oplus F(x[i-1:0)$
+\form#332:$k_0, k_1, \delta:~ dy[i-1:0] = F(x[i-1:0] + dx[i-1:0]) - F(x[i-1:0]) ~\mathrm{mod} ~2^{i}$
+\form#333:$k_0, k_1, \delta:~ dy[i-1:0] = F(x[i-1:0] \oplus dx[i-1:0]) \oplus F(x[i-1:0])$
+\form#334:$k_0, k_1, \delta:~ dy = F(x \oplus dx) \oplus F(x)$
+\form#335:$\mathrm{xdp}^{F}(k, \delta |~ da \rightarrow dd)$
+\form#336:$\mathrm{xdp}^{F}(k, \delta |~ dx \rightarrow dy)$
+\form#337:$dy[i-1:0] = f_{\mathrm{LXR}}(x[i-1:0] + dx[i-1:0]) - f_{\mathrm{LXR}}(x[i-1:0]) ~\mathrm{mod} ~2^{i}$
+\form#338:$k, \delta:~ dy[i-1:0] = F(x[i-1:0] + dx[i-1:0]) - F(x[i-1:0]) ~\mathrm{mod} ~2^{i}$
+\form#339:$k, \delta:~ dy = F(x \oplus dx) \oplus F(x)$
+\form#340:$k, \delta:~ dy[i-1:0] = F(x[i-1:0] \oplus dx[i-1:0]) \oplus F(x[i-1:0])$
+\form#341:$F'(xx, x) = xx + F(x)$
+\form#342:$\mathrm{xdp}^{F'}(k, \delta |~ dxx, dx \rightarrow dy)$
+\form#343:$\mathrm{xdp}^{F'}(k, \delta |~ daa, da \rightarrow dy)$
+\form#344:$k, \delta:~ dy = F(xx \oplus dxx, x \oplus dx) \oplus F(xx, x)$
+\form#345:$k, \delta:~ dy = F(xx \oplus dxx,~ x \oplus dx) \oplus F(xx,~ x)$
+\form#346:$(dxx, dx \rightarrow dy)$
+\form#347:$k, \delta:~ dy[i-1:0] = F(xx[i-1:0], x[i-1:0] \oplus dx[i-1:0]) \oplus F(xx[i-1:0], x[i-1:0])$
+\form#348:\[k, \delta:~ dy[i-1:0] = F(xx[i-1:0], x[i-1:0] \oplus dx[i-1:0]) \oplus F(xx[i-1:0], x[i-1:0])\]
+\form#349:$\mathrm{xdp}^{F}(k, \delta |~ dxx, dx \rightarrow dy)$
+\form#350:$ O(n) < c \le O(2^{2n}) $
+\form#351:$k, \delta:~ dy = F'(xx \oplus dxx,~ x \oplus dx) \oplus F'(xx,~ x)$
+\form#352:$\mathrm{xdp}^{F'}(k, \delta |~ dx \rightarrow dy)$
+\form#353:$dx_{\mathrm{LXR}} = (((dx \ll 4) \oplus (dx \gg 5))$
+\form#354:$dy = \mathrm{max}_{dy}~\mathrm{xdp}^{+}(dx, dx_lxr \rightarrow dy)$
+\form#355:$dy$
+\form#356:$dy = \mathrm{max}_{dy}~\mathrm{xdp}^{+}(dx, dx_\mathrm{LXR} \rightarrow dy)$
+\form#357:$dx$
+\form#358:$dx_\mathrm{LXR}$
+\form#359:$\mathrm{max}_{dy}~\mathrm{xdp}$
+\form#360:$p_{\mathrm{max}} = \mathrm{max}_{dy}~\mathrm{xdp}^{+}(dx, dx_\mathrm{LXR} \rightarrow dy)$
+\form#361:$n \ge 1$
+\form#362:$B_{1}, B_{2}, \ldots, B_{n-1}$
+\form#363:$(n-1)$
+\form#364:${\overline B_n}$
+\form#365:$n$
+\form#366:$B_{n}$
+\form#367:${\overline B_n} \leq B_n$
+\form#368:$B_n$
+\form#369:${\widehat B_n}$
+\form#370:${\overline B_n} \leq {\widehat B_n} \leq B_n$
+\form#371:$D$
+\form#372:$m$
+\form#373:${\overline T}$
+\form#374:${{\widehat B_1}, {\widehat B_2}, \ldots, {\widehat B_{n-1}}}$
+\form#375:$n - 1$
+\form#376:${\widehat T}$
+\form#377:${\widehat{B_n}} \ge {\overline B_n}$
+\form#378:$i = 1$
+\form#379:$i = n$
+\form#380:$(n - i)$
+\form#381:$p_1 p_2 \ldots p_i\, {\widehat B_{n - i}} \ge {\overline B_n}$
+\form#382:$p_1 p_2 \ldots p_n = {\widehat B_{n}} \ge {\overline B_n}$
+\form#383:${\overline B_n} \gets {\widehat B_{n}}$
+\form#384:${\overline T_n} \gets {\widehat T_{n}}$
+\form#385:${\widehat T_{n}}$
+\form#386:${\widehat{B_n}}$
+\form#387:$(n - 1)$
+\form#388:$\mathcal{O}(m^{n-1})$
+\form#389:$0 \le n < \mathrm{nrounds}$
+\form#390:$0 \le i < n$
+\form#391:$(dx,dy,p)$
+\form#392:$i = (dx 2^{n} + dy)$
+\form#393:$B$
+\form#394:$B[0]$
+\form#395:$1$
+\form#396:$B[1]$
+\form#397:$2$
+\form#398:$\ldots$
+\form#399:$B[i]$
+\form#400:$B[n-2]$
+\form#401:$B[n-1]$
+\form#402:$i = (dx~ 2^{n} + dy)$
+\form#403:$B[0],\ldots,B[i-1]$
+\form#404:$B[0],\ldots,B[n-2]$
+\form#405:$da$
+\form#406:$dc$
+\form#407:$< k \ge 0$
+\form#408:$\{(da \gg 5), (da \gg 5) + 1, (da \gg 5) - 2^{n-5}, (da \gg 5) - 2^{n-5} + 1\}$
+\form#409:$db \in \{(da \gg 5), (da \gg 5) + 1, (da \gg 5) - 2^{n-5}, (da \gg 5) - 2^{n-5} + 1\}$
+\form#410:$dc = da \gg R$
+\form#411:$(da, dc)$
+\form#412:$dc = (da \gg R) \Rightarrow dc \in {dc_0, dc_1, dc_2, dc_3}$
+\form#413:$dc_0 = (da \gg R)$
+\form#414:$dc_2 = (da \gg R) - 2^{n-R}$
+\form#415:$dc_1 = (da \gg R) + 1$
+\form#416:$dc_3 = (da \gg R) - 2^{n-R} + 1$
+\form#417:$(k \ge R)$
+\form#418:$(k-R)$
+\form#419:$(k >= R)$
+\form#420:$(da \gg R)$
+\form#421:$dc_0$
+\form#422:$(da \gg R)[0:(k - R)] = (dc_0)[0:(k - R)]$
+\form#423:$(da \gg R)[0:(k - R)] = (dc_0 + 2^{n-R})[0:(k - R)]$
+\form#424:$(da \gg R)[0:(k - R)] = (dc_0 - 1)[0:(k - R)]$
+\form#425:$(da \gg R)[0:(k - R)] = (dc_0 + 2^{n-R} - 1)[0:(k - R)]$
+\form#426:$da[(r-1):0] \neq 0$
+\form#427:$(k >= R) \wedge (k > (n - R))$
+\form#428:$(n-R)$
+\form#429:$(k > (n - R))$
+\form#430:$(da \gg R)[k] = 0$
+\form#431:$dc_0[(n-1):(n-R+1)] = (da \gg R)[(n-1):(n-R+1)]$
+\form#432:$dc_1[(n-1):(n-R+1)] = ((da \gg R) + 1)[(n-1):(n-R+1)]$
+\form#433:$dc_2[(n-1):(n-R+1)] = ((da \gg R) - 2^{n-R})[(n-1):(n-R+1)]$
+\form#434:$dc_3[(n-1):(n-R+1)] = ((da \gg R) - 2^{n-R} + 1)[(n-1):(n-R+1)]$
+\form#435:$(da,dc)$
+\form#436:$\{(da \gg 5),~ (da \gg 5) + 1,~ (da \gg 5) - 2^{n-5},~ (da \gg 5) - 2^{n-5} + 1\}$
+\form#437:$\{(da \gg R),~ (da \gg R) + 1,~ (da \gg R) - 2^{n-R},~ (da \gg R) - 2^{n-R} + 1\}$
+\form#438:$dc = (da \gg R) \Longrightarrow dc \in \{dc_0, dc_1, dc_2, dc_3\}$
+\form#439:$dc_i,~ 0 \le i < 4$
+\form#440:$k < L$
+\form#441:$db[k:0] = 0$
+\form#442:$k \ge L$
+\form#443:$(db \gg L)[n-(k-L+1):0] = da[n-(k-L+1):0]$
+\form#444:$L =$
+\form#445:$n=$
+\form#446:$ k < L $
+\form#447:$(da, db, dc \rightarrow dd)$
+\form#448:$\mathrm{adp}^{3\oplus}(da, db, dc \rightarrow dd) > p_\mathrm{thres}$
+\form#449:$db = da \ll 4$
+\form#450:$dc \in {(da \ll 5), (da \ll 5) + 1, (da \ll 5) - 2^{n-5}, (da \ll 5) - 2^{n-5} + 1}$
+\form#451:$dc = (da \ll 5)$
+\form#452:$\mathrm(eadp)^{F}(da \rightarrow dd) > p_\mathrm{thres}$
+\form#453:$ \mathrm{adp}^{3\oplus}$
+\form#454:$\mathrm{eadp}^{F}(da \rightarrow dd) > p_\mathrm{thres}$
+\form#455:$dc \in {(da \ll R), (da \ll R) + 1, (da \ll R) - 2^{n-R}, (da \ll R) - 2^{n-R} + 1}$
+\form#456:$dc = (da \ll R)$
+\form#457:$R = TEA_RSH_CONST$
+\form#458:$R =$
+\form#459:$0,2,4,\ldots$
+\form#460:$1,3,5,\ldots$
+\form#461:$N$
+\form#462:$2(N/2)$
+\form#463:$N-1, N$
+\form#464:$i, i+1, \ldots, N$
+\form#465:$(n-i)$
+\form#466:$n-i, n-i+1, \ldots, n$
+\form#467:$n-1,n$
+\form#468:$\mathrm{adp}^{\oplus}_{\mathrm{FI}}$
+\form#469:$ f_{\mathrm{LXR}}(a) = (((a \ll 4) \oplus (a \gg 5)) $
+\form#470:$(a \ll 4)$
+\form#471:$(a \gg 5)$
+\form#472:$b$
+\form#473:$c$
+\form#474:$\mathrm{adp}^{3\oplus}(db, dc \rightarrow dd) > p_\mathrm{thres}$
+\form#475:$(da, db, dc, dd)$
+\form#476:$(\mathrm{key} + \delta)$
+\form#477:$\mathrm{adp}^{F}(da \rightarrow dy)$
+\form#478:$\hat{p}$
+\form#479:$(da, dy, \hat{p})$
+\form#480:$ f_{\mathrm{LXR}}(x) = (((x \ll 4) \oplus (x \gg 5)) $
+\form#481:$db, dc$
+\form#482:$dd$
+\form#483:$dz = da + dd$
+\form#484:$\mathrm{max}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}(\mathrm{key} + \delta,dz \rightarrow dy)$
+\form#485:$da,db,dc$
+\form#486:$\mathrm{max}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}((\mathrm{key} + \delta),~dz \rightarrow dy)$
+\form#487:$(db[k:0], dc[k:0] \rightarrow dd[k:0])$
+\form#488:$ \mathrm{adp}^{\oplus}$
+\form#489:$f_\mathrm{LXR}$
+\form#490:$db = ((da \ll 4) ^ (da \gg 5))$
+\form#491:$a$
+\form#492:$b = ((a << 4) ^ (a >> 5))$
+\form#493:$p_{\mathrm{thres}}$
+\form#494:$db = ((da \ll 4) \oplus (da \gg 5))$
+\form#495:$db = (da \ll 4) \oplus (da \gg 5)$
+\form#496:$\mathrm{adp}^{\oplus}(da,db \rightarrow dc)$
+\form#497:$\mathrm{adp}^{\oplus}(da,db \rightarrow dc) $
+\form#498:$\mathrm{xdp}^{+}(da,db \rightarrow dc)$
+\form#499:$O()$
+\form#500:$\max_{dc}~\mathrm{adp}^{\oplus}(da, db \rightarrow dc)$
+\form#501:$\max_{dc}~\mathrm{xdp}^{+}(da, db \rightarrow dc)$
+\form#502:$F(x) = y = x + ((x \ll 4) \oplus (x \gg 5))$
+\form#503:$ F'(xx, x) = yy = xx + (F(x) \oplus (\delta + \mathrm{key}))$
+\form#504:$\mathrm{xdp}^{F'}(dxx, dx \rightarrow dyy) = \mathrm{xdp}^{F}(dx \rightarrow dy) \cdot \mathrm{xdp}^{+}(dy, dxx \rightarrow dyy)$
+\form#505:$(dx, dy, \mathrm{xdp}^{F}(dx \rightarrow dy))$
+\form#506:$(dx, dyy, \mathrm{xdp}^{F'}(dxx, dx \rightarrow dyy))$
+\form#507:$ F'(xx, x) = yy = xx + (y \oplus (\delta + \mathrm{key}))$
+\form#508:$(dx,~ dy,~ \mathrm{xdp}^{F}(dx \rightarrow dy))$
+\form#509:$(dx,~ dyy,~ \mathrm{xdp}^{F'}(dxx, dx \rightarrow dyy))$
+\form#510:$dxx$
+\form#511:$dxx = dx_{-1}$
+\form#512:$dx_{-1}$
+\form#513:$(n+1)$
+\form#514:$A[2][2][2][2] = A[da[i]][db[i]][dc[i]][dd[i]]$
+\form#515:$da[i]$
+\form#516:$db[i]$
+\form#517:$dc[i]$
+\form#518:$dd[i]$
+\form#519:$A[2][2][2] = A[da[i]][db[i]][dc[i]]$
+\form#520:$A[3][2][2][2] = A[j][da[i]][dx[i+r][db[i]]$
+\form#521:$j$
+\form#522:$A[3][2][2][2] = A[j][~da[i]~][~dx[i+r]~][~db[i]~]$
+\form#523:$A[3][2][2][2] = A[j][da[i]][dx[i+r]][db[i]]$
+\form#524:$A[j][2][2][2][2][2] = A[j][k0[i]][k1[i]][\delta[i]][da[i]][db[i]]$
+\form#525:$k0[i]$
+\form#526:$k1[i]$
+\form#527:$\delta[i]$
+\form#528:$y = F'(k_0, k_1, \delta |~ x) = (x + k_0) \oplus (x + \delta) \oplus (x + k_1)$
+\form#529:$\mathrm{adp}^{F'}(k_0, k_1, \delta |~ da \rightarrow db)$
+\form#530:$k_0[i]$
+\form#531:$k_1[i]$
+\form#532:$\mathrm{adp}^{\ll}(l |~ da \rightarrow db)$
+\form#533:$\mathrm{adp}^{\gg}(r |~ da \rightarrow db)$
+\form#534:$\max_{dd} \mathrm{adp}^{F}(k_0, k_1, \delta |~ da \rightarrow dd)$
+\form#535:$\max_{dd} \mathrm{adp}^{F}(k_0, k_1, \delta |~ dx \rightarrow dy)$
+\form#536:$\mathrm{max}_{dd}~\mathrm{adp}^{3\oplus}_{\mathrm{SET}}$
+\form#537:$\mathrm{max}_{db}~\mathrm{eadp}^{F}(da \rightarrow dd)$
+\form#538:$\max_{dd}~\mathrm{adp}^{3\oplus}(da, db, dc \rightarrow dd)$
+\form#539:$ O(n) \ll c \le O(2^n)$
+\form#540:$p_\mathrm{thres}$
+\form#541:$c = f(p_\mathrm{thres})$
+\form#542:$\max_{dd}~\mathrm{adp}^{\oplus}_{\mathrm{SET}}(da, db, \{{dc}_0, {dc}_1, \ldots\} \rightarrow dd)$
+\form#543:$\Delta$
+\form#544:$\max_{dc}~\mathrm{adp}^{\oplus}_{\mathrm{FI}}(a, db \rightarrow dc)$
+\form#545:$ O(n) \le c \ll O(2^n)$
+\form#546:$F(x) = ((((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$
+\form#547:$ O(n) \ll c \le O(2^n) $
+\form#548:$F(k_0, k_1, \delta |~ x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$
+\form#549:$F(k, \delta |~ x) = ((((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$
+\form#550:$\mathrm{pDDT}~\mathrm{xdp}^{+}$
+\form#551:$\mathrm{pDDT}~(\mathrm{xdp}^{+},p_\mathrm{thres})$
+\form#552:$\mathrm{pDDT}~\mathrm{adp}^{\oplus}$
+\form#553:$F(k_0,k_1,\delta |~ x) = ((x \ll 4) + k_0) \oplus (x + \delta) \oplus ((x \gg 5) + k_1)$
+\form#554:$+$
+\form#555:$\oplus$
+\form#556:$db$
+\form#557:$\{db_0, db_2, db_3, dc_4\}$
+\form#558:$(da, {db_0, db_2, db_3} \rightarrow dc)$
+\form#559:$(da, b \rightarrow dc)$
+\form#560:$(da,~ db \rightarrow dc)$
+\form#561:$(da,~ b \rightarrow dc)$
+\form#562:$\{db_0,~ db_2,~ db_3,~ dc_4\}$
+\form#563:$(da,~ \{db_0,~ db_2,~ db_3,~ db_4\} \rightarrow dc)$
+\form#564:$\{db_0,~ db_2,~\ldots\}$
+\form#565:$(da,~ \{db_0,~ db_2,~\ldots\} \rightarrow dc)$
+\form#566:$\{db_0,~ db_2,\ldots\}$
+\form#567:$(da,~ \{db_0,~ db_2,\ldots\} \rightarrow dc)$
+\form#568:$\{db_0,~db_1,\ldots\}$
+\form#569:$(da,~ \{db_0,~db_1,\ldots\} \rightarrow dc)$
+\form#570:$F'(k_0, k_1, \delta |~ x) = (x + k_0) \oplus (x + \delta) \oplus (x + k_1)$
+\form#571:$0,1$
+\form#572:$0,1,2$
+\form#573:$0,1,2,\ldots,(N-1)$
+\form#574:$r = 1$
+\form#575:$r = 0$
+\form#576:$\max_{dd}~\mathrm{adp}^{3\oplus}$
+\form#577:$\max_{dd}~\mathrm{eadp}^{F}$
+\form#578:$\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$
+\form#579:$\mathrm{adp}^{\mathrm{ARX}}$
+\form#580:$A[2][2][2][2] = A[j][dc[i]][dd[i+r]][de[i+r]]$
+\form#581:$dd[i+r]$
+\form#582:$(i+r)$
+\form#583:$ j = 0 \Rightarrow (i+r) = 0$
+\form#584:$ j = 1 \Rightarrow (i+r) \neq 0$
+\form#585:$i: (i+r) = 0$
+\form#586:$dd,de$
+\form#587:$a,b,d$
+\form#588:$e$
+\form#589:$da,db,dd$
+\form#590:$de$
+\form#591:$e = (((a + b) <\ll r) \oplus d)$
+\form#592:$j=0$
+\form#593:$(i+r)=0$
+\form#594:$j=1$
+\form#595:$\mathrm{ARX}(r,x,y,z) = (((x + y) <\ll r) \oplus z)$
+\form#596:$\mathrm{ARX}(r,x,y,z) = (((x + y) \ll\ll r) \oplus z)$
+\form#597:$\mathrm{ARX}(r,x,y,z) = (((x + y) <<< r) \oplus z)$
+\form#598:$\mathrm{ARX}(r,x,y,z) = (((x + y) \ll< r) \oplus z)$
+\form#599:$e = (((a + b) < r) \oplus d)$
+\form#600:$e = (((a + b) \ll< r) \oplus d)$
+\form#601:$\mathrm{adp}^{\ll}(da \rightarrow db)$
+\form#602:$\mathrm{adp}^{\gg}(da \rightarrow db)$
+\form#603:$\mathrm{adp}^{\gg\oplus}(da,db \rightarrow dc)$
+\form#604:$\mathrm{adp}^{\mathrm{ARX}}(r,da,db,dd \rightarrow de)$
+\form#605:$\max_{de}~\mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$
+\form#606:$s: 0 \ge s <$
+\form#607:$k: 0 \ge k \le$
+\form#608:$s: 0 \le s <$
+\form#609:$k: 0 \le k \le$
+\form#610:$B[s][n]$
+\form#611:$B[0][n] = (1,1,0,0,0,0,0,0)$
+\form#612:$B[1][n] = (0,0,1,1,0,0,0,0)$
+\form#613:$B[2][n] = (0,0,0,0,1,1,0,0)$
+\form#614:$B[3][n] = (0,0,0,0,0,0,1,1)$
+\form#615:$s$
+\form#616:$B[s][k][i] \leftarrow p_{\mathrm{max}} = 0$
+\form#617:$n =$
+\form#618:$(dc[j:k], dd[j+r:k+r] \rightarrow de[j+r:k+r])$
+\form#619:$B[s][j+1]$
+\form#620:$B[s][j+1] A_{j} A_{j-1} \ldots A_{k} C^{i}_{k-1} > p_{\mathrm{max}}$
+\form#621:$r=$
+\form#622:$r=\mathrm{lrot_const}$
+\form#623:$r=\mathrm{lrot\_const}$
+\form#624:$p_{\mathrm{max}} \leftarrow p_{n-1} = \mathrm{dp}(dc[n-1:k],dd[n-1+r:k+r] \rightarrow de[n-1+r:k+r])$
+\form#625:$B[s][k][i] \leftarrow p_{\mathrm{max}}$
+\form#626:$B[s][n] = L^{s}$
+\form#627:$L^{0} = (1,1,0,0,0,0,0,0)$
+\form#628:$L^{1} = (0,0,1,1,0,0,0,0)$
+\form#629:$L^{2} = (0,0,0,0,1,1,0,0)$
+\form#630:$L^{3} = (0,0,0,0,0,0,1,1)$
+\form#631:$B[s][k][i]$
+\form#632:$(dc[n-1:k], dd[n-1+r:k+r] \rightarrow de[n-1+r:k+r])$
+\form#633:$L^{s}$
+\form#634:$de[n-1+r:k+r]$
+\form#635:$ L^{s} A_{n-1} A_{n-2} \ldots A_{k} C^{i}_{k-1}$
+\form#636:$i: 0 \ge i <$
+\form#637:$i: 0 \le i <$
+\form#638:$G[k] = L^{s} A_{n-1} A_{n-2} \ldots A_{k}$
+\form#639:$dc[n-1+r:k+r]$
+\form#640:$H[-1] = C^{2s}$
+\form#641:$G[s][k] = L^{s} A_{n-1} A_{n-2} \ldots A_{k}$
+\form#642:$H[s][k-1] = A_{k-1} A_{k-2} \ldots A_{0} C^i_{k-1}$
+\form#643:$\mathrm{dp}(da,db \rightarrow dc) = \sum_{s}(G[s][k] H[s][k-1]) \le \sum_{s}(B[s][k] H[s][k-1])$
+\form#644:$\mathrm{dp}(da,db \rightarrow dc) = \sum_{s}(G[s][k]~ H[s][k-1]) \le \sum_{s}(B[s][k]~ H[s][k-1])$
+\form#645:$\mathrm{dp}(dc,dd \rightarrow de) = \sum_{s}(G[s][k]~ H[s][k-1]) \le \sum_{s}(B[s][k]~ H[s][k-1])$
+\form#646:$\sum_{s}(B[s][k]~ H[s][k-1])$
+\form#647:$\mathrm{dp}(dc,dd \rightarrow de) = \mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$
+\form#648:$da + db = dc$
+\form#649:$\mathrm{dp}(dc[n-1:k],dd[n-1+r:k+r] \rightarrow de[n-1+r:k+r]) = L^{s} A_{n-1} A_{n-2} \ldots A_{k} C^{i}_{k-1}$
+\form#650:$(dc[n-1:j], dd[n-1+r:j+r] \rightarrow de[n-1+r:j+r])$
+\form#651:$n \ge > k \ge 0$
+\form#652:$B[s][k]$
+\form#653:$p_max$
+\form#654:$k: 0 \le k <$
+\form#655:$2s$
+\form#656:$j = 0$
+\form#657:$p_j[s]$
+\form#658:$(dc[j:0], dd[j+r:r] \rightarrow de[j+r:r])$
+\form#659:$\sum_{s} (B[s][j+1]~ A_{j} A_{j-1} \ldots A_{0} C^{s}_{-1}) > p_{\mathrm{max}}$
+\form#660:$p_{\mathrm{max}} \leftarrow p_{n-1} = \sum_{s} (L^{s}~ A_{n-1} A_{n-2} \ldots A_{0} C^{s}_{-1}) \mathrm{dp}(dc[n-1:0],dd[n-1+r:r] \rightarrow de[n-1+r:r])$
+\form#661:$p_\mathrm{max} = \mathrm{adp}^{\mathrm{ARX}}(da,db,dd \rightarrow de)$
+\form#662:$p_{\mathrm{max}} \leftarrow p_{n-1} = \sum_{s} (L^{s}~ A_{n-1} A_{n-2} \ldots A_{0} C^{s}_{-1}) = \mathrm{dp}(dc[n-1:0],dd[n-1+r:r] \rightarrow de[n-1+r:r])$
+\form#663:$p_{\mathrm{max}} \leftarrow p_{n-1} = \sum_{s} (L^{s}~ A_{n-1} A_{n-2} \ldots A_{0} C^{s}_{-1})$
+\form#664:$ = \mathrm{dp}(dc[n-1:0],dd[n-1+r:r] \rightarrow de[n-1+r:r])$
+\form#665:$p_\mathrm{max}$
+\form#666:$\max_{de}~\mathrm{adp}^{\mathrm{ARX}}(r, da, db, dd \rightarrow de)$
+\form#667:$\mathrm{xdp}^{+}_\mathrm{SET}$
+\form#668:$(da^0, db^0)$
+\form#669:$(da^1, db^1)$
+\form#670:$da^{j}[i] = db^{j}[i] = j$
+\form#671:$A[i] = B[i] = *$
+\form#672:$C = \mathrm{cap}(x, y)$
+\form#673:$C[i] = 1$
+\form#674:$L[i]$
+\form#675:$C[i] = 0$
+\form#676:$C[i] = ?$
+\form#677:$L[i] = 0$
+\form#678:$C$
+\form#679:$(x[i] = y[i]) \neq (x[i+1] = y[i+1]) \neq ... \neq (x[i + L[i]] = y[i + L[i]])$
+\form#680:$(x[i] = y[i]) \wedge (x[i+1] \neq y[i+1])$
+\form#681:$L[i] = 1$
+\form#682:$x = y = z$
+\form#683:$x,y,z$
+\form#684:$e[i] = 1 \iff x[i] = y[i] = z[i]$
+\form#685:$e[i] = 0$
+\form#686:$e : e[i] = 1 \iff x[i] = y[i] = z[i],~ 0 \le i < n$
+\form#687:$(da,db,dc)$
+\form#688:$(da_set,db_set,dc_set)$
+\form#689:$da \in A$
+\form#690:$db \in B$
+\form#691:$\mathrm{xdp}^{+}(A,B \rightarrow C)$
+\form#692:$da[0] ^ db[0] ^ dc[0] = 0 : (da[0],db[0],dc[0]) \in \{000, 011, 101, 110\}$
+\form#693:$\mathrm{xdp}^{+}(da, db \rightarrow C) \ge \mathrm{max}_{dc}\mathrm{xdp}^{+}(da, db \rightarrow dc)$
+\form#694:$dc[i]=$
+\form#695:$da[i] \neq db[i]$
+\form#696:$dc[i] = da[i] = db[i]$
+\form#697:$A$
+\form#698:$r = p / s$
+\form#699:$p = \mathrm{xdp}^{+}(A, B \rightarrow C)$
+\form#700:$\mathrm{xdp}^{+}(A, B \rightarrow C)$
+\form#701:$C : \mathrm{max}_{r}\mathrm{xdp}^{+}(A, B \rightarrow C)$
+\form#702:$r = p / s = \mathrm{xdp}^{+}(A, B \rightarrow C) / \#C$
+\form#703:$(da^0 \in A, db^0 \in B)$
+\form#704:$(da^1 \in A, db^1 \in B)$
+\form#705:$da^0, da^1$
+\form#706:$db^0, db^1$
+\form#707:$A[i] = B[i] =$
+\form#708:$da^{j}[i] = A[i]$
+\form#709:$db^{j}[i] = B[i]$
+\form#710:$j = 0, 1$
+\form#711:$A[i], B[i], C[i]$
+\form#712:$0 \le i <$
+\form#713:$A, B$
+\form#714:$\mathrm{adp}^{\odot}$
+\form#715:$\mathrm{eadp}^{F}(da \rightarrow dd) > p_{\mathrm{thres}}$
+\form#716:$i - 1$
+\form#717:$(A, B, C)$
+\form#718:$\alpha$
+\form#719:$\beta$
+\form#720:$(\alpha \rightarrow \beta_i)$
+\form#721:$\alpha_r$
+\form#722:$(\alpha_r \rightarrow \beta_i)$
+\form#723:$\beta_i$
+\form#724:$p_r$
+\form#725:$p_r \ge {{\overline B_n}}/{(p_1 p_2 \cdots p_{r-1} {\widehat B_{n-r}})}$
+\form#726:$\alpha_{r+1} = \alpha_{r-1} + \beta_{r}$
+\form#727:$\alpha_{r+1}$
+\form#728:$\beta_{r+1}$
+\form#729:$(\alpha_r, \beta_r, p_r)$
+\form#730:$C$$
+\form#731:$H$
+\form#732:$\alpha_{r+1} = \alpha_{r-1} + \beta_{i}$
+\form#733:$MNPQ$
+\form#734:$HH$
+\form#735:$ H $
+\form#736:$\beta_r$
+\form#737:$(\alpha_r \rightarrow \beta_r)$

@@ -1,0 +1,564 @@
+\hypertarget{xtea_8cc}{\subsection{src/xtea.cc \-File \-Reference}
+\label{xtea_8cc}\index{src/xtea.\-cc@{src/xtea.\-cc}}
+}
+
+
+\-Common functions used in the analysis of block cipher \-X\-T\-E\-A.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}xtea.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{xtea_8cc_adaa7278f73e75111495290f343026090}{xtea\-\_\-r} (uint32\-\_\-t nrounds, uint32\-\_\-t v\mbox{[}2\mbox{]}, uint32\-\_\-t const k\mbox{[}4\mbox{]}, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_a6c0b7a7bc47458fb343e66188fe4abda}{xtea\-\_\-f} (uint32\-\_\-t x, uint32\-\_\-t k, uint32\-\_\-t delta, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_ab00b318c2b52da3411e776ecad9cc654}{xtea\-\_\-f\-\_\-i} (const uint32\-\_\-t mask\-\_\-i, const uint32\-\_\-t lsh\-\_\-const, const uint32\-\_\-t rsh\-\_\-const, const uint32\-\_\-t x\-\_\-in, const uint32\-\_\-t k, const uint32\-\_\-t delta)
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_a3ff97f349faa35a728c6cdd128fca853}{xtea\-\_\-f2} (uint32\-\_\-t xx, uint32\-\_\-t x, uint32\-\_\-t k, uint32\-\_\-t delta, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_a9f0820f683a096de3cef79c742f5e96d}{xtea\-\_\-f2\-\_\-i} (const uint32\-\_\-t mask\-\_\-i, const uint32\-\_\-t lsh\-\_\-const, const uint32\-\_\-t rsh\-\_\-const, const uint32\-\_\-t xx\-\_\-in, const uint32\-\_\-t x\-\_\-in, const uint32\-\_\-t k, const uint32\-\_\-t delta)
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_a54a13074da03742ac10ea2ea5f7eec0e}{xtea\-\_\-f\-\_\-lxr} (uint32\-\_\-t x, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_a1823edb609314578f37b3a27a6043f07}{xtea\-\_\-f\-\_\-lxr\-\_\-i} (const uint32\-\_\-t mask\-\_\-i, const uint32\-\_\-t lsh\-\_\-const, const uint32\-\_\-t rsh\-\_\-const, const uint32\-\_\-t x\-\_\-in)
+\item 
+void \hyperlink{xtea_8cc_a109868d39fb2ef2c5a3cc53c084481e1}{xtea\-\_\-all\-\_\-round\-\_\-keys\-\_\-and\-\_\-deltas} (uint32\-\_\-t key\mbox{[}4\mbox{]}, uint32\-\_\-t round\-\_\-key\mbox{[}64\mbox{]}, uint32\-\_\-t round\-\_\-delta\mbox{[}64\mbox{]})
+\item 
+double \hyperlink{xtea_8cc_aa3d72e07a53369bafdee493b8f566460}{xtea\-\_\-one\-\_\-round\-\_\-xor\-\_\-differential\-\_\-exper} (uint64\-\_\-t npairs, int round\-\_\-idx, uint32\-\_\-t key, uint32\-\_\-t delta, uint32\-\_\-t daa, uint32\-\_\-t da, uint32\-\_\-t db)
+\item 
+double \hyperlink{xtea_8cc_a6dd7767959e2f83e37288a2d57ce442e}{xtea\-\_\-one\-\_\-round\-\_\-add\-\_\-differential\-\_\-exper} (uint64\-\_\-t npairs, int round\-\_\-idx, uint32\-\_\-t key, uint32\-\_\-t delta, uint32\-\_\-t da, uint32\-\_\-t db)
+\item 
+double \hyperlink{xtea_8cc_a299b87136574de5ce7a8770bfd63b848}{xtea\-\_\-xor\-\_\-differential\-\_\-exper\-\_\-v2} (uint64\-\_\-t npairs, int r, uint32\-\_\-t key\mbox{[}4\mbox{]}, uint32\-\_\-t da\mbox{[}2\mbox{]}, uint32\-\_\-t db\mbox{[}2\mbox{]}, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+double \hyperlink{xtea_8cc_abded4986f72882b62af4f6d5fc4b63ce}{xtea\-\_\-add\-\_\-differential\-\_\-exper\-\_\-v2} (uint64\-\_\-t npairs, int r, uint32\-\_\-t key\mbox{[}4\mbox{]}, uint32\-\_\-t da\mbox{[}2\mbox{]}, uint32\-\_\-t db\mbox{[}2\mbox{]}, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const)
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_ab9472e66d992ae81a3d5204e448412da}{xtea\-\_\-xor\-\_\-verify\-\_\-differential} (uint32\-\_\-t nrounds, uint32\-\_\-t npairs, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, uint32\-\_\-t key\mbox{[}4\mbox{]}, uint32\-\_\-t dxx\-\_\-init, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_a87ccf2cd69df0d545729e08e5e582190}{xtea\-\_\-add\-\_\-verify\-\_\-differential} (uint32\-\_\-t nrounds, uint32\-\_\-t npairs, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, uint32\-\_\-t key\mbox{[}4\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_a96e3e55f034ab5c150ee59d7e96a2483}{xtea\-\_\-xor\-\_\-verify\-\_\-trail} (uint32\-\_\-t nrounds, uint32\-\_\-t npairs, uint32\-\_\-t round\-\_\-key\mbox{[}64\mbox{]}, uint32\-\_\-t round\-\_\-delta\mbox{[}64\mbox{]}, uint32\-\_\-t dxx\-\_\-init, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\item 
+uint32\-\_\-t \hyperlink{xtea_8cc_aa70fdbe5d05c841589c28618b6db069a}{xtea\-\_\-add\-\_\-verify\-\_\-trail} (uint32\-\_\-t nrounds, uint32\-\_\-t npairs, uint32\-\_\-t round\-\_\-key\mbox{[}64\mbox{]}, uint32\-\_\-t round\-\_\-delta\mbox{[}64\mbox{]}, \hyperlink{structdifferential__t}{differential\-\_\-t} trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]})
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Common functions used in the analysis of block cipher \-X\-T\-E\-A. \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{xtea_8cc_abded4986f72882b62af4f6d5fc4b63ce}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-add\-\_\-differential\-\_\-exper\-\_\-v2@{xtea\-\_\-add\-\_\-differential\-\_\-exper\-\_\-v2}}
+\index{xtea\-\_\-add\-\_\-differential\-\_\-exper\-\_\-v2@{xtea\-\_\-add\-\_\-differential\-\_\-exper\-\_\-v2}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-add\-\_\-differential\-\_\-exper\-\_\-v2}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf xtea\-\_\-add\-\_\-differential\-\_\-exper\-\_\-v2} (
+\begin{DoxyParamCaption}
+\item[{uint64\-\_\-t}]{npairs, }
+\item[{int}]{r, }
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{uint32\-\_\-t}]{da\mbox{[}2\mbox{]}, }
+\item[{uint32\-\_\-t}]{db\mbox{[}2\mbox{]}, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_abded4986f72882b62af4f6d5fc4b63ce}
+\-Experimentally verify the probability of an {\ttfamily r} round \-A\-D\-D differential for \-X\-T\-E\-A, for a fixed key, over a number of chosen plaintexts.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em r} & number of rounds (1 $\le$ {\ttfamily nrounds} $\le$ 64). \\
+\hline
+{\em key} & cryptographic key of \-X\-T\-E\-A. \\
+\hline
+{\em da} & input state to round {\ttfamily 1}. \\
+\hline
+{\em db} & output state after round {\ttfamily r}. \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_a87ccf2cd69df0d545729e08e5e582190}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-add\-\_\-verify\-\_\-differential@{xtea\-\_\-add\-\_\-verify\-\_\-differential}}
+\index{xtea\-\_\-add\-\_\-verify\-\_\-differential@{xtea\-\_\-add\-\_\-verify\-\_\-differential}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-add\-\_\-verify\-\_\-differential}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-add\-\_\-verify\-\_\-differential} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{nrounds, }
+\item[{uint32\-\_\-t}]{npairs, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a87ccf2cd69df0d545729e08e5e582190}
+\-Given an \-A\-D\-D trail for $N$ rounds of \-X\-T\-E\-A, experimentally verify the probabilities of the corresponding $N$ differentials\-:
+
+
+\begin{DoxyItemize}
+\item \-Differential for 1 round\-: round 0.
+\item \-Differential for 2 rounds\-: rounds $0,1$.
+\item \-Differential for 3 rounds\-: rounds $0,1,2$.
+\item $\ldots$
+\item \-Differential for $N$ rounds\-: rounds $0,1,2,\ldots,(N-1)$.
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em nrounds} & number of rounds covered by the trail (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em key} & cryptographic key of \-X\-T\-E\-A. \\
+\hline
+{\em trail} & differential trail for {\ttfamily nrounds}. \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_aa70fdbe5d05c841589c28618b6db069a}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-add\-\_\-verify\-\_\-trail@{xtea\-\_\-add\-\_\-verify\-\_\-trail}}
+\index{xtea\-\_\-add\-\_\-verify\-\_\-trail@{xtea\-\_\-add\-\_\-verify\-\_\-trail}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-add\-\_\-verify\-\_\-trail}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-add\-\_\-verify\-\_\-trail} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{nrounds, }
+\item[{uint32\-\_\-t}]{npairs, }
+\item[{uint32\-\_\-t}]{round\-\_\-key\mbox{[}64\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-delta\mbox{[}64\mbox{]}, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_aa70fdbe5d05c841589c28618b6db069a}
+\-Experimentally verify the probability of all 1-\/round differentials from which an \-N round \-A\-D\-D trail for \-X\-T\-E\-A is composed.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em nrounds} & number of rounds covered by the trail (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em round\-\_\-key} & all round keys. \\
+\hline
+{\em round\-\_\-delta} & all round constants $\delta$ of \-X\-T\-E\-A. \\
+\hline
+{\em trail} & differential trail for {\ttfamily nrounds}. \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_a109868d39fb2ef2c5a3cc53c084481e1}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-all\-\_\-round\-\_\-keys\-\_\-and\-\_\-deltas@{xtea\-\_\-all\-\_\-round\-\_\-keys\-\_\-and\-\_\-deltas}}
+\index{xtea\-\_\-all\-\_\-round\-\_\-keys\-\_\-and\-\_\-deltas@{xtea\-\_\-all\-\_\-round\-\_\-keys\-\_\-and\-\_\-deltas}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-all\-\_\-round\-\_\-keys\-\_\-and\-\_\-deltas}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xtea\-\_\-all\-\_\-round\-\_\-keys\-\_\-and\-\_\-deltas} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-key\mbox{[}64\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-delta\mbox{[}64\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a109868d39fb2ef2c5a3cc53c084481e1}
+\-Compute all round keys and round constants of block cipher \-X\-T\-E\-A.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em key} & initial key. \\
+\hline
+{\em round\-\_\-key} & all round keys. \\
+\hline
+{\em round\-\_\-delta} & all round constants $\delta$ of \-X\-T\-E\-A. \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_a6c0b7a7bc47458fb343e66188fe4abda}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-f@{xtea\-\_\-f}}
+\index{xtea\-\_\-f@{xtea\-\_\-f}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-f}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-f} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{x, }
+\item[{uint32\-\_\-t}]{k, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a6c0b7a7bc47458fb343e66188fe4abda}
+\-The \-F-\/function of block cipher \-X\-T\-E\-A\-: $ F(x) = ((((x \ll 4) \oplus (x \gg 5)) + x) \oplus (k + \delta)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em x} & input to $F$. \\
+\hline
+{\em k} & round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (default is 4). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (default is 5). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$F(x)$ 
+\end{DoxyReturn}
+\hypertarget{xtea_8cc_a3ff97f349faa35a728c6cdd128fca853}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-f2@{xtea\-\_\-f2}}
+\index{xtea\-\_\-f2@{xtea\-\_\-f2}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-f2}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-f2} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{xx, }
+\item[{uint32\-\_\-t}]{x, }
+\item[{uint32\-\_\-t}]{k, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a3ff97f349faa35a728c6cdd128fca853}
+\-The \-F-\/function of block cipher \-X\-T\-E\-A including the modular addition with the input to the previous \-Fesitel round. \-It is denoted by $F'$ and is defined as\-:
+
+$ F'(xx, x) = xx + F(x)$,
+
+where $F(x)$ is the \-X\-T\-E\-A \-F-\/function (\hyperlink{xtea_8hh_a6c0b7a7bc47458fb343e66188fe4abda}{xtea\-\_\-f}).
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em x} & first input to $F'$. \\
+\hline
+{\em xx} & second input to $F'$. \\
+\hline
+{\em k} & round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (default is 4). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (default is 5). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$F(x, xx)$ 
+\end{DoxyReturn}
+\hypertarget{xtea_8cc_a9f0820f683a096de3cef79c742f5e96d}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-f2\-\_\-i@{xtea\-\_\-f2\-\_\-i}}
+\index{xtea\-\_\-f2\-\_\-i@{xtea\-\_\-f2\-\_\-i}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-f2\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-f2\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{mask\-\_\-i, }
+\item[{const uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{xx\-\_\-in, }
+\item[{const uint32\-\_\-t}]{x\-\_\-in, }
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{delta}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a9f0820f683a096de3cef79c742f5e96d}
+\-The \-F'-\/function of block cipher \-X\-T\-E\-A (\hyperlink{xtea_8hh_a3ff97f349faa35a728c6cdd128fca853}{xtea\-\_\-f2}) computed on the first {\ttfamily i} least-\/significant (\-L\-S) bits.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em mask\-\_\-i} & {\ttfamily i} bit \-L\-S\-B mask. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (default is 4). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (default is 5). \\
+\hline
+{\em x\-\_\-in} & first input to $F'$. \\
+\hline
+{\em xx\-\_\-in} & second input to $F'$. \\
+\hline
+{\em k} & round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$F'(x,xx)~ \mathrm{mod}~ 2^i$
+\end{DoxyReturn}
+\begin{DoxyAttention}{\-Attention}
+the initial values {\ttfamily x\-\_\-in} and {\ttfamily xx\-\_\-in} must be minimum ({\ttfamily rsh\-\_\-const} + 1) bits long so that it can be shifted right by {\ttfamily rsh\-\_\-const} positions.
+\end{DoxyAttention}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea_8cc_ab00b318c2b52da3411e776ecad9cc654}{xtea\-\_\-f\-\_\-i()} 
+\end{DoxySeeAlso}
+\hypertarget{xtea_8cc_ab00b318c2b52da3411e776ecad9cc654}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-f\-\_\-i@{xtea\-\_\-f\-\_\-i}}
+\index{xtea\-\_\-f\-\_\-i@{xtea\-\_\-f\-\_\-i}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-f\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-f\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{mask\-\_\-i, }
+\item[{const uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{x\-\_\-in, }
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{delta}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_ab00b318c2b52da3411e776ecad9cc654}
+\-The \-F-\/function of block cipher \-X\-T\-E\-A (\hyperlink{xtea_8hh_a6c0b7a7bc47458fb343e66188fe4abda}{xtea\-\_\-f}) computed on the first {\ttfamily i} least-\/significant (\-L\-S) bits.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em mask\-\_\-i} & {\ttfamily i} bit \-L\-S\-B mask. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (default is 4). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (default is 5). \\
+\hline
+{\em x\-\_\-in} & input to $F$. \\
+\hline
+{\em k} & round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$F(x)~ \mathrm{mod}~ 2^i$
+\end{DoxyReturn}
+\begin{DoxyAttention}{\-Attention}
+the initial value {\ttfamily x\-\_\-in} must be minimum ({\ttfamily rsh\-\_\-const} + 1) bits long so that it can be shifted right by {\ttfamily rsh\-\_\-const} positions.
+\end{DoxyAttention}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea_8cc_a1823edb609314578f37b3a27a6043f07}{xtea\-\_\-f\-\_\-lxr\-\_\-i()} 
+\end{DoxySeeAlso}
+\hypertarget{xtea_8cc_a54a13074da03742ac10ea2ea5f7eec0e}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-f\-\_\-lxr@{xtea\-\_\-f\-\_\-lxr}}
+\index{xtea\-\_\-f\-\_\-lxr@{xtea\-\_\-f\-\_\-lxr}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-f\-\_\-lxr}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-f\-\_\-lxr} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{x, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a54a13074da03742ac10ea2ea5f7eec0e}
+\-This function represents a sub-\/component of the \-X\-T\-E\-A \-F-\/function denoted by $f_{\mathrm{LXR}}$ and defined as\-: $ f_{\mathrm{LXR}}(x) = (((x \ll 4) \oplus (x \gg 5)) $.
+
+\begin{DoxyNote}{\-Note}
+\-With $f_{\mathrm{LXR}}$, the \-F-\/function of \-X\-T\-E\-A (\hyperlink{xtea_8hh_a6c0b7a7bc47458fb343e66188fe4abda}{xtea\-\_\-f}) is expressed as\-: $ F(x) = (f_{\mathrm{LXR}}(x) + x) \oplus (k + \delta)$.
+\end{DoxyNote}
+
+\begin{DoxyParams}{\-Parameters}
+{\em x} & input to $f_{\mathrm{LXR}}$. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (default is 4). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (default is 5). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$f_{\mathrm{LXR}}(x)$ 
+\end{DoxyReturn}
+\hypertarget{xtea_8cc_a1823edb609314578f37b3a27a6043f07}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-f\-\_\-lxr\-\_\-i@{xtea\-\_\-f\-\_\-lxr\-\_\-i}}
+\index{xtea\-\_\-f\-\_\-lxr\-\_\-i@{xtea\-\_\-f\-\_\-lxr\-\_\-i}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-f\-\_\-lxr\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-f\-\_\-lxr\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{mask\-\_\-i, }
+\item[{const uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{x\-\_\-in}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a1823edb609314578f37b3a27a6043f07}
+\-The component $f_{\mathrm{LXR}}$ of the \-X\-T\-E\-A \-F-\/function (\hyperlink{xtea_8hh_a54a13074da03742ac10ea2ea5f7eec0e}{xtea\-\_\-f\-\_\-lxr}) computed on the first {\ttfamily i} least-\/significant (\-L\-S) bits.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em mask\-\_\-i} & {\ttfamily i} bit \-L\-S\-B mask. \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (default is 4). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (default is 5). \\
+\hline
+{\em x\-\_\-in} & first input to $f_{\mathrm{LXR}}$. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$f_{\mathrm{LXR}}(x)~ \mathrm{mod}~ 2^i$
+\end{DoxyReturn}
+\begin{DoxyAttention}{\-Attention}
+the initial value {\ttfamily x\-\_\-in} must be minimum ({\ttfamily rsh\-\_\-const} + 1) bits long so that it can be shifted right by {\ttfamily rsh\-\_\-const} positions.
+\end{DoxyAttention}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea_8cc_ab00b318c2b52da3411e776ecad9cc654}{xtea\-\_\-f\-\_\-i()} 
+\end{DoxySeeAlso}
+\hypertarget{xtea_8cc_a6dd7767959e2f83e37288a2d57ce442e}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-one\-\_\-round\-\_\-add\-\_\-differential\-\_\-exper@{xtea\-\_\-one\-\_\-round\-\_\-add\-\_\-differential\-\_\-exper}}
+\index{xtea\-\_\-one\-\_\-round\-\_\-add\-\_\-differential\-\_\-exper@{xtea\-\_\-one\-\_\-round\-\_\-add\-\_\-differential\-\_\-exper}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-one\-\_\-round\-\_\-add\-\_\-differential\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf xtea\-\_\-one\-\_\-round\-\_\-add\-\_\-differential\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{uint64\-\_\-t}]{npairs, }
+\item[{int}]{round\-\_\-idx, }
+\item[{uint32\-\_\-t}]{key, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{da, }
+\item[{uint32\-\_\-t}]{db}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a6dd7767959e2f83e37288a2d57ce442e}
+\-Experimentally verify the probability of an \-A\-D\-D differential for 1 round of \-X\-T\-E\-A, for a fixed key and round constant, over a number of chosen plaintexts.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em round\-\_\-idx} & index of the round (not used). \\
+\hline
+{\em key} & cryptographic key of \-X\-T\-E\-A. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em da} & input difference to \-X\-T\-E\-A $F$ function (\hyperlink{xtea_8hh_a6c0b7a7bc47458fb343e66188fe4abda}{xtea\-\_\-f}). \\
+\hline
+{\em db} & output difference from $F$. \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_aa3d72e07a53369bafdee493b8f566460}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-one\-\_\-round\-\_\-xor\-\_\-differential\-\_\-exper@{xtea\-\_\-one\-\_\-round\-\_\-xor\-\_\-differential\-\_\-exper}}
+\index{xtea\-\_\-one\-\_\-round\-\_\-xor\-\_\-differential\-\_\-exper@{xtea\-\_\-one\-\_\-round\-\_\-xor\-\_\-differential\-\_\-exper}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-one\-\_\-round\-\_\-xor\-\_\-differential\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf xtea\-\_\-one\-\_\-round\-\_\-xor\-\_\-differential\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{uint64\-\_\-t}]{npairs, }
+\item[{int}]{round\-\_\-idx, }
+\item[{uint32\-\_\-t}]{key, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{uint32\-\_\-t}]{daa, }
+\item[{uint32\-\_\-t}]{da, }
+\item[{uint32\-\_\-t}]{db}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_aa3d72e07a53369bafdee493b8f566460}
+\-Experimentally verify the probability of a \-X\-O\-R differential for 1 round of \-X\-T\-E\-A, for a fixed key and round constant, over a number of chosen plaintexts.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em round\-\_\-idx} & index of the round (not used). \\
+\hline
+{\em key} & cryptographic key of \-X\-T\-E\-A. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em daa} & first input difference to \-X\-T\-E\-A $F'$ function (\hyperlink{xtea_8hh_a3ff97f349faa35a728c6cdd128fca853}{xtea\-\_\-f2}). \\
+\hline
+{\em da} & second input difference to \-X\-T\-E\-A $F'$ function (\hyperlink{xtea_8hh_a3ff97f349faa35a728c6cdd128fca853}{xtea\-\_\-f2}). \\
+\hline
+{\em db} & output difference from $F'$. \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_adaa7278f73e75111495290f343026090}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-r@{xtea\-\_\-r}}
+\index{xtea\-\_\-r@{xtea\-\_\-r}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-r}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xtea\-\_\-r} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{nrounds, }
+\item[{uint32\-\_\-t}]{v\mbox{[}2\mbox{]}, }
+\item[{uint32\-\_\-t const}]{k\mbox{[}4\mbox{]}, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_adaa7278f73e75111495290f343026090}
+\-Round-\/reduced version of block cipher \-X\-T\-E\-A. \-Reference\-: \href{https://en.wikipedia.org/wiki/XTEA}{\tt https\-://en.\-wikipedia.\-org/wiki/\-X\-T\-E\-A}.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em nrounds} & number of rounds (1 $\le$ {\ttfamily nrounds} $\le$ 64). \\
+\hline
+{\em v} & plaintext. \\
+\hline
+{\em k} & secret key. \\
+\hline
+{\em lsh\-\_\-const} & \-L\-S\-H constant (default is 4). \\
+\hline
+{\em rsh\-\_\-const} & \-R\-S\-H constant (default is 5). \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_a299b87136574de5ce7a8770bfd63b848}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-xor\-\_\-differential\-\_\-exper\-\_\-v2@{xtea\-\_\-xor\-\_\-differential\-\_\-exper\-\_\-v2}}
+\index{xtea\-\_\-xor\-\_\-differential\-\_\-exper\-\_\-v2@{xtea\-\_\-xor\-\_\-differential\-\_\-exper\-\_\-v2}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-xor\-\_\-differential\-\_\-exper\-\_\-v2}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf xtea\-\_\-xor\-\_\-differential\-\_\-exper\-\_\-v2} (
+\begin{DoxyParamCaption}
+\item[{uint64\-\_\-t}]{npairs, }
+\item[{int}]{r, }
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{uint32\-\_\-t}]{da\mbox{[}2\mbox{]}, }
+\item[{uint32\-\_\-t}]{db\mbox{[}2\mbox{]}, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a299b87136574de5ce7a8770bfd63b848}
+\-Experimentally verify the probability of an {\ttfamily r} round \-X\-O\-R differential for \-X\-T\-E\-A, for a fixed key, over a number of chosen plaintexts.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em r} & number of rounds (1 $\le$ {\ttfamily nrounds} $\le$ 64). \\
+\hline
+{\em key} & cryptographic key of \-X\-T\-E\-A. \\
+\hline
+{\em da} & input state to round {\ttfamily 1}. \\
+\hline
+{\em db} & output state after round {\ttfamily r}. \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_ab9472e66d992ae81a3d5204e448412da}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-xor\-\_\-verify\-\_\-differential@{xtea\-\_\-xor\-\_\-verify\-\_\-differential}}
+\index{xtea\-\_\-xor\-\_\-verify\-\_\-differential@{xtea\-\_\-xor\-\_\-verify\-\_\-differential}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-xor\-\_\-verify\-\_\-differential}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-xor\-\_\-verify\-\_\-differential} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{nrounds, }
+\item[{uint32\-\_\-t}]{npairs, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{key\mbox{[}4\mbox{]}, }
+\item[{uint32\-\_\-t}]{dxx\-\_\-init, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_ab9472e66d992ae81a3d5204e448412da}
+\-Given an \-X\-O\-R trail for $N$ rounds of \-X\-T\-E\-A, experimentally verify the probabilities of the corresponding $N$ differentials\-:
+
+
+\begin{DoxyItemize}
+\item \-Differential for 1 round\-: round 0.
+\item \-Differential for 2 rounds\-: rounds $0,1$.
+\item \-Differential for 3 rounds\-: rounds $0,1,2$.
+\item $\ldots$
+\item \-Differential for $N$ rounds\-: rounds $0,1,2,\ldots,(N-1)$.
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em nrounds} & number of rounds covered by the trail (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em key} & cryptographic key of \-X\-T\-E\-A. \\
+\hline
+{\em dxx\-\_\-init} & first input difference to \-X\-T\-E\-A $F'$ function (\hyperlink{xtea_8hh_a3ff97f349faa35a728c6cdd128fca853}{xtea\-\_\-f2}) for round $r = 0$. \\
+\hline
+{\em trail} & differential trail for {\ttfamily nrounds}. \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea_8cc_a96e3e55f034ab5c150ee59d7e96a2483}{\index{xtea.\-cc@{xtea.\-cc}!xtea\-\_\-xor\-\_\-verify\-\_\-trail@{xtea\-\_\-xor\-\_\-verify\-\_\-trail}}
+\index{xtea\-\_\-xor\-\_\-verify\-\_\-trail@{xtea\-\_\-xor\-\_\-verify\-\_\-trail}!xtea.cc@{xtea.\-cc}}
+\paragraph[{xtea\-\_\-xor\-\_\-verify\-\_\-trail}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-xor\-\_\-verify\-\_\-trail} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{nrounds, }
+\item[{uint32\-\_\-t}]{npairs, }
+\item[{uint32\-\_\-t}]{round\-\_\-key\mbox{[}64\mbox{]}, }
+\item[{uint32\-\_\-t}]{round\-\_\-delta\mbox{[}64\mbox{]}, }
+\item[{uint32\-\_\-t}]{dxx\-\_\-init, }
+\item[{{\bf differential\-\_\-t}}]{trail\mbox{[}\-N\-R\-O\-U\-N\-D\-S\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{xtea_8cc_a96e3e55f034ab5c150ee59d7e96a2483}
+\-Experimentally verify the probability of all 1-\/round differentials from which an \-N round \-X\-O\-R trail for \-X\-T\-E\-A is composed.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em nrounds} & number of rounds covered by the trail (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em round\-\_\-key} & all round keys. \\
+\hline
+{\em round\-\_\-delta} & all round constants $\delta$ of \-X\-T\-E\-A. \\
+\hline
+{\em dxx\-\_\-init} & first input difference to \-X\-T\-E\-A $F'$ function (\hyperlink{xtea_8hh_a3ff97f349faa35a728c6cdd128fca853}{xtea\-\_\-f2}) for round $r = 0$. \\
+\hline
+{\em trail} & differential trail for {\ttfamily nrounds}. \\
+\hline
+\end{DoxyParams}

@@ -1,0 +1,384 @@
+\hypertarget{common_8hh}{\subsection{include/common.hh \-File \-Reference}
+\label{common_8hh}\index{include/common.\-hh@{include/common.\-hh}}
+}
+
+
+\-Header file for \hyperlink{common_8cc}{common.\-cc}. \-Common functions used accross all \-Y\-A\-A\-R\-X programs. .  
+
+
+{\ttfamily \#include $<$iostream$>$}\*
+{\ttfamily \#include $<$cassert$>$}\*
+{\ttfamily \#include $<$math.\-h$>$}\*
+{\ttfamily \#include $<$string.\-h$>$}\*
+{\ttfamily \#include $<$gsl/gsl\-\_\-blas.\-h$>$}\*
+{\ttfamily \#include $<$algorithm$>$}\*
+{\ttfamily \#include $<$vector$>$}\*
+{\ttfamily \#include $<$set$>$}\*
+{\ttfamily \#include $<$gmp.\-h$>$}\*
+{\ttfamily \#include $<$gmpxx.\-h$>$}\*
+\subsubsection*{\-Data \-Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structdifference__t}{difference\-\_\-t}
+\item 
+struct \hyperlink{structdifferential__3d__t}{differential\-\_\-3d\-\_\-t}
+\item 
+struct \hyperlink{structdifferential__t}{differential\-\_\-t}
+\item 
+struct \hyperlink{structstruct__comp__diff__3d__p}{struct\-\_\-comp\-\_\-diff\-\_\-3d\-\_\-p}
+\item 
+struct \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p}
+\item 
+struct \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy}
+\end{DoxyCompactItemize}
+\subsubsection*{\-Defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{common_8hh_a438ca701b9dd1a0a50066708ccff58f9}{\-I\-O\-S\-T\-R\-E\-A\-M\-\_\-\-H}
+\item 
+\#define \hyperlink{common_8hh_a44300b86f203a508a89c17aa2e2c70f3}{\-C\-A\-S\-S\-E\-R\-T\-\_\-\-H}
+\item 
+\#define \hyperlink{common_8hh_acc195fe3f75af2725178e18f3b59ca1b}{\-M\-A\-T\-H\-\_\-\-H}
+\item 
+\#define \hyperlink{common_8hh_a402fe211ce26aa9a2501987dd79d1c81}{\-S\-T\-R\-I\-N\-G\-\_\-\-H}
+\item 
+\#define \hyperlink{common_8hh_a51650c45a5e90fb5d9808717f67bbdfc}{\-G\-S\-L\-\_\-\-B\-L\-A\-S\-\_\-\-H}
+\item 
+\#define \hyperlink{common_8hh_a58737f6dfc1347b3ffef3330e4b9f021}{\-S\-T\-L\-\_\-\-A\-L\-G\-O\-R\-I\-T\-H\-M\-\_\-\-H}
+\item 
+\#define \hyperlink{common_8hh_aaa41128916bf1510054a6b39e3be8d0c}{\-S\-T\-L\-\_\-\-V\-E\-C\-T\-O\-R\-\_\-\-H}
+\item 
+\#define \hyperlink{common_8hh_a419548bd7018f59158016f2a7705fe33}{\-S\-T\-L\-\_\-\-S\-E\-T\-\_\-\-H}
+\item 
+\hypertarget{common_8hh_aa4e25ba99abefcc6776615525b2fbc38}{\#define {\bfseries \-G\-M\-P\-\_\-\-H}}\label{common_8hh_aa4e25ba99abefcc6776615525b2fbc38}
+
+\item 
+\hypertarget{common_8hh_afd2f5d45830c97ad911a515fd5f4629b}{\#define {\bfseries \-G\-M\-P\-X\-X\-\_\-\-H}}\label{common_8hh_afd2f5d45830c97ad911a515fd5f4629b}
+
+\item 
+\#define \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}~32
+\item 
+\#define \hyperlink{common_8hh_a5971fc6e34c48e0046ac2df4fcb2816c}{\-A\-L\-L\-\_\-\-W\-O\-R\-D\-S}~(1\-U\-L\-L $<$$<$ W\-O\-R\-D\-\_\-\-S\-I\-Z\-E)
+\item 
+\#define \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K}~(0xffffffff $>$$>$ (32 -\/ W\-O\-R\-D\-\_\-\-S\-I\-Z\-E))
+\item 
+\#define \hyperlink{common_8hh_aca7d5718ab8c38506adb3bef2469b319}{\-M\-O\-D}~(1\-U\-L\-L $<$$<$ W\-O\-R\-D\-\_\-\-S\-I\-Z\-E)
+\item 
+\hypertarget{common_8hh_ac91c57ae9ace16bc26f76cbb3dd33d8b}{\#define {\bfseries \-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T}~4}\label{common_8hh_ac91c57ae9ace16bc26f76cbb3dd33d8b}
+
+\item 
+\hypertarget{common_8hh_a1ec83ee7323c66a4e4e4920b0540cc56}{\#define {\bfseries \-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T}~5}\label{common_8hh_a1ec83ee7323c66a4e4e4920b0540cc56}
+
+\item 
+\#define \hyperlink{common_8hh_aa57f306d22334553a3fdfd2ad7f703d7}{\-D\-E\-L\-T\-A\-\_\-\-I\-N\-I\-T}~0x9e3779b9
+\item 
+\#define \hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}~(1\-U\-L\-L $<$$<$ 15)
+\item 
+\hypertarget{common_8hh_a92a76bc85ae6b57d8257f168e3927a29}{\#define {\bfseries \-N\-R\-O\-U\-N\-D\-S}~20}\label{common_8hh_a92a76bc85ae6b57d8257f168e3927a29}
+
+\item 
+\#define \hyperlink{common_8hh_ad918c7df882adba39ac2777fbf01248e}{\-N\-D\-E\-L\-T\-A}~(\-N\-R\-O\-U\-N\-D\-S / 2)
+\item 
+\#define \hyperlink{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\-X\-O\-R}(x, y)~((x $^\wedge$ y) \& \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K})
+\item 
+\#define \hyperlink{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}{\-A\-D\-D}(x, y)~((x + y) \& \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K})
+\item 
+\#define \hyperlink{common_8hh_aafc2c4f262a0686c07f86c7d2e1d8d14}{\-S\-U\-B}(x, y)~((uint32\-\_\-t)(x -\/ y + \hyperlink{common_8hh_aca7d5718ab8c38506adb3bef2469b319}{\-M\-O\-D}) \& \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K})
+\item 
+\#define \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H}(x, r)~((x $<$$<$ r) \& \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K})
+\item 
+\#define \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H}(x, r)~((x $>$$>$ r) \& \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K})
+\item 
+\#define \hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T}(x, r)~(((x $<$$<$ r) $|$ (x $>$$>$ (\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} -\/ r))) \& \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K})
+\item 
+\#define \hyperlink{common_8hh_af90d72110373ee39961a88b2256289c9}{\-R\-R\-O\-T}(x, r)~(((x $>$$>$ r) $|$ (x $<$$<$ (\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} -\/ r))) \& \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K})
+\item 
+\hypertarget{common_8hh_a3181b6978c9b47c96208263c73c8c4a7}{\#define {\bfseries \-M\-U\-L}(x, y)~((x $\ast$ y) \& \hyperlink{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\-M\-A\-S\-K})}\label{common_8hh_a3181b6978c9b47c96208263c73c8c4a7}
+
+\item 
+\#define \hyperlink{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\-A\-R\-X}(r, x, y, z)~\hyperlink{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\-X\-O\-R}(z,\hyperlink{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\-L\-R\-O\-T}(\hyperlink{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}{\-A\-D\-D}(x,y),r))
+\item 
+\#define \hyperlink{common_8hh_a78d7cffaa3259f513e5e7bcd9d669da7}{\-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-A\-D\-D\-\_\-\-T\-E\-S\-T\-S}~0
+\item 
+\hypertarget{common_8hh_a579e4a8212a42a313ee9ed7bcd8a9ce5}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-M\-A\-X\-\_\-\-X\-D\-P\-\_\-\-A\-D\-D\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_a579e4a8212a42a313ee9ed7bcd8a9ce5}
+
+\item 
+\hypertarget{common_8hh_ab47f232ba637e5c2b5dc0668d4057c3f}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-X\-O\-R\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_ab47f232ba637e5c2b5dc0668d4057c3f}
+
+\item 
+\hypertarget{common_8hh_a6a3b53fb53389487441597ff95eca296}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_a6a3b53fb53389487441597ff95eca296}
+
+\item 
+\hypertarget{common_8hh_a39bde66f3dff0556be67eabc937c25f2}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-M\-A\-X\-\_\-\-A\-D\-P\-\_\-\-X\-O\-R\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_a39bde66f3dff0556be67eabc937c25f2}
+
+\item 
+\hypertarget{common_8hh_aacbf00f403fa45b41de86d28e9c6ed11}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-X\-O\-R\-\_\-\-F\-I\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_aacbf00f403fa45b41de86d28e9c6ed11}
+
+\item 
+\hypertarget{common_8hh_a6c7a3b66985daa5b673fbbc628c247e8}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-M\-A\-X\-\_\-\-A\-D\-P\-\_\-\-X\-O\-R\-\_\-\-F\-I\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_a6c7a3b66985daa5b673fbbc628c247e8}
+
+\item 
+\hypertarget{common_8hh_ab7b86968b52634ad380013bc37e6318c}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-M\-A\-X\-\_\-\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_ab7b86968b52634ad380013bc37e6318c}
+
+\item 
+\hypertarget{common_8hh_a564e1cfe8dfed8c0036a8906a5c9e3c1}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-M\-A\-X\-\_\-\-A\-D\-P\-\_\-\-X\-O\-R3\-\_\-\-S\-E\-T\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_a564e1cfe8dfed8c0036a8906a5c9e3c1}
+
+\item 
+\hypertarget{common_8hh_ab0ac9bb376657862055b616a996fb209}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-R\-S\-H\-\_\-\-X\-O\-R\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_ab0ac9bb376657862055b616a996fb209}
+
+\item 
+\hypertarget{common_8hh_abd12dc589dc2bca6d5215ba9c2b4aa90}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-S\-H\-I\-F\-T\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_abd12dc589dc2bca6d5215ba9c2b4aa90}
+
+\item 
+\hypertarget{common_8hh_af4863f0a07354057f26c1a6d8e77aebf}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-E\-A\-D\-P\-\_\-\-T\-E\-A\-\_\-\-F\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_af4863f0a07354057f26c1a6d8e77aebf}
+
+\item 
+\hypertarget{common_8hh_ae4774f104df4683529d9a6d304d5f103}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-T\-E\-A\-\_\-\-F\-\_\-\-F\-K\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_ae4774f104df4683529d9a6d304d5f103}
+
+\item 
+\hypertarget{common_8hh_a7ec5735adf91d7ff32d858d55d302668}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-T\-E\-A\-\_\-\-F\-\_\-\-F\-K\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_a7ec5735adf91d7ff32d858d55d302668}
+
+\item 
+\hypertarget{common_8hh_a6e11aa5e139272af12546be1094a8c8f}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-X\-T\-E\-A\-\_\-\-F\-\_\-\-F\-K\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_a6e11aa5e139272af12546be1094a8c8f}
+
+\item 
+\hypertarget{common_8hh_a3a644f4dad6c8eee313edb9943016c14}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-X\-T\-E\-A\-\_\-\-F\-\_\-\-F\-K\-\_\-\-T\-E\-S\-T\-S}~0}\label{common_8hh_a3a644f4dad6c8eee313edb9943016c14}
+
+\item 
+\#define \hyperlink{common_8hh_abaca5e518fa8172d63d54fc0ba01b0e3}{\-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-R\-S\-H\-\_\-\-X\-O\-R}~0
+\item 
+\hypertarget{common_8hh_a1b6aa671896c66476c9a5a021c529c01}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-T\-E\-A\-\_\-\-F\-\_\-\-F\-K}~0}\label{common_8hh_a1b6aa671896c66476c9a5a021c529c01}
+
+\item 
+\hypertarget{common_8hh_ae0877d7d255a8b49f54ec02ce90ef68d}{\#define {\bfseries \-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-T\-E\-A\-\_\-\-F\-\_\-\-F\-K}~0}\label{common_8hh_ae0877d7d255a8b49f54ec02ce90ef68d}
+
+\end{DoxyCompactItemize}
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint32\-\_\-t \hyperlink{common_8hh_a74a318bbae856b2de48ba7490e0460af}{random32} ()
+\item 
+uint32\-\_\-t \hyperlink{common_8hh_ac110ff0403257ed770df8e450e361ed2}{hw8} (uint32\-\_\-t x)
+\item 
+uint32\-\_\-t \hyperlink{common_8hh_ae2becd1415d744a5c2677f7906db6814}{hw32} (uint32\-\_\-t x)
+\item 
+bool \hyperlink{common_8hh_aff61bc916d0b070ad7b20a0b3456c604}{is\-\_\-even} (uint32\-\_\-t i)
+\item 
+uint32\-\_\-t \hyperlink{common_8hh_a7bb79c007f5ff830bae611240282423d}{gen\-\_\-sparse} (uint32\-\_\-t hw, uint32\-\_\-t n)
+\item 
+void \hyperlink{common_8hh_abb770b16d18b918de6a9ccab6eea0aa0}{print\-\_\-binary} (uint32\-\_\-t n)
+\item 
+bool \hyperlink{common_8hh_ab03f26f2196400d02ff59e0190d5835b}{operator==} (\hyperlink{structdifferential__t}{differential\-\_\-t} a, \hyperlink{structdifferential__t}{differential\-\_\-t} b)
+\item 
+bool \hyperlink{common_8hh_aee906c0378ccfc3194fb7d8dc000ebbf}{operator$<$} (\hyperlink{structdifferential__t}{differential\-\_\-t} x, \hyperlink{structdifferential__t}{differential\-\_\-t} y)
+\item 
+void \hyperlink{common_8hh_a07108da601cf176205659534a26d1adf}{print\-\_\-set} (const std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+void \hyperlink{common_8hh_a4380adfd210e69fb36ef02c254da8fe0}{print\-\_\-mset} (const std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ diff\-\_\-mset\-\_\-p)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Header file for \hyperlink{common_8cc}{common.\-cc}. \-Common functions used accross all \-Y\-A\-A\-R\-X programs. . \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Define \-Documentation}
+\hypertarget{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}{\index{common.\-hh@{common.\-hh}!\-A\-D\-D@{\-A\-D\-D}}
+\index{\-A\-D\-D@{\-A\-D\-D}!common.hh@{common.\-hh}}
+\paragraph[{\-A\-D\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-A\-D\-D}(
+\begin{DoxyParamCaption}
+\item[{}]{x, }
+\item[{}]{y}
+\end{DoxyParamCaption}
+)~((x + y) \& {\bf \-M\-A\-S\-K})}}\label{common_8hh_af3b709fb668cf93ca09e2a46a2a031a8}
+\-The \-A\-D\-D operation on words of size \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} \hypertarget{common_8hh_a5971fc6e34c48e0046ac2df4fcb2816c}{\index{common.\-hh@{common.\-hh}!\-A\-L\-L\-\_\-\-W\-O\-R\-D\-S@{\-A\-L\-L\-\_\-\-W\-O\-R\-D\-S}}
+\index{\-A\-L\-L\-\_\-\-W\-O\-R\-D\-S@{\-A\-L\-L\-\_\-\-W\-O\-R\-D\-S}!common.hh@{common.\-hh}}
+\paragraph[{\-A\-L\-L\-\_\-\-W\-O\-R\-D\-S}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-A\-L\-L\-\_\-\-W\-O\-R\-D\-S}~(1\-U\-L\-L $<$$<$ W\-O\-R\-D\-\_\-\-S\-I\-Z\-E)}}\label{common_8hh_a5971fc6e34c48e0046ac2df4fcb2816c}
+\-Total number of words of size \-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E. \hypertarget{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}{\index{common.\-hh@{common.\-hh}!\-A\-R\-X@{\-A\-R\-X}}
+\index{\-A\-R\-X@{\-A\-R\-X}!common.hh@{common.\-hh}}
+\paragraph[{\-A\-R\-X}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-A\-R\-X}(
+\begin{DoxyParamCaption}
+\item[{}]{r, }
+\item[{}]{x, }
+\item[{}]{y, }
+\item[{}]{z}
+\end{DoxyParamCaption}
+)~{\bf \-X\-O\-R}(z,{\bf \-L\-R\-O\-T}({\bf \-A\-D\-D}(x,y),r))}}\label{common_8hh_a7d3da57c58af293c7c57e4f1b551849d}
+\-The \-A\-R\-X operation on \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} bit words\-: $\mathrm{ARX}(r,x,y,z) = (((x + y) <\ll r) \oplus z)$. \hypertarget{common_8hh_a44300b86f203a508a89c17aa2e2c70f3}{\index{common.\-hh@{common.\-hh}!\-C\-A\-S\-S\-E\-R\-T\-\_\-\-H@{\-C\-A\-S\-S\-E\-R\-T\-\_\-\-H}}
+\index{\-C\-A\-S\-S\-E\-R\-T\-\_\-\-H@{\-C\-A\-S\-S\-E\-R\-T\-\_\-\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-C\-A\-S\-S\-E\-R\-T\-\_\-\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-C\-A\-S\-S\-E\-R\-T\-\_\-\-H}}}\label{common_8hh_a44300b86f203a508a89c17aa2e2c70f3}
+\-C++ cassert \hypertarget{common_8hh_abaca5e518fa8172d63d54fc0ba01b0e3}{\index{common.\-hh@{common.\-hh}!\-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-R\-S\-H\-\_\-\-X\-O\-R@{\-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-R\-S\-H\-\_\-\-X\-O\-R}}
+\index{\-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-R\-S\-H\-\_\-\-X\-O\-R@{\-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-R\-S\-H\-\_\-\-X\-O\-R}!common.hh@{common.\-hh}}
+\paragraph[{\-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-R\-S\-H\-\_\-\-X\-O\-R}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-D\-E\-B\-U\-G\-\_\-\-A\-D\-P\-\_\-\-R\-S\-H\-\_\-\-X\-O\-R}~0}}\label{common_8hh_abaca5e518fa8172d63d54fc0ba01b0e3}
+\-D\-E\-B\-U\-G flags for source files. \hypertarget{common_8hh_a78d7cffaa3259f513e5e7bcd9d669da7}{\index{common.\-hh@{common.\-hh}!\-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-A\-D\-D\-\_\-\-T\-E\-S\-T\-S@{\-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-A\-D\-D\-\_\-\-T\-E\-S\-T\-S}}
+\index{\-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-A\-D\-D\-\_\-\-T\-E\-S\-T\-S@{\-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-A\-D\-D\-\_\-\-T\-E\-S\-T\-S}!common.hh@{common.\-hh}}
+\paragraph[{\-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-A\-D\-D\-\_\-\-T\-E\-S\-T\-S}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-D\-E\-B\-U\-G\-\_\-\-X\-D\-P\-\_\-\-A\-D\-D\-\_\-\-T\-E\-S\-T\-S}~0}}\label{common_8hh_a78d7cffaa3259f513e5e7bcd9d669da7}
+\-D\-E\-B\-U\-G flags for test files. \hypertarget{common_8hh_aa57f306d22334553a3fdfd2ad7f703d7}{\index{common.\-hh@{common.\-hh}!\-D\-E\-L\-T\-A\-\_\-\-I\-N\-I\-T@{\-D\-E\-L\-T\-A\-\_\-\-I\-N\-I\-T}}
+\index{\-D\-E\-L\-T\-A\-\_\-\-I\-N\-I\-T@{\-D\-E\-L\-T\-A\-\_\-\-I\-N\-I\-T}!common.hh@{common.\-hh}}
+\paragraph[{\-D\-E\-L\-T\-A\-\_\-\-I\-N\-I\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-D\-E\-L\-T\-A\-\_\-\-I\-N\-I\-T}~0x9e3779b9}}\label{common_8hh_aa57f306d22334553a3fdfd2ad7f703d7}
+\-Initial round constant $\delta$ of \-T\-E\-A/\-X\-T\-E\-A. \hypertarget{common_8hh_a51650c45a5e90fb5d9808717f67bbdfc}{\index{common.\-hh@{common.\-hh}!\-G\-S\-L\-\_\-\-B\-L\-A\-S\-\_\-\-H@{\-G\-S\-L\-\_\-\-B\-L\-A\-S\-\_\-\-H}}
+\index{\-G\-S\-L\-\_\-\-B\-L\-A\-S\-\_\-\-H@{\-G\-S\-L\-\_\-\-B\-L\-A\-S\-\_\-\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-G\-S\-L\-\_\-\-B\-L\-A\-S\-\_\-\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-G\-S\-L\-\_\-\-B\-L\-A\-S\-\_\-\-H}}}\label{common_8hh_a51650c45a5e90fb5d9808717f67bbdfc}
+\-G\-S\-L gsl/gsl\-\_\-blas.\-h \hypertarget{common_8hh_a438ca701b9dd1a0a50066708ccff58f9}{\index{common.\-hh@{common.\-hh}!\-I\-O\-S\-T\-R\-E\-A\-M\-\_\-\-H@{\-I\-O\-S\-T\-R\-E\-A\-M\-\_\-\-H}}
+\index{\-I\-O\-S\-T\-R\-E\-A\-M\-\_\-\-H@{\-I\-O\-S\-T\-R\-E\-A\-M\-\_\-\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-I\-O\-S\-T\-R\-E\-A\-M\-\_\-\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-I\-O\-S\-T\-R\-E\-A\-M\-\_\-\-H}}}\label{common_8hh_a438ca701b9dd1a0a50066708ccff58f9}
+\-C++ iostream \hypertarget{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}{\index{common.\-hh@{common.\-hh}!\-L\-R\-O\-T@{\-L\-R\-O\-T}}
+\index{\-L\-R\-O\-T@{\-L\-R\-O\-T}!common.hh@{common.\-hh}}
+\paragraph[{\-L\-R\-O\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-L\-R\-O\-T}(
+\begin{DoxyParamCaption}
+\item[{}]{x, }
+\item[{}]{r}
+\end{DoxyParamCaption}
+)~(((x $<$$<$ r) $|$ (x $>$$>$ ({\bf \-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} -\/ r))) \& {\bf \-M\-A\-S\-K})}}\label{common_8hh_abe2030c44a97657e1b1dbe9b0e093a7b}
+\-Rotate {\ttfamily x} by {\ttfamily r} positions to the left; {\ttfamily x} is of size \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} \hypertarget{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\index{common.\-hh@{common.\-hh}!\-L\-S\-H@{\-L\-S\-H}}
+\index{\-L\-S\-H@{\-L\-S\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-L\-S\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-L\-S\-H}(
+\begin{DoxyParamCaption}
+\item[{}]{x, }
+\item[{}]{r}
+\end{DoxyParamCaption}
+)~((x $<$$<$ r) \& {\bf \-M\-A\-S\-K})}}\label{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}
+\-Left bit shift by r positions on word x of size \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} \hypertarget{common_8hh_ae7520c5477c11965aabeedc033c9862b}{\index{common.\-hh@{common.\-hh}!\-M\-A\-S\-K@{\-M\-A\-S\-K}}
+\index{\-M\-A\-S\-K@{\-M\-A\-S\-K}!common.hh@{common.\-hh}}
+\paragraph[{\-M\-A\-S\-K}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-M\-A\-S\-K}~(0xffffffff $>$$>$ (32 -\/ W\-O\-R\-D\-\_\-\-S\-I\-Z\-E))}}\label{common_8hh_ae7520c5477c11965aabeedc033c9862b}
+\-A mask for the \-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E \-L\-S bits of a 32-\/bit word. \hypertarget{common_8hh_acc195fe3f75af2725178e18f3b59ca1b}{\index{common.\-hh@{common.\-hh}!\-M\-A\-T\-H\-\_\-\-H@{\-M\-A\-T\-H\-\_\-\-H}}
+\index{\-M\-A\-T\-H\-\_\-\-H@{\-M\-A\-T\-H\-\_\-\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-M\-A\-T\-H\-\_\-\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-M\-A\-T\-H\-\_\-\-H}}}\label{common_8hh_acc195fe3f75af2725178e18f3b59ca1b}
+math.\-h \hypertarget{common_8hh_aca7d5718ab8c38506adb3bef2469b319}{\index{common.\-hh@{common.\-hh}!\-M\-O\-D@{\-M\-O\-D}}
+\index{\-M\-O\-D@{\-M\-O\-D}!common.hh@{common.\-hh}}
+\paragraph[{\-M\-O\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-M\-O\-D}~(1\-U\-L\-L $<$$<$ W\-O\-R\-D\-\_\-\-S\-I\-Z\-E)}}\label{common_8hh_aca7d5718ab8c38506adb3bef2469b319}
+\-The value 2$^\wedge$\{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E\}. \hypertarget{common_8hh_ad918c7df882adba39ac2777fbf01248e}{\index{common.\-hh@{common.\-hh}!\-N\-D\-E\-L\-T\-A@{\-N\-D\-E\-L\-T\-A}}
+\index{\-N\-D\-E\-L\-T\-A@{\-N\-D\-E\-L\-T\-A}!common.hh@{common.\-hh}}
+\paragraph[{\-N\-D\-E\-L\-T\-A}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-N\-D\-E\-L\-T\-A}~(\-N\-R\-O\-U\-N\-D\-S / 2)}}\label{common_8hh_ad918c7df882adba39ac2777fbf01248e}
+\-Number round constants in \-T\-E\-A/\-X\-T\-E\-A. \hypertarget{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\index{common.\-hh@{common.\-hh}!\-N\-P\-A\-I\-R\-S@{\-N\-P\-A\-I\-R\-S}}
+\index{\-N\-P\-A\-I\-R\-S@{\-N\-P\-A\-I\-R\-S}!common.hh@{common.\-hh}}
+\paragraph[{\-N\-P\-A\-I\-R\-S}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-N\-P\-A\-I\-R\-S}~(1\-U\-L\-L $<$$<$ 15)}}\label{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}
+\-Number of chosen plaintext pairs used in experimentally verifying differential probabilities. \hypertarget{common_8hh_af90d72110373ee39961a88b2256289c9}{\index{common.\-hh@{common.\-hh}!\-R\-R\-O\-T@{\-R\-R\-O\-T}}
+\index{\-R\-R\-O\-T@{\-R\-R\-O\-T}!common.hh@{common.\-hh}}
+\paragraph[{\-R\-R\-O\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-R\-R\-O\-T}(
+\begin{DoxyParamCaption}
+\item[{}]{x, }
+\item[{}]{r}
+\end{DoxyParamCaption}
+)~(((x $>$$>$ r) $|$ (x $<$$<$ ({\bf \-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} -\/ r))) \& {\bf \-M\-A\-S\-K})}}\label{common_8hh_af90d72110373ee39961a88b2256289c9}
+\-Rotate {\ttfamily x} by {\ttfamily r} positions to the right; {\ttfamily x} is of size \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} \hypertarget{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\index{common.\-hh@{common.\-hh}!\-R\-S\-H@{\-R\-S\-H}}
+\index{\-R\-S\-H@{\-R\-S\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-R\-S\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-R\-S\-H}(
+\begin{DoxyParamCaption}
+\item[{}]{x, }
+\item[{}]{r}
+\end{DoxyParamCaption}
+)~((x $>$$>$ r) \& {\bf \-M\-A\-S\-K})}}\label{common_8hh_aa1542fdafaf6b27d057c000486b42133}
+\-Right bit shift by r positions on word x of size \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} \hypertarget{common_8hh_a58737f6dfc1347b3ffef3330e4b9f021}{\index{common.\-hh@{common.\-hh}!\-S\-T\-L\-\_\-\-A\-L\-G\-O\-R\-I\-T\-H\-M\-\_\-\-H@{\-S\-T\-L\-\_\-\-A\-L\-G\-O\-R\-I\-T\-H\-M\-\_\-\-H}}
+\index{\-S\-T\-L\-\_\-\-A\-L\-G\-O\-R\-I\-T\-H\-M\-\_\-\-H@{\-S\-T\-L\-\_\-\-A\-L\-G\-O\-R\-I\-T\-H\-M\-\_\-\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-S\-T\-L\-\_\-\-A\-L\-G\-O\-R\-I\-T\-H\-M\-\_\-\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-T\-L\-\_\-\-A\-L\-G\-O\-R\-I\-T\-H\-M\-\_\-\-H}}}\label{common_8hh_a58737f6dfc1347b3ffef3330e4b9f021}
+\-S\-T\-L algorithm \hypertarget{common_8hh_a419548bd7018f59158016f2a7705fe33}{\index{common.\-hh@{common.\-hh}!\-S\-T\-L\-\_\-\-S\-E\-T\-\_\-\-H@{\-S\-T\-L\-\_\-\-S\-E\-T\-\_\-\-H}}
+\index{\-S\-T\-L\-\_\-\-S\-E\-T\-\_\-\-H@{\-S\-T\-L\-\_\-\-S\-E\-T\-\_\-\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-S\-T\-L\-\_\-\-S\-E\-T\-\_\-\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-T\-L\-\_\-\-S\-E\-T\-\_\-\-H}}}\label{common_8hh_a419548bd7018f59158016f2a7705fe33}
+\-S\-T\-L set \hypertarget{common_8hh_aaa41128916bf1510054a6b39e3be8d0c}{\index{common.\-hh@{common.\-hh}!\-S\-T\-L\-\_\-\-V\-E\-C\-T\-O\-R\-\_\-\-H@{\-S\-T\-L\-\_\-\-V\-E\-C\-T\-O\-R\-\_\-\-H}}
+\index{\-S\-T\-L\-\_\-\-V\-E\-C\-T\-O\-R\-\_\-\-H@{\-S\-T\-L\-\_\-\-V\-E\-C\-T\-O\-R\-\_\-\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-S\-T\-L\-\_\-\-V\-E\-C\-T\-O\-R\-\_\-\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-T\-L\-\_\-\-V\-E\-C\-T\-O\-R\-\_\-\-H}}}\label{common_8hh_aaa41128916bf1510054a6b39e3be8d0c}
+\-S\-T\-L vector \hypertarget{common_8hh_a402fe211ce26aa9a2501987dd79d1c81}{\index{common.\-hh@{common.\-hh}!\-S\-T\-R\-I\-N\-G\-\_\-\-H@{\-S\-T\-R\-I\-N\-G\-\_\-\-H}}
+\index{\-S\-T\-R\-I\-N\-G\-\_\-\-H@{\-S\-T\-R\-I\-N\-G\-\_\-\-H}!common.hh@{common.\-hh}}
+\paragraph[{\-S\-T\-R\-I\-N\-G\-\_\-\-H}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-T\-R\-I\-N\-G\-\_\-\-H}}}\label{common_8hh_a402fe211ce26aa9a2501987dd79d1c81}
+string.\-h \hypertarget{common_8hh_aafc2c4f262a0686c07f86c7d2e1d8d14}{\index{common.\-hh@{common.\-hh}!\-S\-U\-B@{\-S\-U\-B}}
+\index{\-S\-U\-B@{\-S\-U\-B}!common.hh@{common.\-hh}}
+\paragraph[{\-S\-U\-B}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-U\-B}(
+\begin{DoxyParamCaption}
+\item[{}]{x, }
+\item[{}]{y}
+\end{DoxyParamCaption}
+)~((uint32\-\_\-t)(x -\/ y + {\bf \-M\-O\-D}) \& {\bf \-M\-A\-S\-K})}}\label{common_8hh_aafc2c4f262a0686c07f86c7d2e1d8d14}
+\-The modular subtraction (\-S\-U\-B) operation on words of size \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} \hypertarget{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\index{common.\-hh@{common.\-hh}!\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E@{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}}
+\index{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E@{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}!common.hh@{common.\-hh}}
+\paragraph[{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}~32}}\label{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}
+\-Word size in bits. \hypertarget{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}{\index{common.\-hh@{common.\-hh}!\-X\-O\-R@{\-X\-O\-R}}
+\index{\-X\-O\-R@{\-X\-O\-R}!common.hh@{common.\-hh}}
+\paragraph[{\-X\-O\-R}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-X\-O\-R}(
+\begin{DoxyParamCaption}
+\item[{}]{x, }
+\item[{}]{y}
+\end{DoxyParamCaption}
+)~((x $^\wedge$ y) \& {\bf \-M\-A\-S\-K})}}\label{common_8hh_a6de9ec3b3b57377b69a82239ea52ec6e}
+\-The \-X\-O\-R operation on words of size \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E} 
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{common_8hh_a7bb79c007f5ff830bae611240282423d}{\index{common.\-hh@{common.\-hh}!gen\-\_\-sparse@{gen\-\_\-sparse}}
+\index{gen\-\_\-sparse@{gen\-\_\-sparse}!common.hh@{common.\-hh}}
+\paragraph[{gen\-\_\-sparse}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf gen\-\_\-sparse} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{hw, }
+\item[{uint32\-\_\-t}]{n}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_a7bb79c007f5ff830bae611240282423d}
+\-Generate a random sparse n-\/bit difference with \-Hamming weight hw. \hypertarget{common_8hh_ae2becd1415d744a5c2677f7906db6814}{\index{common.\-hh@{common.\-hh}!hw32@{hw32}}
+\index{hw32@{hw32}!common.hh@{common.\-hh}}
+\paragraph[{hw32}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf hw32} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{x}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_ae2becd1415d744a5c2677f7906db6814}
+\-Hamming weight of a 32-\/bit word. \hypertarget{common_8hh_ac110ff0403257ed770df8e450e361ed2}{\index{common.\-hh@{common.\-hh}!hw8@{hw8}}
+\index{hw8@{hw8}!common.hh@{common.\-hh}}
+\paragraph[{hw8}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf hw8} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{x}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_ac110ff0403257ed770df8e450e361ed2}
+\-Hamming weight of a byte. \hypertarget{common_8hh_aff61bc916d0b070ad7b20a0b3456c604}{\index{common.\-hh@{common.\-hh}!is\-\_\-even@{is\-\_\-even}}
+\index{is\-\_\-even@{is\-\_\-even}!common.hh@{common.\-hh}}
+\paragraph[{is\-\_\-even}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf is\-\_\-even} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{i}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_aff61bc916d0b070ad7b20a0b3456c604}
+\-Returns true if the argument is an even number. \hypertarget{common_8hh_aee906c0378ccfc3194fb7d8dc000ebbf}{\index{common.\-hh@{common.\-hh}!operator$<$@{operator$<$}}
+\index{operator$<$@{operator$<$}!common.hh@{common.\-hh}}
+\paragraph[{operator$<$}]{\setlength{\rightskip}{0pt plus 5cm}bool operator$<$ (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t}}]{x, }
+\item[{{\bf differential\-\_\-t}}]{y}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_aee906c0378ccfc3194fb7d8dc000ebbf}
+\-Compare two differentials by probability. \hypertarget{common_8hh_ab03f26f2196400d02ff59e0190d5835b}{\index{common.\-hh@{common.\-hh}!operator==@{operator==}}
+\index{operator==@{operator==}!common.hh@{common.\-hh}}
+\paragraph[{operator==}]{\setlength{\rightskip}{0pt plus 5cm}bool operator== (
+\begin{DoxyParamCaption}
+\item[{{\bf differential\-\_\-t}}]{a, }
+\item[{{\bf differential\-\_\-t}}]{b}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_ab03f26f2196400d02ff59e0190d5835b}
+\-Evaluate if two differentials are identical. \-Returns \-T\-R\-U\-E if they are. \hypertarget{common_8hh_abb770b16d18b918de6a9ccab6eea0aa0}{\index{common.\-hh@{common.\-hh}!print\-\_\-binary@{print\-\_\-binary}}
+\index{print\-\_\-binary@{print\-\_\-binary}!common.hh@{common.\-hh}}
+\paragraph[{print\-\_\-binary}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf print\-\_\-binary} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{n}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_abb770b16d18b918de6a9ccab6eea0aa0}
+\-Print a value in binary. \hypertarget{common_8hh_a4380adfd210e69fb36ef02c254da8fe0}{\index{common.\-hh@{common.\-hh}!print\-\_\-mset@{print\-\_\-mset}}
+\index{print\-\_\-mset@{print\-\_\-mset}!common.hh@{common.\-hh}}
+\paragraph[{print\-\_\-mset}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf print\-\_\-mset} (
+\begin{DoxyParamCaption}
+\item[{const std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$}]{diff\-\_\-mset\-\_\-p}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_a4380adfd210e69fb36ef02c254da8fe0}
+\-Print the list of 2d differentials stored represented as an \-S\-T\-L multiset and ordered by probability. \hypertarget{common_8hh_a07108da601cf176205659534a26d1adf}{\index{common.\-hh@{common.\-hh}!print\-\_\-set@{print\-\_\-set}}
+\index{print\-\_\-set@{print\-\_\-set}!common.hh@{common.\-hh}}
+\paragraph[{print\-\_\-set}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf print\-\_\-set} (
+\begin{DoxyParamCaption}
+\item[{const std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_a07108da601cf176205659534a26d1adf}
+\-Print the list of 2d differentials stored represented as an \-S\-T\-L set and ordered by index idx = ((2$^\wedge$n dx) + dy), where n is the word size. \hypertarget{common_8hh_a74a318bbae856b2de48ba7490e0460af}{\index{common.\-hh@{common.\-hh}!random32@{random32}}
+\index{random32@{random32}!common.hh@{common.\-hh}}
+\paragraph[{random32}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf random32} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{common_8hh_a74a318bbae856b2de48ba7490e0460af}
+\-Generate a random 32-\/bit value. 

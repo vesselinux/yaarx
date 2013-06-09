@@ -1,0 +1,203 @@
+\hypertarget{max-adp-xor_8hh}{\subsection{include/max-\/adp-\/xor.hh \-File \-Reference}
+\label{max-adp-xor_8hh}\index{include/max-\/adp-\/xor.\-hh@{include/max-\/adp-\/xor.\-hh}}
+}
+
+
+\-Header file for \hyperlink{max-adp-xor_8cc}{max-\/adp-\/xor.\-cc}. \-The maximum \-A\-D\-D differential probability of \-X\-O\-R\-: $\max_{dc} \mathrm{adp}^{\oplus}(da, db \rightarrow dc)$. .  
+
+
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{max-adp-xor_8hh_a2c8bd5dba3223b07f3606c2240d0a4b2}{max\-\_\-adp\-\_\-xor\-\_\-i} (const int i, const uint32\-\_\-t k, const uint32\-\_\-t n, double $\ast$p, uint32\-\_\-t $\ast$dd, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-B\mbox{[}\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}+1\mbox{]}, gsl\-\_\-vector $\ast$\-C, const uint32\-\_\-t da, const uint32\-\_\-t db, uint32\-\_\-t $\ast$dd\-\_\-max, double $\ast$p\-\_\-max, uint32\-\_\-t \-A\-\_\-size)
+\item 
+void \hyperlink{max-adp-xor_8hh_ab44746fae93c11ea36bd24f4f874669d}{max\-\_\-adp\-\_\-xor\-\_\-bounds} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-B\mbox{[}\hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}+1\mbox{]}, const uint32\-\_\-t da, const uint32\-\_\-t db, uint32\-\_\-t $\ast$dd\-\_\-max, uint32\-\_\-t \-A\-\_\-size)
+\item 
+double \hyperlink{max-adp-xor_8hh_aa66f59ae4d29988f90f525ce600d6045}{max\-\_\-adp\-\_\-xor} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, const uint32\-\_\-t da, const uint32\-\_\-t db, uint32\-\_\-t $\ast$dd\-\_\-max)
+\item 
+double \hyperlink{max-adp-xor_8hh_a7b91b512d304a58a701f631be1f863a1}{max\-\_\-adp\-\_\-xor\-\_\-exper} (gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, const uint32\-\_\-t da, const uint32\-\_\-t db, uint32\-\_\-t $\ast$dc\-\_\-max)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Header file for \hyperlink{max-adp-xor_8cc}{max-\/adp-\/xor.\-cc}. \-The maximum \-A\-D\-D differential probability of \-X\-O\-R\-: $\max_{dc} \mathrm{adp}^{\oplus}(da, db \rightarrow dc)$. . \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{max-adp-xor_8hh_aa66f59ae4d29988f90f525ce600d6045}{\index{max-\/adp-\/xor.\-hh@{max-\/adp-\/xor.\-hh}!max\-\_\-adp\-\_\-xor@{max\-\_\-adp\-\_\-xor}}
+\index{max\-\_\-adp\-\_\-xor@{max\-\_\-adp\-\_\-xor}!max-adp-xor.hh@{max-\/adp-\/xor.\-hh}}
+\paragraph[{max\-\_\-adp\-\_\-xor}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-xor} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{uint32\-\_\-t $\ast$}]{dd\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-xor_8hh_aa66f59ae4d29988f90f525ce600d6045}
+\-Compute the maximum differential probability over all output differences\-: $\mathrm{max}_{dc}~\mathrm{adp}^{\oplus}(da,db \rightarrow dc)$. {\bfseries \-Complexity} c\-: $O(n) \le c \le O(2^n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dd\-\_\-max} & maximum probability output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{max}_{dc}~\mathrm{adp}^{\oplus}(da,db \rightarrow dc)$.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-xor_8hh_ab44746fae93c11ea36bd24f4f874669d}{max\-\_\-adp\-\_\-xor\-\_\-bounds}, \hyperlink{max-adp-xor_8hh_a2c8bd5dba3223b07f3606c2240d0a4b2}{max\-\_\-adp\-\_\-xor\-\_\-i} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-xor_8hh_ab44746fae93c11ea36bd24f4f874669d}{\index{max-\/adp-\/xor.\-hh@{max-\/adp-\/xor.\-hh}!max\-\_\-adp\-\_\-xor\-\_\-bounds@{max\-\_\-adp\-\_\-xor\-\_\-bounds}}
+\index{max\-\_\-adp\-\_\-xor\-\_\-bounds@{max\-\_\-adp\-\_\-xor\-\_\-bounds}!max-adp-xor.hh@{max-\/adp-\/xor.\-hh}}
+\paragraph[{max\-\_\-adp\-\_\-xor\-\_\-bounds}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf max\-\_\-adp\-\_\-xor\-\_\-bounds} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-B\mbox{[}\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E+1\mbox{]}, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{uint32\-\_\-t $\ast$}]{dd\-\_\-max, }
+\item[{uint32\-\_\-t}]{\-A\-\_\-size}
+\end{DoxyParamCaption}
+)}}\label{max-adp-xor_8hh_ab44746fae93c11ea36bd24f4f874669d}
+\-Compute an array of bounds that can be used in the computation of the maximum differential probability.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em \-B} & array of size {\ttfamily \-A\-\_\-size} rows by ({\ttfamily n} + 1) columns containing upper bounds on the maximum probabilities of all {\ttfamily j} bit differentials $n \ge j \ge 1$ beginning from any state {\ttfamily i\-:} {\ttfamily \-A\-\_\-size} $> i \ge 0$. \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dd\-\_\-max} & maximum probability output difference. \\
+\hline
+{\em \-A\-\_\-size} & size of the square transition probability matrices (equivalently, the number of states of the \-S-\/function).\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+
+\begin{DoxyItemize}
+\item \-Initialize $B[n][i] \leftarrow 1,~\forall i:~0 \le i < (A_{\mathrm{size}} - 1)$
+\item \-For every bit position k from n-\/1 down to 0
+\begin{DoxyItemize}
+\item \-For every state {\ttfamily i} from 0 to ({\ttfamily \-A\-\_\-size} -\/ 1)
+\begin{DoxyItemize}
+\item \-Initialize $B[k][i] \leftarrow p_{\mathrm{max}} = 0$
+\item \-Let $C^{i}_{k-1}$ be a column unit vector of size {\ttfamily \-A\-\_\-size} with 1 at position i
+\item \-Recursively assign values to the bits of the output difference {\ttfamily dc} starting at bit popsition $j = k$ and terminating at bit position {\ttfamily n}.
+\begin{DoxyItemize}
+\item \-The recursion proceeds to bit postion $j + 1$ only if the probability $p_j$ of the partially constructed differential $(da[j:k], db[j:k] \rightarrow dc[j:k])$ multiplied by the bound of the probability until the end $B[j+1]$ is bigger than the best probability found so far i.\-e. if\-: $B[j+1] A_{j} A_{j-1} \ldots A_{k} C^{i}_{k-1} > p_{\mathrm{max}}$
+\item \-When $j = n$ update the max.\-: $p_{\mathrm{max}} \leftarrow p_{n-1} = \mathrm{dp}(da[n-1:k],db[n-1:k] \rightarrow dc[n-1:k])$.
+\end{DoxyItemize}
+\item \-At the end of the recursion set $B[k][i] \leftarrow p_{\mathrm{max}}$.
+\end{DoxyItemize}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+{\bfseries \-Meaning} {\bfseries of} {\bfseries the} {\bfseries bounds} {\bfseries \-B\-:} 
+
+$B[k][i]$ is an {\itshape upper\/} {\itshape bound\/} on on the maximum probability of the differential $(da[n-1:k], db[n-1:k] \rightarrow dc[n-1:k])$ because clearly for any choice $dc[n-1:k]$ of the $(n-k)$ \-M\-S bits of dc, the probability $ L A_{n-1} A_{n-2} \ldots A_{k} C^i_{k-1}$ will never be bigger than $B[k][i]$. \-Furthermore, let $G[k] = L A_{n-1} A_{n-2} \ldots A_{k}$ be the multiplication of the corresponding transition probability matrices for the $(n-k)$ \-M\-S bits of dc $dc[n-1:k]$ and let $H[k-1] = A_{k-1} A_{k-2} \ldots A_{0} C^i_{k-1}$ and $H[-1] = C$. \-Then $\mathrm{dp}(da,db \rightarrow dc) = G[k] H[k-1] \le B[k] H[k-1]$ for {\itshape any\/} choice of $dc[n-1:k]$. \-In particular, when $k = 0$ $\mathrm{dp}(da,db \rightarrow dc) = \mathrm{max}_{dc}~\mathrm{dp}(da,db \rightarrow dc) = G[0] C = B[0] C$.
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-xor_8hh_a2c8bd5dba3223b07f3606c2240d0a4b2}{max\-\_\-adp\-\_\-xor\-\_\-i} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-xor_8hh_a7b91b512d304a58a701f631be1f863a1}{\index{max-\/adp-\/xor.\-hh@{max-\/adp-\/xor.\-hh}!max\-\_\-adp\-\_\-xor\-\_\-exper@{max\-\_\-adp\-\_\-xor\-\_\-exper}}
+\index{max\-\_\-adp\-\_\-xor\-\_\-exper@{max\-\_\-adp\-\_\-xor\-\_\-exper}!max-adp-xor.hh@{max-\/adp-\/xor.\-hh}}
+\paragraph[{max\-\_\-adp\-\_\-xor\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf max\-\_\-adp\-\_\-xor\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{uint32\-\_\-t $\ast$}]{dc\-\_\-max}
+\end{DoxyParamCaption}
+)}}\label{max-adp-xor_8hh_a7b91b512d304a58a701f631be1f863a1}
+\-Compute the maximum differential probability by exhaustive search over all output differences. {\bfseries \-Complexity\-:} $O(2^n)$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dc\-\_\-max} & maximum probability output difference. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+$\mathrm{max}_{dc}~\mathrm{adp}^{\oplus}(da,db \rightarrow dc)$.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-xor_8hh_aa66f59ae4d29988f90f525ce600d6045}{max\-\_\-adp\-\_\-xor} 
+\end{DoxySeeAlso}
+\hypertarget{max-adp-xor_8hh_a2c8bd5dba3223b07f3606c2240d0a4b2}{\index{max-\/adp-\/xor.\-hh@{max-\/adp-\/xor.\-hh}!max\-\_\-adp\-\_\-xor\-\_\-i@{max\-\_\-adp\-\_\-xor\-\_\-i}}
+\index{max\-\_\-adp\-\_\-xor\-\_\-i@{max\-\_\-adp\-\_\-xor\-\_\-i}!max-adp-xor.hh@{max-\/adp-\/xor.\-hh}}
+\paragraph[{max\-\_\-adp\-\_\-xor\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf max\-\_\-adp\-\_\-xor\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{const int}]{i, }
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{n, }
+\item[{double $\ast$}]{p, }
+\item[{uint32\-\_\-t $\ast$}]{dd, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-B\mbox{[}\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E+1\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-C, }
+\item[{const uint32\-\_\-t}]{da, }
+\item[{const uint32\-\_\-t}]{db, }
+\item[{uint32\-\_\-t $\ast$}]{dd\-\_\-max, }
+\item[{double $\ast$}]{p\-\_\-max, }
+\item[{uint32\-\_\-t}]{\-A\-\_\-size}
+\end{DoxyParamCaption}
+)}}\label{max-adp-xor_8hh_a2c8bd5dba3223b07f3606c2240d0a4b2}
+\-Compute an {\itshape upper\/} {\itshape bound\/} $B[k][i]$ on the maximum probability of the differential $(da[n-1:k], db[n-1:k] \rightarrow dc[n-1:k])$ starting from initial state {\ttfamily i} of the \-S-\/function i.\-e. $\mathrm{dp}(da[n-1:k],db[n-1:k] \rightarrow dc[n-1:k]) = L A_{n-1} A_{n-2} \ldots A_{k} C^{i}_{k-1}$, given the upper bounds $B[k][i]$ on the probabilities of the differentials $(da[n-1:j], db[n-1:j] \rightarrow dc[n-1:j])$ for $j = k+1, k+2, \ldots, n-1$, where $L = [1~1~\ldots~1]$ is a row vector of size {\ttfamily \-A\-\_\-size} and $C^{i}_{k-1}$ is a unit column vector of size {\ttfamily \-A\-\_\-size} with 1 at position $i$ and $C^{i}_{-1} = C$.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em i} & index of the state of the \-S-\/function\-: {\ttfamily \-A\-\_\-size} $> i \ge 0$. \\
+\hline
+{\em k} & current bit position\-: $ n > k \ge 0$. \\
+\hline
+{\em n} & word size. \\
+\hline
+{\em p} & the estimated probability at bit position {\ttfamily k}. \\
+\hline
+{\em dd} & output difference. \\
+\hline
+{\em \-A} & transition probability matrices. \\
+\hline
+{\em \-B} & array of size {\ttfamily \-A\-\_\-size} rows by ({\ttfamily n} + 1) columns containing upper bounds on the maximum probabilities of all {\ttfamily j} bit differentials $n \ge j \ge 1$ beginning from any state {\ttfamily i\-:} {\ttfamily \-A\-\_\-size} $> i \ge 0$. \\
+\hline
+{\em \-C} & unit row vector of size {\ttfamily \-A\-\_\-size} rows, initialized with 1 at state index {\ttfamily i}. \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dd\-\_\-max} & maximum probability output difference. \\
+\hline
+{\em p\-\_\-max} & the maximum probability. \\
+\hline
+{\em \-A\-\_\-size} & size of the square transition probability matrices (equivalently, the number of states of the \-S-\/function).\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+\-Recursively assign values to the bits of the output difference {\ttfamily dc} starting at bit popsition $j = k$ and terminating at bit position {\ttfamily n}. \-The recursion proceeds to bit postion $j + 1$ only if the probability $p_j$ of the partially constructed differential $(da[j:k], db[j:k] \rightarrow dc[j:k])$ multiplied by the bound of the probability until the end $B[j+1]$ is bigger than the best probability found so far i.\-e. if\-: $B[j+1] A_{j} A_{j-1} \ldots A_{k} C^{i}_{k-1} > p_{\mathrm{max}}$. \-When $j = n$ update the max.\-: $p_{\mathrm{max}} \leftarrow p_{n-1} = \mathrm{dp}(da[n-1:k],db[n-1:k] \rightarrow dc[n-1:k])$.
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{max-adp-xor_8hh_ab44746fae93c11ea36bd24f4f874669d}{max\-\_\-adp\-\_\-xor\-\_\-bounds} 
+\end{DoxySeeAlso}

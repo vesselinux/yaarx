@@ -1,0 +1,211 @@
+\hypertarget{xtea-f-xor-pddt_8hh}{\subsection{include/xtea-\/f-\/xor-\/pddt.hh \-File \-Reference}
+\label{xtea-f-xor-pddt_8hh}\index{include/xtea-\/f-\/xor-\/pddt.\-hh@{include/xtea-\/f-\/xor-\/pddt.\-hh}}
+}
+
+
+\-Header for \hyperlink{xtea-f-xor-pddt_8cc}{xtea-\/f-\/xor-\/pddt.\-cc}. \-Computing an \-X\-O\-R partial difference distribution table (p\-D\-D\-T) for the \-F-\/function of block cipher \-X\-T\-E\-A. .  
+
+
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{xtea-f-xor-pddt_8hh_a9646abec85abfa040d9f4e854f408408}{xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i} (const uint32\-\_\-t k, const uint32\-\_\-t n, const uint32\-\_\-t lsh\-\_\-const, const uint32\-\_\-t rsh\-\_\-const, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-C, uint32\-\_\-t $\ast$da, uint32\-\_\-t $\ast$db, uint32\-\_\-t $\ast$dc, double $\ast$p, const double p\-\_\-thres, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+void \hyperlink{xtea-f-xor-pddt_8hh_a7b7008eb382fd5465162899639968376}{xtea\-\_\-f\-\_\-xor\-\_\-pddt} (uint32\-\_\-t n, double p\-\_\-thres, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+uint32\-\_\-t \hyperlink{xtea-f-xor-pddt_8hh_a515d006e47b6956f75dd6814ed403324}{xtea\-\_\-f\-\_\-da\-\_\-db\-\_\-xor\-\_\-pddt} (uint32\-\_\-t n, double p\-\_\-thres, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, const uint32\-\_\-t da\-\_\-prev, const uint32\-\_\-t da\-\_\-in, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$hways\-\_\-diff\-\_\-set\-\_\-dx\-\_\-dy, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+bool \hyperlink{xtea-f-xor-pddt_8hh_a2bd3a0eacc4915a2812e472f63d8f8f0}{xtea\-\_\-is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy} (uint32\-\_\-t dy, uint32\-\_\-t dx\-\_\-prev, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+void \hyperlink{xtea-f-xor-pddt_8hh_a2bfe2f1348b48d45e79183f2c8582a65}{xtea\-\_\-xor\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key} (uint32\-\_\-t nrounds, uint32\-\_\-t npairs, uint32\-\_\-t lsh\-\_\-const, uint32\-\_\-t rsh\-\_\-const, uint32\-\_\-t key, uint32\-\_\-t delta, double p\-\_\-thres, std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$diff\-\_\-set\-\_\-dx\-\_\-dy)
+\item 
+void \hyperlink{xtea-f-xor-pddt_8hh_ab30446d80d0a70a87e3bc306b072c176}{xtea\-\_\-xor\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp} (std\-::multiset$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__p}{struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$diff\-\_\-mset\-\_\-p, const std\-::set$<$ \hyperlink{structdifferential__t}{differential\-\_\-t}, \hyperlink{structstruct__comp__diff__dx__dy}{struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ diff\-\_\-set\-\_\-dx\-\_\-dy)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Header for \hyperlink{xtea-f-xor-pddt_8cc}{xtea-\/f-\/xor-\/pddt.\-cc}. \-Computing an \-X\-O\-R partial difference distribution table (p\-D\-D\-T) for the \-F-\/function of block cipher \-X\-T\-E\-A. . \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{xtea-f-xor-pddt_8hh_a515d006e47b6956f75dd6814ed403324}{\index{xtea-\/f-\/xor-\/pddt.\-hh@{xtea-\/f-\/xor-\/pddt.\-hh}!xtea\-\_\-f\-\_\-da\-\_\-db\-\_\-xor\-\_\-pddt@{xtea\-\_\-f\-\_\-da\-\_\-db\-\_\-xor\-\_\-pddt}}
+\index{xtea\-\_\-f\-\_\-da\-\_\-db\-\_\-xor\-\_\-pddt@{xtea\-\_\-f\-\_\-da\-\_\-db\-\_\-xor\-\_\-pddt}!xtea-f-xor-pddt.hh@{xtea-\/f-\/xor-\/pddt.\-hh}}
+\paragraph[{xtea\-\_\-f\-\_\-da\-\_\-db\-\_\-xor\-\_\-pddt}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xtea\-\_\-f\-\_\-da\-\_\-db\-\_\-xor\-\_\-pddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{n, }
+\item[{double}]{p\-\_\-thres, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{da\-\_\-prev, }
+\item[{const uint32\-\_\-t}]{da\-\_\-in, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{hways\-\_\-diff\-\_\-set\-\_\-dx\-\_\-dy, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{xtea-f-xor-pddt_8hh_a515d006e47b6956f75dd6814ed403324}
+\-Wrapper for \hyperlink{xtea-f-xor-pddt_8cc_a1fac191611cec314a5acf32b8e8f166f}{xtea\-\_\-f\-\_\-da\-\_\-db\-\_\-xor\-\_\-pddt\-\_\-i} \begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-f-add-pddt_8hh_a379d6e4054b1bf78e6068f4cbdd06065}{tea\-\_\-f\-\_\-da\-\_\-add\-\_\-pddt} 
+\end{DoxySeeAlso}
+\hypertarget{xtea-f-xor-pddt_8hh_a7b7008eb382fd5465162899639968376}{\index{xtea-\/f-\/xor-\/pddt.\-hh@{xtea-\/f-\/xor-\/pddt.\-hh}!xtea\-\_\-f\-\_\-xor\-\_\-pddt@{xtea\-\_\-f\-\_\-xor\-\_\-pddt}}
+\index{xtea\-\_\-f\-\_\-xor\-\_\-pddt@{xtea\-\_\-f\-\_\-xor\-\_\-pddt}!xtea-f-xor-pddt.hh@{xtea-\/f-\/xor-\/pddt.\-hh}}
+\paragraph[{xtea\-\_\-f\-\_\-xor\-\_\-pddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xtea\-\_\-f\-\_\-xor\-\_\-pddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{n, }
+\item[{double}]{p\-\_\-thres, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{xtea-f-xor-pddt_8hh_a7b7008eb382fd5465162899639968376}
+\-Compute an \-X\-O\-R partial \-D\-D\-T (p\-D\-D\-T) for the \-X\-T\-E\-A \-F-\/function\-: wrapper function of \hyperlink{xtea-f-xor-pddt_8hh_a9646abec85abfa040d9f4e854f408408}{xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i} . \-By definition a p\-D\-D\-T contains only differentials that have probability above a fixed probability thershold.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & word size (default is \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em p\-\_\-thres} & probability threshold (default is \-X\-T\-E\-A\-\_\-\-X\-O\-R\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx \rightarrow dy)$ in the p\-D\-D\-T ordered by index $i = (dx~ 2^{n} + dy)$; stored in an \-S\-T\-L set structure, internally implemented as a \-Red-\/\-Black binary search tree.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyNote}{\-Note}
+\-The compuation of the p\-D\-D\-T is based on the \-A\-D\-D operation in the \-X\-T\-E\-A \-F-\/function\-: the only non-\/linear componenet with respect to \-X\-O\-R differences.
+\end{DoxyNote}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea-f-xor-pddt_8hh_a9646abec85abfa040d9f4e854f408408}{xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i}. 
+\end{DoxySeeAlso}
+\hypertarget{xtea-f-xor-pddt_8hh_a9646abec85abfa040d9f4e854f408408}{\index{xtea-\/f-\/xor-\/pddt.\-hh@{xtea-\/f-\/xor-\/pddt.\-hh}!xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i@{xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i}}
+\index{xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i@{xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i}!xtea-f-xor-pddt.hh@{xtea-\/f-\/xor-\/pddt.\-hh}}
+\paragraph[{xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xtea\-\_\-f\-\_\-xor\-\_\-pddt\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{n, }
+\item[{const uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{const uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-C, }
+\item[{uint32\-\_\-t $\ast$}]{da, }
+\item[{uint32\-\_\-t $\ast$}]{db, }
+\item[{uint32\-\_\-t $\ast$}]{dc, }
+\item[{double $\ast$}]{p, }
+\item[{const double}]{p\-\_\-thres, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{xtea-f-xor-pddt_8hh_a9646abec85abfa040d9f4e854f408408}
+\-Computes an \-A\-D\-D partial difference distribution table (p\-D\-D\-T) for the \-F-\/function of block cipher \-T\-E\-A.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em k} & current bit position in the recursion. \\
+\hline
+{\em n} & word size (default is \hyperlink{common_8hh_a92ed8507d1cd2331ad09275c5c4c1c89}{\-W\-O\-R\-D\-\_\-\-S\-I\-Z\-E}). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em \-A} & transition probability matrices for \-A\-D\-D $\mathrm{xdp}^{+}$ (\hyperlink{xdp-add_8hh_af484105ee4ba34f7f20d63b798ebe851}{xdp\-\_\-add\-\_\-sf}). \\
+\hline
+{\em \-C} & unit column vector for computing $\mathrm{xdp}^{+}$ (\hyperlink{xdp-add_8hh_a25473697bd215fe5eb997574be30e6f3}{xdp\-\_\-add}). \\
+\hline
+{\em da} & input difference to the \-F-\/function of \-X\-T\-E\-A. \\
+\hline
+{\em db} & output difference from the $f_\mathrm{LXR}$ component of \-F ((\hyperlink{xtea_8hh_a54a13074da03742ac10ea2ea5f7eec0e}{xtea\-\_\-f\-\_\-lxr})). \\
+\hline
+{\em dc} & output difference from the \-F-\/function of \-X\-T\-E\-A. \\
+\hline
+{\em p} & probability of the partially constructed differential $(da[k:0], db[k:0] \rightarrow dc[k:0])$ for the \-A\-D\-D operation in \-F. \\
+\hline
+{\em p\-\_\-thres} & probability threshold (default is \-X\-T\-E\-A\-\_\-\-X\-O\-R\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx \rightarrow dy)$ in the p\-D\-D\-T ordered by index $i = (dx~ 2^{n} + dy)$; stored in an \-S\-T\-L set structure, internally implemented as a \-Red-\/\-Black binary search tree.\\
+\hline
+\end{DoxyParams}
+{\bfseries \-Algorithm} {\bfseries \-Outline\-:} 
+
+
+\begin{DoxyEnumerate}
+\item \-Treat the two inputs to the \-A\-D\-D operation\-: $a$ and $b = ((a << 4) ^ (a >> 5))$ as independent.
+\item \-Recursively construct a list of differentials $(da, db \rightarrow dc)$ for the \-A\-D\-D operation in \-F with probability bigger than $p_{\mathrm{thres}}$ (see \hyperlink{xdp-add-pddt_8hh_a9a024b72abb61a8fca140574fa1027e2}{xdp\-\_\-add\-\_\-pddt\-\_\-i}).
+\item \-Of the constructed differentials store in an p\-D\-D\-T only those for which it holds $db = (da \ll 4) \oplus (da \gg 5)$.
+\item \-Return p\-D\-D\-T.
+\end{DoxyEnumerate}
+
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea-f-xor-pddt_8hh_a7b7008eb382fd5465162899639968376}{xtea\-\_\-f\-\_\-xor\-\_\-pddt} 
+\end{DoxySeeAlso}
+\hypertarget{xtea-f-xor-pddt_8hh_a2bd3a0eacc4915a2812e472f63d8f8f0}{\index{xtea-\/f-\/xor-\/pddt.\-hh@{xtea-\/f-\/xor-\/pddt.\-hh}!xtea\-\_\-is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy@{xtea\-\_\-is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy}}
+\index{xtea\-\_\-is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy@{xtea\-\_\-is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy}!xtea-f-xor-pddt.hh@{xtea-\/f-\/xor-\/pddt.\-hh}}
+\paragraph[{xtea\-\_\-is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf xtea\-\_\-is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{dy, }
+\item[{uint32\-\_\-t}]{dx\-\_\-prev, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{xtea-f-xor-pddt_8hh_a2bd3a0eacc4915a2812e472f63d8f8f0}
+\-For a given difference dx, check if in the list of differentials set\-\_\-dx\-\_\-dy exists an entry (dx -\/$>$ dy) \begin{DoxySeeAlso}{\-See also}
+\hyperlink{tea-f-add-pddt_8hh_a82603f2a5c7ada2fad8d82f93287ff05}{is\-\_\-dx\-\_\-in\-\_\-set\-\_\-dx\-\_\-dy} 
+\end{DoxySeeAlso}
+\hypertarget{xtea-f-xor-pddt_8hh_a2bfe2f1348b48d45e79183f2c8582a65}{\index{xtea-\/f-\/xor-\/pddt.\-hh@{xtea-\/f-\/xor-\/pddt.\-hh}!xtea\-\_\-xor\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key@{xtea\-\_\-xor\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key}}
+\index{xtea\-\_\-xor\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key@{xtea\-\_\-xor\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key}!xtea-f-xor-pddt.hh@{xtea-\/f-\/xor-\/pddt.\-hh}}
+\paragraph[{xtea\-\_\-xor\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xtea\-\_\-xor\-\_\-pddt\-\_\-adjust\-\_\-to\-\_\-key} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{nrounds, }
+\item[{uint32\-\_\-t}]{npairs, }
+\item[{uint32\-\_\-t}]{lsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{rsh\-\_\-const, }
+\item[{uint32\-\_\-t}]{key, }
+\item[{uint32\-\_\-t}]{delta, }
+\item[{double}]{p\-\_\-thres, }
+\item[{std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$ $\ast$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{xtea-f-xor-pddt_8hh_a2bfe2f1348b48d45e79183f2c8582a65}
+\-Adjust the probabailities of the differentials in a p\-D\-D\-T computed with \hyperlink{xtea-f-xor-pddt_8hh_a7b7008eb382fd5465162899639968376}{xtea\-\_\-f\-\_\-xor\-\_\-pddt} , to the value of a fixed key by performing one-\/round \-T\-E\-A encryptions over a number of chosen plaintext pairs drawn uniformly at random.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em nrounds} & total number of rounds (\-N\-R\-O\-U\-N\-D\-S). \\
+\hline
+{\em npairs} & number of chosen plaintext pairs (\hyperlink{common_8hh_ad8bbd29e2946d6b269e0009219061ad6}{\-N\-P\-A\-I\-R\-S}). \\
+\hline
+{\em lsh\-\_\-const} & \hyperlink{common_8hh_ab0642bbe3fc1b4488b5fd0e8ea1d1d88}{\-L\-S\-H} constant (\-T\-E\-A\-\_\-\-L\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em rsh\-\_\-const} & \hyperlink{common_8hh_aa1542fdafaf6b27d057c000486b42133}{\-R\-S\-H} constant (\-T\-E\-A\-\_\-\-R\-S\-H\-\_\-\-C\-O\-N\-S\-T). \\
+\hline
+{\em key} & round key. \\
+\hline
+{\em delta} & round constant. \\
+\hline
+{\em p\-\_\-thres} & probability threshold (\-X\-T\-E\-A\-\_\-\-X\-O\-R\-\_\-\-P\-\_\-\-T\-H\-R\-E\-S). \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & set of differentials $(dx \rightarrow dy)$ in the p\-D\-D\-T ordered by index $i = (dx~ 2^{n} + dy)$. \\
+\hline
+\end{DoxyParams}
+\hypertarget{xtea-f-xor-pddt_8hh_ab30446d80d0a70a87e3bc306b072c176}{\index{xtea-\/f-\/xor-\/pddt.\-hh@{xtea-\/f-\/xor-\/pddt.\-hh}!xtea\-\_\-xor\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp@{xtea\-\_\-xor\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp}}
+\index{xtea\-\_\-xor\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp@{xtea\-\_\-xor\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp}!xtea-f-xor-pddt.hh@{xtea-\/f-\/xor-\/pddt.\-hh}}
+\paragraph[{xtea\-\_\-xor\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xtea\-\_\-xor\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp} (
+\begin{DoxyParamCaption}
+\item[{std\-::multiset$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-p} $>$ $\ast$}]{diff\-\_\-mset\-\_\-p, }
+\item[{const std\-::set$<$ {\bf differential\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-dx\-\_\-dy} $>$}]{diff\-\_\-set\-\_\-dx\-\_\-dy}
+\end{DoxyParamCaption}
+)}}\label{xtea-f-xor-pddt_8hh_ab30446d80d0a70a87e3bc306b072c176}
+\-From a p\-D\-D\-T represented in the from of a set of differentials ordered by index, compute a p\-D\-D\-T as a set of differentials ordered by probability.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em diff\-\_\-mset\-\_\-p} & output p\-D\-D\-T\-: set of differentials $(dx \rightarrow dy)$ ordered by probability; stored in an \-S\-T\-L multiset structure, internally implemented as a \-Red-\/\-Black binary search tree. \\
+\hline
+{\em diff\-\_\-set\-\_\-dx\-\_\-dy} & input p\-D\-D\-T\-: set of differentials $(dx \rightarrow dy)$ ordered by index $i = (dx~ 2^{n} + dy)$; stored in an \-S\-T\-L set structure, internally implemented as a \-Red-\/\-Black binary search tree.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xtea-f-add-pddt_8hh_a84e14ae4c2be82a4895dfa91f012e9e3}{xtea\-\_\-add\-\_\-pddt\-\_\-dxy\-\_\-to\-\_\-dp} 
+\end{DoxySeeAlso}

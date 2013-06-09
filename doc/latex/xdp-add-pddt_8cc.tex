@@ -1,0 +1,126 @@
+\hypertarget{xdp-add-pddt_8cc}{\subsection{src/xdp-\/add-\/pddt.cc \-File \-Reference}
+\label{xdp-add-pddt_8cc}\index{src/xdp-\/add-\/pddt.\-cc@{src/xdp-\/add-\/pddt.\-cc}}
+}
+
+
+\-Compute a partial difference distribution table (p\-D\-D\-T) for $\mathrm{xdp}^{+}$.  
+
+
+{\ttfamily \#include \char`\"{}common.\-hh\char`\"{}}\*
+{\ttfamily \#include \char`\"{}xdp-\/add.\-hh\char`\"{}}\*
+\subsubsection*{\-Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint32\-\_\-t \hyperlink{xdp-add-pddt_8cc_a04cd5582472cde3ab474d6c3d1de11a4}{xdp\-\_\-add\-\_\-pddt\-\_\-exper} (std\-::multiset$<$ \hyperlink{structdifferential__3d__t}{differential\-\_\-3d\-\_\-t}, \hyperlink{structstruct__comp__diff__3d__p}{struct\-\_\-comp\-\_\-diff\-\_\-3d\-\_\-p} $>$ $\ast$diff\-\_\-set, double p\-\_\-thres)
+\item 
+void \hyperlink{xdp-add-pddt_8cc_a9a024b72abb61a8fca140574fa1027e2}{xdp\-\_\-add\-\_\-pddt\-\_\-i} (const uint32\-\_\-t k, const uint32\-\_\-t n, const double p\-\_\-thres, gsl\-\_\-matrix $\ast$\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, gsl\-\_\-vector $\ast$\-C, uint32\-\_\-t $\ast$da, uint32\-\_\-t $\ast$db, uint32\-\_\-t $\ast$dc, double $\ast$p, std\-::multiset$<$ \hyperlink{structdifferential__3d__t}{differential\-\_\-3d\-\_\-t}, \hyperlink{structstruct__comp__diff__3d__p}{struct\-\_\-comp\-\_\-diff\-\_\-3d\-\_\-p} $>$ $\ast$diff\-\_\-set)
+\item 
+void \hyperlink{xdp-add-pddt_8cc_aa503d442ec118773fc9d2a653c8a1915}{xdp\-\_\-add\-\_\-pddt} (uint32\-\_\-t n, double p\-\_\-thres)
+\end{DoxyCompactItemize}
+
+
+\subsubsection{\-Detailed \-Description}
+\-Compute a partial difference distribution table (p\-D\-D\-T) for $\mathrm{xdp}^{+}$. \begin{DoxyAuthor}{\-Author}
+\-V.\-Velichkov, \href{mailto:vesselin.velichkov@uni.lu}{\tt vesselin.\-velichkov@uni.\-lu} 
+\end{DoxyAuthor}
+\begin{DoxyDate}{\-Date}
+2012-\/2013 
+\end{DoxyDate}
+
+
+\subsubsection{\-Function \-Documentation}
+\hypertarget{xdp-add-pddt_8cc_aa503d442ec118773fc9d2a653c8a1915}{\index{xdp-\/add-\/pddt.\-cc@{xdp-\/add-\/pddt.\-cc}!xdp\-\_\-add\-\_\-pddt@{xdp\-\_\-add\-\_\-pddt}}
+\index{xdp\-\_\-add\-\_\-pddt@{xdp\-\_\-add\-\_\-pddt}!xdp-add-pddt.cc@{xdp-\/add-\/pddt.\-cc}}
+\paragraph[{xdp\-\_\-add\-\_\-pddt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xdp\-\_\-add\-\_\-pddt} (
+\begin{DoxyParamCaption}
+\item[{uint32\-\_\-t}]{n, }
+\item[{double}]{p\-\_\-thres}
+\end{DoxyParamCaption}
+)}}\label{xdp-add-pddt_8cc_aa503d442ec118773fc9d2a653c8a1915}
+\-Compute a partial \-D\-D\-T for $\mathrm{xdp}^{+}$\-: wrapper function of \hyperlink{xdp-add-pddt_8hh_a9a024b72abb61a8fca140574fa1027e2}{xdp\-\_\-add\-\_\-pddt\-\_\-i}.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em n} & word size. \\
+\hline
+{\em p\-\_\-thres} & probability threshold. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xdp-add-pddt_8hh_a9a024b72abb61a8fca140574fa1027e2}{xdp\-\_\-add\-\_\-pddt\-\_\-i}. 
+\end{DoxySeeAlso}
+\hypertarget{xdp-add-pddt_8cc_a04cd5582472cde3ab474d6c3d1de11a4}{\index{xdp-\/add-\/pddt.\-cc@{xdp-\/add-\/pddt.\-cc}!xdp\-\_\-add\-\_\-pddt\-\_\-exper@{xdp\-\_\-add\-\_\-pddt\-\_\-exper}}
+\index{xdp\-\_\-add\-\_\-pddt\-\_\-exper@{xdp\-\_\-add\-\_\-pddt\-\_\-exper}!xdp-add-pddt.cc@{xdp-\/add-\/pddt.\-cc}}
+\paragraph[{xdp\-\_\-add\-\_\-pddt\-\_\-exper}]{\setlength{\rightskip}{0pt plus 5cm}uint32\-\_\-t {\bf xdp\-\_\-add\-\_\-pddt\-\_\-exper} (
+\begin{DoxyParamCaption}
+\item[{std\-::multiset$<$ {\bf differential\-\_\-3d\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-3d\-\_\-p} $>$ $\ast$}]{diff\-\_\-set, }
+\item[{double}]{p\-\_\-thres}
+\end{DoxyParamCaption}
+)}}\label{xdp-add-pddt_8cc_a04cd5582472cde3ab474d6c3d1de11a4}
+\-Compute a partial \-D\-D\-T for $\mathrm{xdp}^{+}$ by exhasutive search over all input and output differences.
+
+
+\begin{DoxyParams}{\-Parameters}
+{\em diff\-\_\-set} & set of all differentials with probability not less than the threshold (the p\-D\-D\-T) \\
+\hline
+{\em p\-\_\-thres} & probability threshold. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+number of elements in the p\-D\-D\-T. 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{\-See also}
+\hyperlink{xdp-add-pddt_8hh_a9a024b72abb61a8fca140574fa1027e2}{xdp\-\_\-add\-\_\-pddt\-\_\-i} 
+\end{DoxySeeAlso}
+\hypertarget{xdp-add-pddt_8cc_a9a024b72abb61a8fca140574fa1027e2}{\index{xdp-\/add-\/pddt.\-cc@{xdp-\/add-\/pddt.\-cc}!xdp\-\_\-add\-\_\-pddt\-\_\-i@{xdp\-\_\-add\-\_\-pddt\-\_\-i}}
+\index{xdp\-\_\-add\-\_\-pddt\-\_\-i@{xdp\-\_\-add\-\_\-pddt\-\_\-i}!xdp-add-pddt.cc@{xdp-\/add-\/pddt.\-cc}}
+\paragraph[{xdp\-\_\-add\-\_\-pddt\-\_\-i}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf xdp\-\_\-add\-\_\-pddt\-\_\-i} (
+\begin{DoxyParamCaption}
+\item[{const uint32\-\_\-t}]{k, }
+\item[{const uint32\-\_\-t}]{n, }
+\item[{const double}]{p\-\_\-thres, }
+\item[{gsl\-\_\-matrix $\ast$}]{\-A\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}\mbox{[}2\mbox{]}, }
+\item[{gsl\-\_\-vector $\ast$}]{\-C, }
+\item[{uint32\-\_\-t $\ast$}]{da, }
+\item[{uint32\-\_\-t $\ast$}]{db, }
+\item[{uint32\-\_\-t $\ast$}]{dc, }
+\item[{double $\ast$}]{p, }
+\item[{std\-::multiset$<$ {\bf differential\-\_\-3d\-\_\-t}, {\bf struct\-\_\-comp\-\_\-diff\-\_\-3d\-\_\-p} $>$ $\ast$}]{diff\-\_\-set}
+\end{DoxyParamCaption}
+)}}\label{xdp-add-pddt_8cc_a9a024b72abb61a8fca140574fa1027e2}
+\-Recursively compute all \-X\-O\-R differentials $(da, db \rightarrow dc)$ for \-A\-D\-D that have probability $\mathrm{xdp^{+}}$ larger than a fixed probability threshold {\ttfamily p\-\_\-thres}.
+
+\-The function works recursively starting from the \-L\-S bit {\ttfamily k} = 0 and terminating at the \-M\-S bit {\ttfamily n}. \-At every bit position i it assigns values to the i-\/th bits of the differences {\ttfamily da}, {\ttfamily db}, {\ttfamily dc} and evaluates the probability of the resulting partial (i+1)-\/bit differential\-: $(da[i:0], db[i:0] \rightarrow dc[i:0])$. \-The recursion proceeds only if this probability is not less than the threshold {\ttfamily p\-\_\-thres}. \-When i = n, the differential $(da[n-1:0], db[n-1:0] \rightarrow dc[n-1:0])$ is stored in an \-S\-T\-L multiset structure (internally implemented as a \-Red-\/\-Black tree).
+
+\-The {\bfseries complexity} is strongly dependent on the threshold and is worst-\/case exponential in the word size\-: $O(2^{3n})$.
+
+\begin{DoxyNote}{\-Note}
+\-If {\ttfamily p\-\_\-thres} = 0.\-0 then the full \-D\-D\-T is computed. 
+
+\-Can be used also to compute all differentials that have non-\/zero probability by setting p\-\_\-thres $>$ 0.\-0 . 
+
+\-For 32 bit words, recommended values for the threshold are p\-\_\-thres $>$= 0.\-7.
+\end{DoxyNote}
+
+\begin{DoxyParams}{\-Parameters}
+{\em k} & current bit position in the recursion. \\
+\hline
+{\em n} & word size. \\
+\hline
+{\em p\-\_\-thres} & probability threshold. \\
+\hline
+{\em \-A} & transition probability matrices for $\mathrm{xdp}^{+}$ (\hyperlink{xdp-add_8hh_af484105ee4ba34f7f20d63b798ebe851}{xdp\-\_\-add\-\_\-sf}). \\
+\hline
+{\em \-C} & unit column vector for computing $\mathrm{xdp}^{+}$ (\hyperlink{xdp-add_8hh_a25473697bd215fe5eb997574be30e6f3}{xdp\-\_\-add}). \\
+\hline
+{\em da} & first input difference. \\
+\hline
+{\em db} & second input difference. \\
+\hline
+{\em dc} & output difference. \\
+\hline
+{\em p} & probability of the differential $(da[k:0], db[k:0] \rightarrow dc[k:0])$. \\
+\hline
+{\em diff\-\_\-set} & set of all differentials with probability not less than the threshold (the p\-D\-D\-T) \\
+\hline
+\end{DoxyParams}
