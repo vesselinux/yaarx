@@ -1,5 +1,7 @@
 YAARX: Yet Another ARX Toolkit for Analysis of ARX Cryptographic Algorithms
 
+Note: the full documentation of YAARX is available at: https://github.com/vesselinux/yaarx .
+
 What is YAARX?
 
 YAARX is a set of programs for the differential analysis of ARX cryptographic algorithms. The latter represent a broad class of symmetric-key algorithms designed by combining a small set of simple operations such as modular addition, bit rotation, bit shift and XOR. The more notable representatives of the ARX class of algorithms are the block ciphers FEAL, RC5, TEA and XTEA, the stream cipher Salsal20, the hash functions MD4, MD5, Skein and BLAKE as well as the recently proposed hash function for short messages SipHash.
@@ -21,7 +23,3 @@ Such a case is likely to occur when one wants to automatically search for differ
 Compilation
 
 For successful compilation it is required to install the development version of the GNU Scientific Library (GSL) and the Multiprecision arithmetic library (GMP) developers tools. Under Ubuntu/Debian Linux the name of the packages are resp. libgsl0-dev and libgmp-dev. After downloading the YAARX source code, it can be compiled by running the make command from within the top directory of the source tree. The pre-compiled programs are stored in the ./bin directoy . 
-
-Documentation
-
-The full documentation of YAARX is available at: https://github.com/vesselinux/yaarx .
