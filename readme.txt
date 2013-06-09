@@ -8,7 +8,7 @@ What About Other ARX Tools?
 
 YAARX complements existing toolkits such as ARXtools (http://www.di.ens.fr/~leurent/arxtools.html) and significantly extends others, such as The S-function Toolkit (http://www.ecrypt.eu.org/tools/s-function-toolkit) . More specifically, YAARX provides methods for the computation of the differential probabilities of various ARX operations (XOR, modular addition, multiplication, bit shift, bit rotation) as well as of several larger components built from them. YAARX also provides means to search for high-probability differential trails in ARX algorithms in a fully automatic way. The latter has been a notoriously difficult task for ciphers that do not have S-boxes, such as ARX. 
 
-How Can YAARX Help Me?
+How Can YAARX Help You?
 
 YAARX can help the cryptanalyst in the process of analyzing ARX-based constructions in at least two ways. The first one is to use the tools to directly compute differential probabilities for a target cipher. To this end YAARX provides a set of programs for the computation of the differential probabilities (DP) of several operations with user provided inputs. Such are for example the programs for computing the DP of modular addition, XOR, bit shift, bit rotation, etc. 
 
