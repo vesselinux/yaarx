@@ -19,30 +19,25 @@
  *    along with YAARX.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * \file  threefish.hh
+ * \file  threefish-xor.hh
  * \author V.Velichkov, vesselin.velichkov@uni.lu
  * \date 2012-2013
- * \brief Header file for threefish.cc: \copybrief threefish.cc.
+ * \brief Header file for threefish.cc: \copybrief threefish-xor.cc.
  */ 
-#ifndef THREEFISH_H
-#define THREEFISH_H
+#ifndef THREEFISH_XOR_H
+#define THREEFISH_XOR_H
 
-#define THREEFISH_MAX_NROUNDS 20
+void xdp_add_dset_threefish32_mix(gsl_matrix* A[3][3][3], 
+											 diff_set_t DX[4], diff_set_t DY[4], double P[4],
+											 uint32_t rot_const_0, uint32_t rot_const_1,
+											 bool b_single_diff);
 
-#ifndef XDP_ADD_DIFF_SET_H
-#include "xdp-add-diff-set.hh"
-#endif
+double xdp_add_dset_threefish32(uint32_t nrounds, uint32_t rot_const[THREEFISH_MAX_NROUNDS][2], 
+										  gsl_matrix* A[3][3][3],
+										  diff_set_t DX_in[4], diff_set_t DY_in[4],
+										  diff_set_t DT[THREEFISH_MAX_NROUNDS][4], double P[THREEFISH_MAX_NROUNDS][4]);
 
-extern uint32_t g_threefish32_rot_const[12][2];
+double xdp_add_dset_threefish32_exper(uint32_t nrounds, uint32_t rot_const[THREEFISH_MAX_NROUNDS][2], 
+												  uint32_t npairs, uint32_t DX[4], diff_set_t DY_set[4]);
 
-void threefish32_print_dset(diff_set_t DX[4]);
-
-void threefish32_mix(uint32_t X[4], uint32_t rot_const_0, uint32_t rot_const_1);
-
-void threefish32(uint32_t nrounds, uint32_t rot_const[THREEFISH_MAX_NROUNDS][2], uint32_t X[4], uint32_t Y[4]);
-
-void threefish32_print_prob(double P[4]);
-
-void threefish32_print_dset_trail(uint32_t nrounds, diff_set_t DT[THREEFISH_MAX_NROUNDS][4], double P[THREEFISH_MAX_NROUNDS][4]);
-
-#endif  // #ifndef THREEFISH_H
+#endif  // #ifndef THREEFISH_XOR_H

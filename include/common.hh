@@ -95,7 +95,7 @@
 #define NPAIRS (1ULL << 15) /**< Number of chosen plaintext pairs used in experimentally verifying differential probabilities. */
 #endif
 #ifndef NROUNDS
-#define NROUNDS 20//20//32//20//13//20//9 /**< Number of rounds in reduced-round versions of block ciphers TEA and XTEA. */
+#define NROUNDS 1//20//20//32//20//13//20//9 /**< Number of rounds in reduced-round versions of block ciphers TEA and XTEA. */
 #endif
 #ifndef NDELTA
 #define NDELTA (NROUNDS / 2) /**< Number round  constants in TEA/XTEA. */

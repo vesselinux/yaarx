@@ -19,30 +19,17 @@
  *    along with YAARX.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * \file  threefish.hh
+ * \file  threefish-add.cc
  * \author V.Velichkov, vesselin.velichkov@uni.lu
- * \date 2012-2013
- * \brief Header file for threefish.cc: \copybrief threefish.cc.
+ * \brief Analysis of block cipher Threefish w.r.t. ADD differences.
  */ 
+#ifndef COMMON_H
+#include "common.hh"
+#endif
 #ifndef THREEFISH_H
-#define THREEFISH_H
-
-#define THREEFISH_MAX_NROUNDS 20
-
-#ifndef XDP_ADD_DIFF_SET_H
-#include "xdp-add-diff-set.hh"
+#include "threefish.hh"
+#endif
+#ifndef THREEFISH_ADD_H
+#include "threefish-add.hh"
 #endif
 
-extern uint32_t g_threefish32_rot_const[12][2];
-
-void threefish32_print_dset(diff_set_t DX[4]);
-
-void threefish32_mix(uint32_t X[4], uint32_t rot_const_0, uint32_t rot_const_1);
-
-void threefish32(uint32_t nrounds, uint32_t rot_const[THREEFISH_MAX_NROUNDS][2], uint32_t X[4], uint32_t Y[4]);
-
-void threefish32_print_prob(double P[4]);
-
-void threefish32_print_dset_trail(uint32_t nrounds, diff_set_t DT[THREEFISH_MAX_NROUNDS][4], double P[THREEFISH_MAX_NROUNDS][4]);
-
-#endif  // #ifndef THREEFISH_H

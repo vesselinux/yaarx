@@ -213,6 +213,7 @@ double max_adp_f_exper_fixed_key_all(const uint32_t da, uint32_t* db,
 												 const uint32_t k0, const uint32_t k1, const uint32_t delta,
 												 uint32_t lsh_const, uint32_t rsh_const)
 {
+#if(WORD_SIZE <= 10)
   uint64_t N = ALL_WORDS;
   uint32_t db_max = 0;
   uint32_t D[ALL_WORDS];
@@ -244,6 +245,9 @@ double max_adp_f_exper_fixed_key_all(const uint32_t da, uint32_t* db,
   }
   *db = db_max;
   return p_max;
+#else
+  return 0.0;
+#endif  // #if(WORD_SIZE <= 10)
 }
 
 /**

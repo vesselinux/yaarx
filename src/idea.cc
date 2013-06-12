@@ -242,6 +242,8 @@ void test_idea_lin()
 {
   assert(WORD_SIZE == 16);
 
+  uint32_t Y_cnt[16] = {0};
+
   long **K;
   // fix key to random
   ushort key[8] = {0xFD01, 0x3631, 0xFF19, 0x6C15, 0x8F26, 0x96BE, 0xCAE8, 0x15FE};
@@ -268,13 +270,16 @@ void test_idea_lin()
   }
   IDEA_encryption_key_schedule(key, K);
 
+  const uint32_t rand_const = 0x1963;//random32() & MASK;
+  uint32_t all_one = 0xFFFF;
+  printf("#--- rand_const = %8X\n", rand_const);
   for(uint32_t q = 0; q < 1; q++) { // index of active difference
 
 	 ushort DX[4] = {0, 0, 0, 0};
 	 for(uint32_t j = 0; j < 4; j++) {
-		DX[j] = 0;
+		DX[j] = 0;//random32() & MASK;//0;
 	 }
-	 DX[q] = 1;						  // D[0] = alpha
+	 DX[q] = 1;//0x8000;//1;// random32() & MASK;//1;//0x8000;						  // D[0] = alpha
 
 	 printf("#--- [%s:%d] DX = (%8X %8X %8X %8X)\n", __FILE__, __LINE__, DX[0], DX[1], DX[2], DX[3]);
 
@@ -290,14 +295,16 @@ void test_idea_lin()
 		ushort Y2[4] = {0, 0, 0, 0};
 
 		for(uint32_t j = 0; j < 4; j++) {
-		  X1[j] = random32() & 0xFFFF;
+		  X1[j] = rand_const;//random32() & 0xFFFF;
 		  X2[j] = ADD(DX[j], X1[j]);
+#if 1
 		  if(j != 0) {
 			 assert(X1[j] == X2[j]);
 		  }
+#endif
 		}
-		//		X1[0] = i;
-		//		X2[0] = ADD(DX[0], X1[0]);
+		X1[q] = i;
+		X2[q] = ADD(DX[q], X1[q]);
 
 		IDEA_LIN_encryption(X1, Y1, K);
 		IDEA_LIN_encryption(X2, Y2, K);
@@ -316,7 +323,7 @@ void test_idea_lin()
 		  Y2[j] = 0;
 		}
 
-		{
+		if(1) {
 		  uint32_t r = 0;
 
 		  // execution 1
@@ -328,8 +335,10 @@ void test_idea_lin()
 		  uint32_t x1 = add(X1[1], K[r][1]);
 		  uint32_t t1 = multiply(K[r][5], add(t0, x1 ^ x3));
 		  //	  uint32_t t2 = add(t0, t1);
-
-		  //		  t1 = t1 ^ x0;
+#if 0
+		  t1 = t1 ^ x0;
+		  t1 = multiply(t1, K[r+1][0]);
+#endif
 		  //		  t1 = add(t1, x0);
 
 		  // exectution 2
@@ -341,39 +350,88 @@ void test_idea_lin()
 		  uint32_t xx1 = add(X2[1], K[r][1]);
 		  uint32_t tt1 = multiply(K[r][5], add(tt0, xx1 ^ xx3));
 		  //		  uint32_t tt2 = add(tt0, tt1);
-
-		  //		  tt1 = tt1 ^ xx0;
+#if 0
+		  tt1 = tt1 ^ xx0;
+		  tt1 = multiply(tt1, K[r+1][0]);
+#endif
 		  //		  tt1 = add(tt1, xx0);
 
 		  // differences
-		  //		  uint32_t dx0 = SUB(xx0, x0);
-		  //		  uint32_t dt0 = SUB(tt0, t0);
-		  uint32_t dt1 = SUB(tt1, t1);
 		  //		  uint32_t dt2 = SUB(tt2, t2);
-
+		  //		  uint32_t dt0 = SUB(tt0, t0);
 		  //		  printf("%6d %6d\n", i, dt0);
-		  printf("%6d %6d\n", i, dt1);
+		  uint32_t dt1 = SUB(tt1, t1);
+#if 1
+		  for(uint32_t k = 0; k < 16; k++) {
+			 uint32_t t = (dt1 >> k) & 1;
+			 if(t == 1) {
+				Y_cnt[k]++;
+			 }
+		  }
+#endif
+		  uint32_t mid = (1U << 15);
+		  printf("%6d %6d ", i, dt1);
+		  printf("# %8X ", dt1);
+		  print_binary(dt1);
+		  printf(" | ");
+		  for(uint32_t k = 0; k < 16; k++) {
+			 //			 printf("%4d ", abs(mid - Y_cnt[k]));
+			 printf("%4d ", Y_cnt[k]);
+		  }
+		  printf(" | %d ", mid);
+		  printf("\n");
+		  all_one &= dt1;
+		  //		  uint32_t dx0 = SUB(xx0, x0);
 		  //		  printf("%6d %6d\n", i, dx0);
 		}
 
 		IDEA_encryption(X1, Y1, K);
 		IDEA_encryption(X2, Y2, K);
-
 		for(uint32_t j = 0; j < 4; j++) {
 		  DY[j] = SUB(Y2[j], Y1[j]);
 		}
+#if 0
+		for(uint32_t k = 0; k < 16; k++) {
+		  uint32_t t = (DY[0] >> k) & 1;
+		  if(t == 1) {
+			 Y_cnt[k]++;
+		  }
+		}
+#endif
 #if 0
 		printf("%6d ", i);
 		printf("%6d ", DY[q]);
 		printf("\n");
 #endif
+		//		printf("| %8X %8X %8X %8X |", DY_lin[0], DY_lin[1], DY_lin[2], DY_lin[3]);
+		//		printf("| %8X %8X %8X %8X |", DY[0], DY[1], DY[2], DY[3]);
+#if 0
+		printf("%8X %8X | ", Y1[0], Y2[0]);
+		printf("%8X %8X | ", Y1[1], Y2[1]);
+		printf("%8X %8X | ", Y1[2], Y2[2]);
+		printf("%8X %8X | ", Y1[3], Y2[3]);
+#endif
 	 }
+
 #if 0
 	 printf("%6d ", N);
 	 printf("%6d ", coeff);
 	 printf("\n");
 #endif
   }
+
+  printf("# %8X ", all_one);
+  print_binary(all_one);
+  printf("\n");
+
+#if 1
+  printf("# [%s:%d] Bit-level biases Y0[k] == 0:\n", __FILE__, __LINE__);
+  for(uint32_t k = 0; k < 16; k++) {
+	 double p = (double)Y_cnt[k] / (double)(1U << 16);
+	 double eps = fabs(0.5 - p);
+	 printf("# %6d: %6d | %f (2^%f) | %f (2^%f)\n", k, Y_cnt[k], p, log2(p), eps, log2(eps));
+  }
+#endif
 
   // free K
   for(uint32_t i = 0; i < 9; i++) {

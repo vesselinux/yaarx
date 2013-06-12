@@ -36,8 +36,11 @@
 #ifndef THREEFISH_H
 #include "threefish.hh"
 #endif
+#ifndef THREEFISH_XOR_H
+#include "threefish-xor.hh"
+#endif
 
-void test_xdp_add_dset_threefish()
+void test_xdp_add_dset_threefish32()
 {
   uint32_t nrounds = 12;
   gsl_matrix* AA[2][2][2];		  // xdp-add-dset
@@ -48,8 +51,8 @@ void test_xdp_add_dset_threefish()
   xdp_add_dset_alloc_matrices_all(A);
   xdp_add_dset_gen_matrices_all(A, AA);
 
-  uint32_t rot_const[MAX_NROUNDS][2] = {{0,0}};
-  for(uint32_t i = 0; i < MAX_NROUNDS; i++) {
+  uint32_t rot_const[THREEFISH_MAX_NROUNDS][2] = {{0,0}};
+  for(uint32_t i = 0; i < THREEFISH_MAX_NROUNDS; i++) {
 	 while(rot_const[i][0] == 0) {
 		rot_const[i][0] = {random32() % WORD_SIZE};
 	 }
@@ -60,8 +63,8 @@ void test_xdp_add_dset_threefish()
 
 #if 1									  // fixed constants
   for(uint32_t i = 0; i < nrounds; i++) {
-	 rot_const[i][0] = g_threefish_rot_const[i][0];
-	 rot_const[i][1] = g_threefish_rot_const[i][1];
+	 rot_const[i][0] = g_threefish32_rot_const[i][0];
+	 rot_const[i][1] = g_threefish32_rot_const[i][1];
   }
 #endif
 
@@ -89,7 +92,7 @@ void test_xdp_add_dset_threefish()
 
   DX_set[0].diff = (1U << (WORD_SIZE - 1)); 
   // DX_set[0].diff = 1U << random32() % WORD_SIZE;
-  //  DX_set[0].diff = random32() & MASK;
+  // DX_set[0].diff = random32() & MASK;
   // DX_set[0].diff = gen_sparse(1, WORD_SIZE);
   // DX_set[1].diff = gen_sparse(1, WORD_SIZE);
   // DX_set[2].diff = gen_sparse(1, WORD_SIZE);
@@ -99,13 +102,13 @@ void test_xdp_add_dset_threefish()
   // DX_set[2].diff = random32() & MASK;
   // DX_set[3].diff = random32() & MASK;
 
-  diff_set_t DT[MAX_NROUNDS][4] = {{{0,0}}};
-  double PT[MAX_NROUNDS][4] = {{0.0}};
+  diff_set_t DT[THREEFISH_MAX_NROUNDS][4] = {{{0,0}}};
+  double PT[THREEFISH_MAX_NROUNDS][4] = {{0.0}};
 
-  double p_set = xdp_add_dset_threefish(nrounds, rot_const, A, DX_set, DY_set, DT, PT);
+  double p_set = xdp_add_dset_threefish32(nrounds, rot_const, A, DX_set, DY_set, DT, PT);
 
   printf("[%s:%d] Dset trail prob %f (2^%f)\n", __FILE__, __LINE__, p_set, log2(p_set));
-  threefish_print_trail(nrounds, DT, PT);
+  threefish32_print_dset_trail(nrounds, DT, PT);
 
 #if 1									  // DEBUG
   printf("[%s:%d]      Input diff: ", __FILE__, __LINE__);
@@ -126,7 +129,7 @@ void test_xdp_add_dset_threefish()
 #endif
 
   uint32_t npairs = (1U << 20);
-  p_exp = xdp_add_dset_threefish_exper(nrounds, rot_const, npairs, DX, DY_set);
+  p_exp = xdp_add_dset_threefish32_exper(nrounds, rot_const, npairs, DX, DY_set);
   printf("[%s:%d] Experimental prob: %f (2^%f)\n", __FILE__, __LINE__, p_exp, log2(p_exp));
   printf("[%s:%d]\n THE %f (2^%f),\n EXP %f (2^%f), NPAIRS 2^%f\n", __FILE__, __LINE__, p_set, log2(p_set), p_exp, log2(p_exp), log2(npairs));
 
@@ -142,6 +145,6 @@ int main()
   printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
   srandom(time(NULL));
 
-  test_xdp_add_dset_threefish();
+  test_xdp_add_dset_threefish32();
   return 0;
 }

@@ -78,11 +78,12 @@ void IDEA_encryption(ushort *X_in, ushort *Y, long **K)
     printf(" | %4x %4x %4x %4x\n", X[0], X[1], X[2], X[3]);
 #endif
   }
+#if 1
   Y[0] = X[0];
   Y[3] = X[3];
   Y[1] = X[2];
   Y[2] = X[1];
-#if 0
+#else
   Y[0] = multiply(X[0], K[nrounds][0]);
   Y[3] = multiply(X[3], K[nrounds][3]);
   Y[1] = add(X[2], K[nrounds][1]);
@@ -147,11 +148,12 @@ void IDEA_LIN_encryption(ushort *X_in, ushort *Y, long **K)
 #endif  // DEBUG
   }
 
-#if 0
+#if 1
   Y[0] = X[0];
   Y[3] = X[3];
   Y[1] = X[2];
   Y[2] = X[1];
+#else
 #if 0	 // original IDEA
   Y[0] = multiply(X[0], K[nrounds][0]);
   Y[3] = multiply(X[3], K[nrounds][3]);

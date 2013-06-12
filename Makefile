@@ -82,7 +82,7 @@ adp-mul.o:
 IDEA_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)idea.o
 
 idea: common.o idea.o
-	$(CC) $(LFLAGS) $(ADP_MUL_TESTS_OBJ) -o $(BIN_PATH)idea $(GSL_LIB)
+	$(CC) $(LFLAGS) $(IDEA_TESTS_OBJ) -o $(BIN_PATH)idea $(GSL_LIB)
 
 idea.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)idea.cc -o $(OBJ_PATH)idea.o
@@ -107,9 +107,9 @@ xdp-add-diff-set-tests.o:
 
 # --- THREEFISH ---
 
-THREEFISH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)threefish.o $(OBJ_PATH)threefish-tests.o
+THREEFISH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)threefish.o $(OBJ_PATH)threefish-xor.o $(OBJ_PATH)threefish-add.o $(OBJ_PATH)threefish-tests.o
 
-threefish-tests: common.o xdp-add.o max-xdp-add.o xdp-add-diff-set.o threefish.o threefish-tests.o
+threefish-tests: common.o xdp-add.o max-xdp-add.o xdp-add-diff-set.o threefish.o threefish-xor.o threefish-add.o threefish-tests.o
 	$(CC) $(LFLAGS) $(THREEFISH_TESTS_OBJ) -o $(BIN_PATH)threefish-tests $(GSL_LIB)
 
 threefish-tests.o: 
@@ -117,6 +117,12 @@ threefish-tests.o:
 
 threefish.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)threefish.cc -o $(OBJ_PATH)threefish.o
+
+threefish-xor.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)threefish-xor.cc -o $(OBJ_PATH)threefish-xor.o
+
+threefish-add.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)threefish-add.cc -o $(OBJ_PATH)threefish-add.o
 
 # --- SALSA ---
 
