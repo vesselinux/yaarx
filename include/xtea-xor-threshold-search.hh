@@ -42,11 +42,17 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
 										 uint32_t dxx_init, uint32_t* dxx_init_in);
 
 //void xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64]);
+//uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64],
+//										 double B[NROUNDS], differential_t trail[NROUNDS]);
 uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64],
+										 std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy,
+										 std::multiset<differential_t, struct_comp_diff_p>* diff_mset_p,
 										 double B[NROUNDS], differential_t trail[NROUNDS]);
 
 //void xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64]);
 uint32_t xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64],
+												std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy,
+												std::multiset<differential_t, struct_comp_diff_p> diff_mset_p,
 												double BB[NROUNDS], differential_t trail[NROUNDS]);
 
 #endif  // #ifndef XTEA_XOR_THRESHOLD_SEARCH_H

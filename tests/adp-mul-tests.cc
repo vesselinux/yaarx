@@ -33,15 +33,15 @@
 
 void test_adp_mul()
 {
-  uint32_t x = random32() & MASK;
-  uint32_t y = random32() & MASK;
+  uint32_t x = xrandom() & MASK;
+  uint32_t y = xrandom() & MASK;
   uint32_t z = MUL(x, y);
 
   printf("[%s:%d] %d %d = %d\n", __FILE__, __LINE__, x, y, z);
 
-  uint32_t da = random32() & MASK;
-  uint32_t db = random32() & MASK;
-  uint32_t dc = random32() & MASK;
+  uint32_t da = xrandom() & MASK;
+  uint32_t db = xrandom() & MASK;
+  uint32_t dc = xrandom() & MASK;
   assert(WORD_SIZE <= 10);
 
   uint64_t N = (1ULL << WORD_SIZE);

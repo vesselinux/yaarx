@@ -67,21 +67,22 @@ extern uint32_t XDP_ADD_DSET_ISTATES[XDP_ADD_DSET_NISTATES];
  */
 struct diff_set_t
 {
-  uint32_t diff;
-  uint32_t fixed; /**< 0 means fixed; 1 means not fixed. */
+  WORD_T diff;
+  WORD_T fixed; /**< 0 means fixed; 1 means not fixed. */
 };
 
 bool is_dset_equal(const diff_set_t da_set, const diff_set_t db_set);
-
 uint64_t xdp_add_dset_size(diff_set_t da_set);
-
-void xdp_add_input_diff_to_output_dset(uint32_t da, uint32_t db, diff_set_t* dc_set);
-
-void xdp_add_dset_gen_diff_all(const diff_set_t dc_set, std::vector<uint32_t>* dc_set_all);
+void xdp_add_input_diff_to_output_dset(WORD_T da, WORD_T db, 
+													diff_set_t* dc_set);
+void xdp_add_dset_gen_diff_all(const diff_set_t dc_set, 
+										 std::vector<WORD_T>* dc_set_all);
+void xdp_add_dset_gen_diff_hamming_limit(const diff_set_t dc_set, const uint32_t hw_limit,
+													  std::vector<WORD_T>* dc_set_all);
 
 void xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set, 
 													 const diff_set_t db_set,
-													 uint32_t da[2], uint32_t db[2]);
+													 WORD_T da[2], WORD_T db[2]);
 
 void xdp_add_input_dset_to_output_dset(gsl_matrix* AA[2][2][2],
 													const diff_set_t da_set, 
@@ -168,7 +169,6 @@ double max_xdp_add_dset_exper(gsl_matrix* A[2][2][2],
 double max_xdp_add_dset(const diff_set_t da_set,
 								const diff_set_t db_set,
 								diff_set_t* dc_set);
-
 //diff_set_t xor_dset(diff_set_t da_set_in, diff_set_t db_set_in, double* p, bool b_single_diff);
 diff_set_t xor_dset(diff_set_t da_set, diff_set_t db_set);
 

@@ -65,15 +65,25 @@ void test_xtea_xor_trail_search()
   }
 #endif
 
-#if 1
-  printf("[%s:%d] Computing pDDT. It may take up to 1 minute. Please wait...\n", __FILE__, __LINE__);
-  uint32_t nrounds = xtea_xor_trail_search(key, round_key, round_delta, B, trail);
-#endif
+  std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy; // Dxy
+  std::multiset<differential_t, struct_comp_diff_p> diff_mset_p;	 // Dp
 
 #if 1
   printf("[%s:%d] Computing pDDT. It may take up to 1 minute. Please wait...\n", __FILE__, __LINE__);
+  uint32_t nrounds = xtea_xor_trail_search(key, round_key, round_delta, &diff_set_dx_dy, &diff_mset_p, B, trail);
+#endif
+
+#if 1
+
+  //  printf("BEFORE XTEA_XOR_P_THRES %f\n", XTEA_XOR_P_THRES);
+  //#undef XTEA_XOR_P_THRES
+  //#define XTEA_XOR_P_THRES 0.01
+  //  printf("\n AFTER XTEA_XOR_P_THRES %f\n\n", XTEA_XOR_P_THRES);
+
+  //  printf("[%s:%d] Computing pDDT. It may take up to 1 minute. Please wait...\n", __FILE__, __LINE__);
   differential_t trail_full[NROUNDS] = {{0, 0, 0, 0.0}};
-  uint32_t nrounds_full = xtea_xor_trail_search_full(key, round_key, round_delta, B, trail_full);
+  uint32_t nrounds_full = xtea_xor_trail_search_full(key, round_key, round_delta, diff_set_dx_dy, diff_mset_p, B, trail_full);
+  //  uint32_t nrounds = nrounds_full;
 #endif
 
   printf("[%s:%d] \n----- End search -----\n", __FILE__, __LINE__);

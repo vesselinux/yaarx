@@ -657,7 +657,8 @@ double nz_xdp_xtea_f(gsl_matrix* A[2][2][2], const uint32_t dx, uint32_t* dy,
 							uint32_t lsh_const, uint32_t rsh_const)
 {
   uint32_t dx_lxr = LSH(dx, lsh_const) ^ RSH(dx, rsh_const);
-  double p = max_xdp_add(A, dx_lxr, dx, dy);
+  //  double p = max_xdp_add(A, dx_lxr, dx, dy);
+  double p = max_xdp_add_lm(dx_lxr, dx, dy);
 
   return p;
 }

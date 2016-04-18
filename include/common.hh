@@ -36,6 +36,34 @@
 #define CASSERT_H	 /**< C++ cassert */
 #include <cassert>
 #endif
+#ifndef SSTREAM_H
+#define SSTREAM_H	 /**< C++ sstream */
+#include <sstream>
+#endif
+#ifndef SYS_TIME_H
+#define SYS_TIME_H	 /**< C time header */
+#include <sys/time.h> // gettimeofday
+#endif
+#ifndef MAP_H
+#define MAP_H	 /**< C++ map */
+#include <map>
+#endif
+#ifndef UNORDERED_MAP_H
+#define UNORDERED_MAP_H	 /**< C++ unordered_map */
+#include <unordered_map>
+#endif
+#ifndef BOOST_FUNCTIONAL_HASH_H
+#define BOOST_FUNCTIONAL_HASH_H	 /**< C++ STL Boost hash */
+#include <boost/functional/hash.hpp>
+#endif
+#ifndef BOOST_ALGORITHM_STRING_PREDICATE_H
+#define BOOST_ALGORITHM_STRING_PREDICATE_H	 /**< C++ STL Boost algorithm */
+#include <boost/algorithm/string/predicate.hpp>
+#endif
+#ifndef BOOST_UNORDERED_MAP_H
+#define BOOST_UNORDERED_MAP_H	 /**< C++ STL Boost unordered map */
+#include <boost/unordered_map.hpp>
+#endif
 #ifndef MATH_H
 #define MATH_H /**< math.h */
 #include <math.h>
@@ -43,6 +71,10 @@
 #ifndef STRING_H
 #define STRING_H /**< string.h */
 #include <string.h>
+#endif
+#ifndef IOMANIP_H
+#define IOMANIP_H	/**< C++ iomanip */
+#include <iomanip>				  // setfill setw
 #endif
 #ifndef GSL_BLAS_H
 #define GSL_BLAS_H /**< GSL gsl/gsl_blas.h */
@@ -56,28 +88,50 @@
 #define STL_VECTOR_H /**< STL vector */
 #include <vector>  
 #endif
+#ifndef STL_ARRAY_H
+#define STL_ARRAY_H /**< STL array */
+#include <array>
+#endif
 #ifndef STL_SET_H
 #define STL_SET_H	/**< STL set */
 #include <set>  
 #endif
 #ifndef GMP_H
 #define GMP_H
-#include <gmp.h>
+#include <gmp.h> /** GMP library */
 #endif
 #ifndef GMPXX_H
 #define GMPXX_H
-#include <gmpxx.h>
+#include <gmpxx.h> /** GMPXX library */
 #endif
+#ifndef CHRONO_H
+#define CHRONO_H
+#include <chrono>
+#endif
+//#ifndef GVC_H
+//#define GVC_H
+//#include <gvc.h> /**< GraphViz library */
+//#endif
 
 // Macros
+#define NROUNDS_MAX 10 /**< Max. number of rounds */
 #ifndef WORD_SIZE
-#define WORD_SIZE 32			  /**< Word size in  bits. */
+#define WORD_SIZE 3 /**< Word size in  bits. */
+#endif
+#ifndef NROUNDS
+#define NROUNDS 4 /**< Number of rounds in reduced-round versions of target ciphers. */
 #endif
 #ifndef ALL_WORDS
 #define ALL_WORDS (1ULL << WORD_SIZE) /**< Total number of words of size WORD_SIZE. */
 #endif
 #ifndef MASK
-#define MASK (0xffffffff >> (32 - WORD_SIZE)) /**< A mask for the WORD_SIZE LS bits of a 32-bit word. */
+#if(WORD_SIZE <= 32)
+#define MASK (0xffffffffUL >> (32 - WORD_SIZE)) /**< A mask for the WORD_SIZE LS bits of a 32-bit word. */
+#define MASK_NO_MSB (0xffffffffUL >> (32 - (WORD_SIZE - 1)))
+#else // #if(WORD_SIZE > 32)
+#define MASK (0xffffffffffffffffULL >> (64 - WORD_SIZE)) /**< A mask for the WORD_SIZE LS bits of a 32-bit word. */
+#define MASK_NO_MSB (0xffffffffffffffffULL >> (64 - (WORD_SIZE - 1)))
+#endif // #if(WORD_SIZE <= 32)
 #endif
 #ifndef MOD
 #define MOD (1ULL << WORD_SIZE) /**< The value 2^{WORD_SIZE}. */
@@ -94,12 +148,22 @@
 #ifndef NPAIRS
 #define NPAIRS (1ULL << 15) /**< Number of chosen plaintext pairs used in experimentally verifying differential probabilities. */
 #endif
-#ifndef NROUNDS
-#define NROUNDS 1//20//20//32//20//13//20//9 /**< Number of rounds in reduced-round versions of block ciphers TEA and XTEA. */
-#endif
 #ifndef NDELTA
 #define NDELTA (NROUNDS / 2) /**< Number round  constants in TEA/XTEA. */
 #endif
+
+#ifndef WORD_T // abstract word type
+#if (WORD_SIZE <= 32)
+#define WORD_T uint32_t
+#else
+#define WORD_T uint64_t
+#endif // #if (WORD_SIZE <= 32)
+#endif // #ifndef WORD
+#ifndef WORD_MAX_T // max word type on the target system
+#define WORD_MAX_T long long unsigned int // = uint64_t
+#endif // #ifdef WORD_MAX_T
+
+#define LOG0 -10000
 
 #ifndef XOR
 #define XOR(x,y) ((x ^ y) & MASK) /**< The XOR operation on words of size \ref WORD_SIZE */
@@ -108,8 +172,15 @@
 #define ADD(x,y) ((x + y) & MASK) /**< The ADD operation on words of size \ref WORD_SIZE */
 #endif
 #ifndef SUB
-#define SUB(x,y) ((uint32_t)(x - y + MOD) & MASK) /**< The modular subtraction (SUB) operation on words of size \ref WORD_SIZE */
-#endif
+#if(WORD_SIZE < 64)
+#define SUB(x,y) ((WORD_T)(x - y + MOD) & MASK) /**< The modular subtraction (SUB) operation on words of size \ref WORD_SIZE */
+#else // #if(WORD_SIZE == 64)
+#define SUB(x,y) ((WORD_T)(x - y)) /**< The modular subtraction (SUB) operation on words of size 64-bit */
+#endif // #if(WORD_SIZE < 64)
+#endif // #ifndef SUB
+//#ifndef SUBMODN
+//#define SUBMODN(a,b,n) (((a - b) + n)  % (n)) /**< subtraction modulo n: (a - b) mod n */
+//#endif // #ifndef SUBMODN
 #ifndef LSH
 #define LSH(x,r) ((x << r) & MASK) /**< Left bit shift by r positions on word x of size \ref WORD_SIZE */
 #endif
@@ -138,11 +209,11 @@
 /** 
  *  DEBUG flags for test files.
  */
-#define DEBUG_XDP_ADD_TESTS 0
+#define DEBUG_XDP_ADD_TESTS 1
 #define DEBUG_MAX_XDP_ADD_TESTS 0
-#define DEBUG_ADP_XOR_TESTS 0
+#define DEBUG_ADP_XOR_TESTS 1
 #define DEBUG_ADP_XOR3_TESTS 0
-#define DEBUG_MAX_ADP_XOR_TESTS 0
+#define DEBUG_MAX_ADP_XOR_TESTS 1//0
 #define DEBUG_ADP_XOR_FI_TESTS 0
 #define DEBUG_MAX_ADP_XOR_FI_TESTS 0
 #define DEBUG_MAX_ADP_XOR3_TESTS 0
@@ -162,11 +233,22 @@
 #define DEBUG_ADP_TEA_F_FK 0
 #define DEBUG_XDP_TEA_F_FK 0
 
+//uint32_t hw32(const uint32_t x);
+uint32_t hamming_weight(const WORD_T w);
+
+/** 
+ * Hamming weight of a WORD-bit word (efficient).
+ */
+static inline int builtin_hamming_weight(const WORD_T w)
+{
+	return __builtin_popcountll(w);
+}
+
 /**
  * A difference structure.
  */
 typedef struct {
-  uint32_t dx; /**< A difference. */
+  WORD_T dx; /**< A difference. */
   double p;		/**< Probability with which dx holds. */
 } difference_t;
 
@@ -177,21 +259,33 @@ typedef struct {
  * The differential holds with probability p.
  */
 typedef struct {
-  uint32_t da;	/**< Input difference. */
-  uint32_t db; /**< Input difference. */
-  uint32_t dc; /**< Output difference. */
+  WORD_T dx;	/**< Input difference. */
+  WORD_T dy; /**< Input difference. */
+  WORD_T dz; /**< Output difference. */
   double p; /**< Probability of the differential. */
+  int log2p; /**< Log base 2 of the probability p: log2p = log2(p)*/
 } differential_3d_t;
 
 /**
   * A differential composed of two differences.
   */
 typedef struct {
-  uint32_t dx; /**< Input difference. */
-  uint32_t dy; /**< Input difference. */
-  uint32_t npairs; /**< Number of right pairs. */
+  WORD_T dx; /**< Input difference. */
+  WORD_T dy; /**< Output difference. */
+  WORD_T npairs; /**< Number of right pairs. */
   double p;	/**< Probability of the differential. */
 } differential_t;
+
+/**
+ * A set of values:
+ *   - If \p fixed[i] = 0, then the i-th bit of the value is fixed to \p val[i].
+ *   - If \p fixed[i] = 1, then \p val[i] can be either 0 and 1 i.e. \p val[i] = * .
+ */
+struct set_t
+{
+  WORD_T val;
+  WORD_T fixed; /**< 0 means fixed; 1 means not fixed. */
+};
 
 /**
   * Comparing 3d differentials by probability.
@@ -205,6 +299,33 @@ struct struct_comp_diff_3d_p : public std::binary_function<differential_3d_t, di
   }
 };
 
+/** 
+  * Compare two differentials a,b by the magnitute of the indexes a_idx, b_idx:
+  * lower indices are listed first. For example,
+  * the indices of the differentials a(dx,dy,p) and b(dx,dy,p) are
+  * a_idx = (a.dx 2^{2n} + a.dy 2^{n} + a.dz) = (a.dx | a.dy | a.dz) and  
+  * b_idx = (b.dx 2^{2n} + b.dy 2^{n} + b.dz) = (b.dx | b.dy | b.dz)
+  * where n is the word size and '|' denotes concatenation. Thus a_idx and b_idx are compared.
+  */ 
+struct struct_comp_diff_3d_dx_dy_dz : public std::binary_function<differential_3d_t, differential_3d_t, bool>
+{
+  inline bool operator()(differential_3d_t a, differential_3d_t b)
+  {
+	 bool b_less = true;
+
+	 if(a.dx != b.dx) {
+		b_less = (a.dx < b.dx);
+	 } else {
+		if(a.dy != b.dy) {
+		  b_less = (a.dy < b.dy);
+		} else {
+		  b_less = (a.dz < b.dz);
+		}
+	 }
+	 return b_less;
+  }
+};
+
 /**
   * Comparing 2d differentials by probability.
   */
@@ -213,6 +334,20 @@ struct struct_comp_diff_p : public std::binary_function<differential_t, differen
   bool operator()(differential_t a, differential_t b) const
   {
 	 bool b_more = (a.p > b.p);	  // higher probability first
+	 return b_more;
+  }
+};
+
+/**
+  * Comparing 2d differentials by Hamming weight of DX !!!
+  */
+struct struct_comp_diff_hw : public std::binary_function<differential_t, differential_t, bool>
+{
+  bool operator()(differential_t a, differential_t b) const
+  {
+	 uint32_t hw_a = hamming_weight(a.dx);// + hamming_weight(a.dy); 
+	 uint32_t hw_b = hamming_weight(b.dx);// + hamming_weight(b.dy); 
+	 bool b_more = (hw_a < hw_b);	  // higher HW last
 	 return b_more;
   }
 };
@@ -238,25 +373,35 @@ struct struct_comp_diff_dx_dy : public std::binary_function<differential_t, diff
   }
 };
 
+typedef unsigned long long timestamp_t;
+
+timestamp_t get_timestamp();
+
 // Function declarations
-uint32_t random32();
-
-uint32_t hw8(uint32_t x);
-
-uint32_t hw32(uint32_t x);
-
+//uint32_t random32();
+//uint64_t random64();
+WORD_T xrandom();
+uint32_t hw8(const uint32_t x);
+WORD_T parity(const WORD_T x);
 bool is_even(uint32_t i);
-
-uint32_t gen_sparse(uint32_t hw, uint32_t n);
-
-void print_binary(uint32_t n);
-
+WORD_T gen_sparse(uint32_t hw, uint32_t n);
+//void print_binary(const WORD_T n);
+//void print_binary(const WORD_T n, const uint32_t word_size);
+void print_binary(const uint64_t n);
+void print_binary(const uint64_t n, const uint32_t word_size);
 bool operator==(differential_t a, differential_t b);
-
 bool operator<(differential_t x, differential_t y);
-
+bool operator<(difference_t x, difference_t y);
 void print_set(const std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy);
-
 void print_mset(const std::multiset<differential_t, struct_comp_diff_p> diff_mset_p);
+bool sort_comp_diff_3d_p(differential_3d_t a, differential_3d_t b);
+void yaarx_alloc_matrices_3d(WORD_T**** A, uint32_t A_len);
+void yaarx_free_matrices_3d(WORD_T*** A, uint32_t A_len);
+void yaarx_alloc_matrices_3d(gsl_matrix* A[2][2][2], uint32_t A_len);
+void yaarx_free_matrices_3d(gsl_matrix* A[2][2][2], uint32_t A_len);
+void yaarx_alloc_matrices_2d(WORD_T*** A, uint32_t A_rows, uint32_t A_cols);
+void yaarx_free_matrices_2d(WORD_T** A, uint32_t A_rows, uint32_t A_cols);
+void yaarx_alloc_matrices_4d(WORD_T***** A, uint32_t A_dim);
+void yaarx_free_matrices_4d(WORD_T**** A, uint32_t A_dim);
 
 #endif  // #ifndef COMMON_H

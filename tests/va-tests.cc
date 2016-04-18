@@ -46,6 +46,9 @@
 #ifndef XDP_ADD_DIFF_SET_H
 #include "xdp-add-diff-set.hh"
 #endif
+#ifndef GSL_PERMUTATION_H
+#include <gsl/gsl_permutation.h>
+#endif
 
 /**
  * Test the condition for a non-zero probability ADP-XOR differential
@@ -812,6 +815,649 @@ void test_xdp_add_dc_set_is_max()
   xdp_add_free_matrices(A);
   printf("[%s:%d] OK\n", __FILE__, __LINE__);
 }
+
+void speck_xdp_add_pddt_gen_random(uint32_t hw_thres, double p_thres, const uint64_t max_size,
+											  std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz>* diff_set_dx_dy_dz,
+											  std::multiset<differential_3d_t, struct_comp_diff_3d_p>* diff_mset_p)
+{
+  //  uint32_t n = WORD_SIZE;
+  //  double p_thres = P_THRES;
+  double p = 0.0;
+
+  // init A
+  gsl_matrix* A[2][2][2];
+  xdp_add_alloc_matrices(A);
+  xdp_add_sf(A);
+  xdp_add_normalize_matrices(A);
+
+  // init C
+  gsl_vector* C = gsl_vector_calloc(XDP_ADD_MSIZE);
+  gsl_vector_set(C, XDP_ADD_ISTATE, 1.0);
+
+
+  uint64_t cnt = 0;
+
+  uint32_t hway_old_size = diff_set_dx_dy_dz->size();
+  while(cnt < max_size) {
+
+	 uint32_t da = gen_sparse(hw_thres, WORD_SIZE);
+	 uint32_t db = gen_sparse(hw_thres, WORD_SIZE);
+	 uint32_t dc = 0;//gen_sparse(hw_thres, WORD_SIZE);
+	 //	 double p = xdp_add(A, da, db, dc);
+
+	 p = max_xdp_add_lm(da, db, &dc);
+
+	 if((p >= p_thres) && (hw32(dc) <= hw_thres)) {
+
+		differential_3d_t new_diff;
+		new_diff.dx = da;
+		new_diff.dy = db;
+		new_diff.dz = dc;
+		new_diff.p = p;
+		uint32_t old_size = diff_set_dx_dy_dz->size();
+		diff_set_dx_dy_dz->insert(new_diff);
+		if(old_size != diff_set_dx_dy_dz->size()) {
+		  diff_mset_p->insert(new_diff);
+#if 1									  // DEBUG
+		  uint32_t hway_size = diff_set_dx_dy_dz->size();
+		  //		  printf("\r[%s:%d] [%10lld / %10lld] | Add %8X %8X -> %8X : %f 2^%4.2f | 2^%4.2f  HW size %d 2^%f", __FILE__, __LINE__, cnt, max_size, da, db, dc, p, log2(p), log2(p_thres), hway_size, log2(hway_size));
+		  printf("\r[%s:%d] Add %8X %8X -> %8X : %f 2^%4.2f | 2^%4.2f  HW size %d 2^%f", __FILE__, __LINE__, da, db, dc, p, log2(p), log2(p_thres), hway_size, log2(hway_size));
+		  fflush(stdout);
+#endif
+		  cnt++;
+		}
+	 }
+  }
+  uint32_t hway_new_size = diff_set_dx_dy_dz->size();
+
+  assert((hway_new_size - hway_old_size) == max_size);
+
+  printf("[%s:%d] HW size %d 2^%f\n", __FILE__, __LINE__, hway_new_size, log2(hway_new_size));
+
+  //  speck_xdp_add_pddt_i(k, n, p_thres, A, C, &da, &db, &dc, &p, diff_set_dx_dy_dz, diff_mset_p, max_size);
+#if 0									  // DEBUG
+  printf("[%s:%d] p_thres = %f (2^%f), n = %d, #diffs = %d\n", __FILE__, __LINE__, 
+			p_thres, log2(p_thres), WORD_SIZE, diff_mset_p->size());
+#endif
+  assert(diff_set_dx_dy_dz->size() == diff_mset_p->size());
+
+  gsl_vector_free(C);
+  xdp_add_free_matrices(A);
+}
+
+/**
+ * For fixed da, db, generate max_size set of dc such that p(da, db -> dc) >= p_thres 
+ * and (optinally) HW(dc) >= hw_thres.
+ */
+uint32_t speck_xdp_add_dx_dy_pddt_gen_dset( const uint32_t da, const uint32_t db, const double p_thres,
+														  std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz>* diff_set_dx_dy_dz,
+														  std::multiset<differential_3d_t, struct_comp_diff_3d_p>* diff_mset_p)
+{
+  uint64_t cnt = 0;
+
+  diff_set_t dc_set;
+  xdp_add_input_diff_to_output_dset(da, db, &dc_set);
+  
+  //  uint64_t dc_set_size = xdp_add_dset_size(dc_set);
+
+  //  std::vector<uint32_t> dc_set_all;
+  //  xdp_add_dset_gen_diff_all(dc_set, &dc_set_all);
+  uint32_t nfree = hw32(dc_set.fixed & MASK);	  // number of free (non-fixed) positions
+  uint32_t N = (1U << (nfree));
+  double logN = log2(N);
+
+  uint32_t max_vals = N;//32;//16;
+
+  uint32_t nrand_vals = std::min((const uint64_t)N, (const uint64_t)max_vals);
+
+  //  for(uint32_t i = 0; i < N; i++) { // all values of the free positions
+  for(uint32_t val = 0; val < nrand_vals; val++) { // nvals random values
+
+	 uint32_t i = random32() % N;
+	 if(nrand_vals == N) {
+		i = val;
+	 }
+
+	 uint32_t dc_new = dc_set.diff;
+	 uint32_t i_pos = 0;				  // counting the bit position within the log2(N)-bit value i
+
+	 for(uint32_t j = 0; j < WORD_SIZE; j++) {
+		uint32_t is_fixed = (dc_set.fixed >> j) & 1;
+
+		if(is_fixed == STAR) {		  // the position is free
+		  uint32_t val = (i >> i_pos) & 1;
+		  dc_new ^= (val << j);	  // flip the bit at the free position
+		  assert((double)i_pos < logN);
+		  i_pos++;
+		}
+	 }
+
+	 uint32_t db_next = LROT(db, SPECK_LEFT_ROT_CONST) ^ dc_new;
+	 bool b_is_low_hw_next = (hw32(dc_new) <= SPECK_MAX_HW) && (hw32(db_next) <= SPECK_MAX_HW);
+
+	 if((b_is_low_hw_next) && (da != 0) && (db != 0)) {
+
+		double p = xdp_add_lm(da, db, dc_new);
+
+		if(p >= p_thres) {
+
+		  differential_3d_t new_diff;
+		  new_diff.dx = da;
+		  new_diff.dy = db;
+		  new_diff.dz = dc_new;
+		  new_diff.p = p;
+		  uint32_t old_size = diff_set_dx_dy_dz->size();
+		  diff_set_dx_dy_dz->insert(new_diff);
+		  if(old_size != diff_set_dx_dy_dz->size()) {
+			 diff_mset_p->insert(new_diff);
+#if 1									  // DEBUG
+			 uint32_t hway_size = diff_set_dx_dy_dz->size();
+			 printf("\r[%s:%d] Add %8X %8X -> %8X : %f 2^%4.2f | 2^%4.2f  HW size %d 2^%f", __FILE__, __LINE__, da, db, dc_new, p, log2(p), log2(p_thres), hway_size, log2(hway_size));
+			 fflush(stdout);
+#endif
+			 cnt++;
+		  }
+		}
+	 }
+	 assert(i_pos == log2(N));
+  }
+  assert(diff_set_dx_dy_dz->size() == diff_mset_p->size());
+  return cnt;
+}
+
+/*
+ * Original thershold search. Has option for back-to-highway + can be used also for clustering of trails.
+ * TODO: Obsolete! Should be removed. For trail search we use \p speck_xor_threshold_search_simple
+ * and for clustering \p speck_xor_cluster_trails_boost
+ */
+void speck_xor_threshold_search(const int n, const int nrounds, gsl_matrix* A[2][2][2], double B[NROUNDS], double* Bn,
+										  const differential_t diff_in[NROUNDS], uint32_t dx_init_in, uint32_t dy_init_in, 
+										  differential_t trail[NROUNDS], uint32_t* dx_init, uint32_t* dy_init,
+										  uint32_t right_rot_const, uint32_t left_rot_const,
+										  std::multiset<differential_3d_t, struct_comp_diff_3d_p>* diff_mset_p, // highways
+										  std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz>* diff_set_dx_dy_dz,
+										  std::multiset<differential_3d_t, struct_comp_diff_3d_p>* croads_diff_mset_p, // country roads
+										  std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz>* croads_diff_set_dx_dy_dz,
+										  double p_thres, bool b_speck_cluster_trails)
+{
+  double pn = 0.0;
+
+  // make a local copy of the input diff trail
+  differential_t diff[NROUNDS] = {{0, 0, 0, 0.0}};
+  for(int i = 0; i < n; i++) {
+	 diff[i].dx = diff_in[i].dx;
+	 diff[i].dy = diff_in[i].dy;
+	 diff[i].p = diff_in[i].p;
+  }
+
+  if((n == 0) && (nrounds == 1)) {						  // Only one round
+	 bool b_end = false;
+	 std::multiset<differential_3d_t, struct_comp_diff_3d_p>::iterator mset_iter = diff_mset_p->begin();
+	 uint32_t cnt = 0;
+	 while((mset_iter != diff_mset_p->end()) && (!b_end)) {
+		uint32_t dx = mset_iter->dx;
+		uint32_t dy = mset_iter->dy;
+		uint32_t dz = mset_iter->dz;
+		pn = mset_iter->p;
+		uint32_t dxx = dz;		                     // x_{i+1}
+		uint32_t dyy = LROT(dy, left_rot_const) ^ dz; // y_{i+1}
+#if 0									  // DEBUG
+		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
+		fflush(stdout);
+#endif
+		if((pn >= *Bn) && (pn != 0.0)) {
+		  dx_init_in = LROT(dx, right_rot_const);
+		  dy_init_in = dy;
+		  trail[n].dx = dxx;		  // dx_{i+1}
+		  trail[n].dy = dyy;		  // dy_{i+1} 
+		  trail[n].p = pn;
+		  *Bn = pn;
+		  B[n] = pn;
+		} else {
+		  b_end = true;
+		}
+		mset_iter++;
+		cnt++;
+	 }	// while()
+  }
+
+  if((n == 0) && (nrounds > 1)) {						  // Round-0 and not last round
+	 bool b_end = false;
+	 std::multiset<differential_3d_t, struct_comp_diff_3d_p>::iterator mset_iter = diff_mset_p->begin();
+	 uint32_t cnt = 0;
+	 while((mset_iter != diff_mset_p->end()) && (!b_end)) {
+		uint32_t dx = mset_iter->dx; // alpha
+		uint32_t dy = mset_iter->dy; // gamma
+		uint32_t dz = mset_iter->dz;
+		pn = mset_iter->p;
+		uint32_t dxx = dz;		                     // x_{i+1}
+		uint32_t dyy = LROT(dy, left_rot_const) ^ dz; // y_{i+1}
+		double p = pn * B[nrounds - 1 - (n + 1)];
+		assert(B[nrounds - 1 - (n + 1)] != 0.0);
+		std::multiset<differential_3d_t, struct_comp_diff_3d_p>::iterator begin_iter = diff_mset_p->begin();
+#if 0									  // DEBUG
+		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
+		fflush(stdout);
+#endif
+		if((p >= *Bn) && (p != 0.0)) {
+#if 0									  // DEBUG
+		  if((dx == 0x8000) && (dy == 0)) {
+			 printf("\n[%s:%d] CHECKPOINT! (%X %X -> %X %f) (%X %X)\n", __FILE__, __LINE__, dx, dy, dz, pn, dx_init_in, dy_init_in);
+			 sleep(3);
+		  }
+#endif
+		  dx_init_in = LROT(dx, right_rot_const);
+		  dy_init_in = dy;
+		  diff[n].dx = dxx;		  // dx_{i+1}
+		  diff[n].dy = dyy;		  // dy_{i+1} 
+		  diff[n].p = pn;
+		  speck_xor_threshold_search(n+1, nrounds, A, B, Bn, diff, dx_init_in, dy_init_in, trail, dx_init, dy_init, right_rot_const, left_rot_const, diff_mset_p, diff_set_dx_dy_dz, croads_diff_mset_p, croads_diff_set_dx_dy_dz, p_thres, b_speck_cluster_trails);
+		} else {
+		  b_end = true;
+		}
+		if(begin_iter != diff_mset_p->begin()) { // if the root was updated, start from beginning
+		  mset_iter = diff_mset_p->begin();
+		  printf("[%s:%d] Return to beginning\n", __FILE__, __LINE__);
+		  cnt = 0;
+		} else {
+		  mset_iter++;
+		  cnt++;
+		}
+	 }
+  }
+
+  // Greedy !!!
+#if SPECK_GREEDY_SEARCH
+  if((n >= 1) && (n != (nrounds - 1))) { // Round-i and not last round
+  //  if(0) {
+
+	 uint32_t dx = RROT(diff[n - 1].dx, right_rot_const); // the x input to ADD
+	 uint32_t dy = diff[n - 1].dy; // the y input to ADD
+	 uint32_t dz = 0;
+
+
+	 pn = max_xdp_add_lm(dx, dy, &dz);
+	 uint32_t dxx = dz;		                     // x_{i+1}
+	 uint32_t dyy = LROT(dy, left_rot_const) ^ dz; // y_{i+1}
+
+	 double p = 1.0;
+	 for(int i = 0; i < n; i++) {
+		p *= diff[i].p;
+	 }
+	 p = p * pn * B[nrounds - 1 - (n + 1)];
+
+	 if((p >= *Bn) && (p != 0.0)) {
+		diff[n].dx = dxx;		  // dx_{i+1}
+		diff[n].dy = dyy;		  // dy_{i+1} 
+		diff[n].p = pn;
+		speck_xor_threshold_search(n+1, nrounds, A, B, Bn, diff, dx_init_in, dy_init_in, trail, dx_init, dy_init, right_rot_const, left_rot_const, diff_mset_p, diff_set_dx_dy_dz, croads_diff_mset_p, croads_diff_set_dx_dy_dz, p_thres, b_speck_cluster_trails);
+	 } 
+  }
+#else	 // Threshold search
+  //  if(0) {							  // !!!
+  if((n >= 1) && (n != (nrounds - 1))) { // Round-i and not last round
+	 uint32_t dx = RROT(diff[n - 1].dx, right_rot_const); // the x input to ADD
+	 uint32_t dy = diff[n - 1].dy; // the y input to ADD
+
+	 differential_3d_t diff_dz;
+	 diff_dz.dx = dx;  			  // alpha
+	 diff_dz.dy = dy;
+	 diff_dz.dz = 0;
+	 diff_dz.p = 0.0;
+
+	 // check if the differential is not already in the set
+	 std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz>::iterator hway_iter = diff_set_dx_dy_dz->lower_bound(diff_dz);
+ 	 bool b_found_in_hways = (hway_iter != diff_set_dx_dy_dz->end()) && (hway_iter->dx == dx) && (hway_iter->dy == dy);
+
+#if 0									  // DEBUG
+	 printf("[%s:%d] Found in HWays: %8X %8X %8X 2^%f\n", __FILE__, __LINE__, hway_iter->dx, hway_iter->dy, hway_iter->dz, log2(hway_iter->p));
+#endif
+
+#define CLEAR_CROADS 1
+#if CLEAR_CROADS								  // !!!
+	 croads_diff_set_dx_dy_dz->clear();
+	 croads_diff_mset_p->clear();
+#endif
+
+	 std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz>::iterator croad_iter = croads_diff_set_dx_dy_dz->lower_bound(diff_dz);
+	 bool b_found_in_croads = (croad_iter != croads_diff_set_dx_dy_dz->end()) && (croad_iter->dx == dx) && (croad_iter->dy == dy);
+
+#if CLEAR_CROADS
+	 assert(b_found_in_croads == false);
+#endif
+
+	 // p_i >= p_min = Bn / p1 * p2 ... * p{i-1} * B{n-i} 
+	 double p_min = 0.0;
+	 p_min = 1.0;
+	 for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
+		p_min *= diff[i].p;
+	 }
+	 p_min = p_min * 1.0 * B[nrounds - 1 - (n + 1)]; 
+	 p_min = *Bn / p_min;
+	 assert(p_min <= 1.0);
+
+	 assert(diff_set_dx_dy_dz->size() != 0);
+
+	 const uint32_t max_cnt = (1ULL << (WORD_SIZE - 1));//SPECK_MAX_DIFF_CNT; 
+
+#if 0								  // DEBUG
+	 printf("\n ----------------------------------------------------------------------------------------\n");
+	 printf("[%s:%d] Find in CR or HW (dx_rrot dy) = (%8X %8X)\n", __FILE__, __LINE__, dx, dy);
+#endif
+
+	 //	 printf("[%s:%d] CHECKPOINT!\n", __FILE__, __LINE__);
+
+	 uint32_t cnt_new = speck_xdp_add_dx_dy_pddt(dx, dy, diff_set_dx_dy_dz, diff_mset_p, croads_diff_set_dx_dy_dz, croads_diff_mset_p, right_rot_const, left_rot_const, p_min, max_cnt, b_speck_cluster_trails);
+
+	 if(cnt_new != 0) {
+#if 0									  // DEBUG
+		printf("[%s:%d] [%2d / %2d]: Added %d new CR dx dy %8X %8X: p_min = %f (2^%f). New sizes: Dxy %d, Dp %d.\n", __FILE__, __LINE__, n, NROUNDS, cnt_new, dx, dy, p_min, log2(p_min), croads_diff_set_dx_dy_dz->size(), croads_diff_mset_p->size());
+#endif
+		croad_iter = croads_diff_set_dx_dy_dz->lower_bound(diff_dz);
+		b_found_in_croads = (croad_iter != croads_diff_set_dx_dy_dz->end()) && (croad_iter->dx == dx) && (croad_iter->dy == dy);
+	 } else {
+#if 0									  // DEBUG
+		//		printf("\r[%s:%d] [%2d / %2d]: No new country roads found: p_min = %f (2^%f).", __FILE__, __LINE__, n, NROUNDS, p_min, log2(p_min));
+		//		fflush(stdout);
+		printf("[%s:%d] [%2d / %2d]: No new country roads found: p_min = %f (2^%f).\n", __FILE__, __LINE__, n, NROUNDS, p_min, log2(p_min));
+#endif
+	 }
+
+	 //	 std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy_dz;
+	 std::multiset<differential_3d_t, struct_comp_diff_3d_p> found_mset_p;
+
+	 if(b_found_in_hways) {
+		//		while((hway_iter->dx == dx) && (hway_iter->p >= p_min)) {
+		while((hway_iter->dx == dx)  && (hway_iter->dy == dy)) {
+#if 1									  // DEBUG
+		  bool b_low_hw = (hw32(hway_iter->dx) <= SPECK_MAX_HW) &&  (hw32(hway_iter->dy) <= SPECK_MAX_HW) && (hw32(hway_iter->dz) <= SPECK_MAX_HW);
+		  bool b_is_hway = (hway_iter->p >= SPECK_P_THRES) && b_low_hw;
+		  if(!b_is_hway) {
+			 printf("[%s:%d] CHECKPOINT! %8X %8X 2^%f\n", __FILE__, __LINE__, dx, dy, log2(hway_iter->p));
+		  }
+		  assert(b_is_hway);
+#endif
+		  found_mset_p.insert(*hway_iter);
+		  hway_iter++;
+		}
+	 }
+
+	 if(b_found_in_croads) {
+		//		printf("[%s:%d] CHECKPOINT!\n", __FILE__, __LINE__);
+#if CLEAR_CROADS
+		assert(croad_iter->p >= p_min);
+#endif
+		//		while((croad_iter->dx == dx) && (croad_iter->dy == dy) && (croad_iter->p >= p_min)) {
+		while((croad_iter->dx == dx) && (croad_iter->dy == dy) && (croad_iter->p >= p_min) && (croad_iter != croads_diff_set_dx_dy_dz->end())) {
+
+#if CLEAR_CROADS
+
+		  dx = croad_iter->dx;
+		  dy = croad_iter->dy;
+		  uint32_t dz = croad_iter->dz;
+
+		  uint32_t dx_next = dz;
+		  uint32_t dy_next = LROT(dy, left_rot_const) ^ dx_next;
+		  uint32_t dx_next_rrot = RROT(dx_next, right_rot_const); // ! the left input to the next round will be rotated before entering the ADD op
+
+#if SPECK_BACK_TO_HWAY
+
+		  bool b_is_hway_next = speck_xdp_add_is_dz_in_set_dx_dy_dz(dx_next_rrot, dy_next, *diff_set_dx_dy_dz);
+
+#else	 // #if SPECK_BACK_TO_HWAY
+
+
+		  uint32_t dz_max_next = 0;
+		  double p_max_next = 0.0;
+#if((WORD_SIZE == 16) || (WORD_SIZE == 32))
+		  p_max_next = max_xdp_add_lm(dx_next_rrot, dy_next, &dz_max_next);
+#else	 // #if((WORD_SIZE == 16) || (WORD_SIZE == 32))
+		  //		  p_max_next = max_xdp_add(A, dx_next_rrot, dy_next, &dz_max_next);
+		  p_max_next = max_xdp_add_lm(dx_next_rrot, dy_next, &dz_max_next);
+#endif  // #if((WORD_SIZE == 16) || (WORD_SIZE == 32))
+		  bool b_low_hw = (hw32(dx) <= SPECK_MAX_HW) &&  (hw32(dy) <= SPECK_MAX_HW) && (hw32(dz) <= SPECK_MAX_HW);
+		  bool b_low_hw_next = (hw32(dx_next_rrot) <= SPECK_MAX_HW) &&  (hw32(dy_next) <= SPECK_MAX_HW) && (hw32(dz_max_next) <= SPECK_MAX_HW);
+		  bool b_is_hway_next = (p_max_next >= SPECK_P_THRES) && b_low_hw && b_low_hw_next;
+		  //			 assert(b_low_hw_next);
+
+#endif  // #if SPECK_BACK_TO_HWAY
+
+#if 0	  // DEBUG
+		  printf("[%s:%d] List of CR: dx dy dz %8X %8X %8X 2^%f\n\n", __FILE__, __LINE__, dx, dy, dz, log2(croad_iter->p));
+		  printf("[%s:%d] CHECK is HW: dx_next_rrot dy_next %8X %8X\n\n", __FILE__, __LINE__, dx_next_rrot, dy_next);
+#endif
+
+		  assert(b_is_hway_next);
+		  if(b_is_hway_next) {
+			 found_mset_p.insert(*croad_iter);
+		  }
+#else	 // #if CLEAR_CROADS
+		  found_mset_p.insert(*croad_iter);
+#endif  // #if CLEAR_CROADS
+		  croad_iter++;
+		}
+	 }
+
+#if 1									  // add the max
+	 double p_max = 0.0;
+	 uint32_t dz_max = 0;
+#if((WORD_SIZE == 16) || (WORD_SIZE == 32))
+	 p_max = max_xdp_add_lm(dx, dy, &dz_max);
+#else
+	 //	 p_max = max_xdp_add(A, dx, dy, &dz_max);
+	 p_max = max_xdp_add_lm(dx, dy, &dz_max);
+#endif
+	 //	 assert((hw32(diff_dz.dx) <= SPECK_MAX_HW) && (hw32(diff_dz.dy) <= SPECK_MAX_HW));
+	 bool b_low_hw = (hw32(dx) <= SPECK_MAX_HW) && (hw32(dy) <= SPECK_MAX_HW) && (hw32(dz_max) <= SPECK_MAX_HW);
+	 if((p_max >= SPECK_P_THRES) && (b_low_hw)) {
+#if 0									  // DEBUG
+		printf("[%s:%d] Add (%X %X %X) 2^%f\n", __FILE__, __LINE__, dx, dy, dz_max, log2(p_max));
+#endif  // #if 0									  // DEBUG
+		differential_3d_t new_diff = {dx, dy, dz_max, p_max};
+		found_mset_p.insert(new_diff);
+		b_found_in_hways = true;
+	 }
+#endif
+
+	 std::multiset<differential_3d_t, struct_comp_diff_3d_p>::iterator find_iter = found_mset_p.begin();
+
+#if 0									  // DEBUG
+	 printf("[%s:%d] %2d: Temp set size %d\n", __FILE__, __LINE__, n, found_mset_p.size());
+#endif
+
+	 //	 printf("[%s:%d] CHECKPOINT!\n", __FILE__, __LINE__);
+
+	 //		while((find_iter->dx < (dx + 1)) && (find_iter != diff_set_dx_dy_dz->end())) {
+	 if((find_iter->dx == dx) && (find_iter->dy == dy)) {
+		while((find_iter->dx == dx) && (find_iter->dy == dy) && (find_iter != found_mset_p.end())) {
+		  assert((find_iter->dx == dx));
+		  assert((find_iter->dy == dy));
+		  diff_dz = *find_iter;
+
+		  dx = diff_dz.dx;
+		  dy = diff_dz.dy;
+		  uint32_t dz = diff_dz.dz;
+		  pn = diff_dz.p;
+#if 0									  // DEBUG
+		  printf("[%s:%d] List: (%X %X %X) 2^%f | b_found_in_hways %d\n", __FILE__, __LINE__, dx, dy, dz, log2(pn), b_found_in_hways);
+#endif  // #if 0									  // DEBUG
+		  double p = 1.0;
+		  for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
+			 p *= diff[i].p;
+		  }
+		  p = p * pn * B[nrounds - 1 - (n + 1)]; 
+
+		  uint32_t dxx = dz;
+		  uint32_t dyy = LROT(dy, left_rot_const) ^ dz; // y_{i+1}
+#if 1																	// DEBUG
+		  // ! the left input to the next round will be rotated before entering the ADD op
+		  bool b_low_hw = (hw32(diff_dz.dx) <= SPECK_MAX_HW) &&  (hw32(diff_dz.dy) <= SPECK_MAX_HW) && (hw32(diff_dz.dz) <= SPECK_MAX_HW);
+		  uint32_t dxx_rrot = RROT(dz, right_rot_const); 		                     // x_{i+1}
+		  //		  bool b_is_hway = false;
+#if SPECK_BACK_TO_HWAY
+		  //		  std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz>::iterator hway_iter = diff_set_dx_dy_dz->lower_bound(diff_dz);
+		  //		  b_is_hway = (hway_iter != diff_set_dx_dy_dz->end()) && (hway_iter->dx == dx) && (hway_iter->dy == dy);
+		  //		  assert(b_found_in_hways == b_is_hway);
+#else	 // #if SPECK_BACK_TO_HWAY
+		  //		  b_is_hway = (diff_dz.p >= SPECK_P_THRES) && b_low_hw;
+#if 0									  // DEBUG
+		  printf("[%s:%d] b_found_in_hways = %d b_is_hway %d |  (%X %X %X) 2^%f\n", __FILE__, __LINE__, b_found_in_hways, b_is_hway, diff_dz.dx, diff_dz.dy, diff_dz.dz, log2(diff_dz.p));
+#endif  // #if 0									  // DEBUG
+#endif  // #if SPECK_BACK_TO_HWAY
+		  assert(b_low_hw);
+
+		  bool b_is_hway_next = false;
+		  if(!b_found_in_hways) {
+#if SPECK_BACK_TO_HWAY
+			 b_is_hway_next = speck_xdp_add_is_dz_in_set_dx_dy_dz(dxx_rrot, dyy, *diff_set_dx_dy_dz);
+#else	 // #if SPECK_BACK_TO_HWAY
+			 uint32_t dz_max_next = 0;
+			 double p_max_next = 0.0;
+#if((WORD_SIZE == 16) || (WORD_SIZE == 32))
+			 p_max_next = max_xdp_add_lm(dxx_rrot, dyy, &dz_max_next);
+#else	 // #if((WORD_SIZE == 16) || (WORD_SIZE == 32))
+			 //			 p_max_next = max_xdp_add(A, dxx_rrot, dyy, &dz_max_next);
+			 p_max_next = max_xdp_add_lm(dxx_rrot, dyy, &dz_max_next);
+#endif  // #if((WORD_SIZE == 16) || (WORD_SIZE == 32))
+			 bool b_low_hw_next = (hw32(dxx_rrot) <= SPECK_MAX_HW) &&  (hw32(dyy) <= SPECK_MAX_HW) && (hw32(dz_max_next) <= SPECK_MAX_HW);
+			 b_is_hway_next = (p_max_next >= SPECK_P_THRES) && b_low_hw_next;
+			 assert(b_low_hw_next);
+#endif  // #if SPECK_BACK_TO_HWAY
+			 //			 printf("[%s:%d] CHECK is HW: dxx_rrot dyy %8X %8X\n\n", __FILE__, __LINE__, dxx_rrot, dyy);
+			 assert(b_is_hway_next);
+		  }
+		  assert(b_found_in_hways || b_is_hway_next);
+#endif  // DEBUG
+		  if((p >= *Bn) && (p != 0.0)) {
+			 diff[n].dx = dxx;		  // dx_{i+1}
+			 diff[n].dy = dyy;		  // dy_{i+1} 
+			 diff[n].p = pn;
+			 speck_xor_threshold_search(n+1, nrounds, A, B, Bn, diff, dx_init_in, dy_init_in, trail, dx_init, dy_init, right_rot_const, left_rot_const, diff_mset_p, diff_set_dx_dy_dz, croads_diff_mset_p, croads_diff_set_dx_dy_dz, p_thres, b_speck_cluster_trails);
+
+		  }
+		  find_iter++;
+		}	// while
+	 }		// if
+  }
+#endif  // #if SPECK_GREEDY_SEARCH
+
+  if((n == (nrounds - 1)) && (nrounds > 1)) {		  // Last round
+
+	 uint32_t dx = RROT(diff[n - 1].dx, right_rot_const); // the x input to ADD
+	 uint32_t dy = diff[n - 1].dy; // the y input to ADD
+	 uint32_t dz = 0;
+
+#if((WORD_SIZE == 16) || (WORD_SIZE == 32))
+	 pn = max_xdp_add_lm(dx, dy, &dz);
+#else
+	 //	 pn = max_xdp_add(A, dx, dy, &dz);
+	 pn = max_xdp_add_lm(dx, dy, &dz);
+#endif
+	 uint32_t dxx = dz;		                     // x_{i+1}
+	 uint32_t dyy = LROT(dy, left_rot_const) ^ dz; // y_{i+1}
+
+	 double p = 1.0;
+	 for(int i = 0; i < n; i++) {
+		p *= diff[i].p;
+	 }
+	 p *= pn;
+
+	 bool b_low_hw = true;//(hw32(dxx) <= SPECK_MAX_HW) && (hw32(dyy) <= SPECK_MAX_HW);
+	 if((b_low_hw) && (p >= *Bn) && (p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
+#if 1									  // DEBUG
+		if (p > *Bn) {
+		  printf("\n[%s:%d] %d | Update best found Bn: 2^%f -> 2^%f\n", __FILE__, __LINE__, n, log2(*Bn), log2(p));
+		}
+#endif
+		diff[n].dx = dxx;
+		diff[n].dy = dyy;
+		diff[n].p = pn;
+		*Bn = p;
+		B[n] = p;
+		for(int i = 0; i < nrounds; i++) {
+		  *dx_init = dx_init_in;
+		  *dy_init = dy_init_in;
+		  trail[i].dx = diff[i].dx;
+		  trail[i].dy = diff[i].dy;
+		  trail[i].p = diff[i].p;
+		}
+	 }
+  }
+}
+
+void marx_wtrail_print_gsl_matrix_int(const gsl_matrix A, const uint32_t nrows, const uint32_t ncols)
+{
+  for(uint32_t row = 0; row < nrows; row++){
+	 for(uint32_t col = 0; col < ncols; col++){
+		double e = gsl_matrix_get(&A, row, col);
+		printf("%d, ", (uint32_t)e);
+	 }
+	 printf("\n");
+  }
+}
+
+void marx_wtrail_build_permutation_matrices(uint32_t order)
+{
+  gsl_permutation * perm = gsl_permutation_alloc(4);
+  gsl_permutation_init(perm);
+  int n = 0;
+  do {
+	 gsl_matrix* P = gsl_matrix_calloc(MBOXES, MBOXES);
+	 gsl_matrix_set_zero(P);
+	 for(uint32_t i = 0; i < order; i++) {
+		uint32_t j = gsl_permutation_get(perm, i);
+		gsl_matrix_set(P, i, j, 1);
+	 }
+#if 1 // DEBUG
+	 printf("Permutation #%2d\n", n);
+	 gsl_permutation_fprintf(stdout, perm, " %u");
+	 printf("\n");
+	 marx_wtrail_print_gsl_matrix_int(*P, MBOXES, MBOXES);
+#endif // #if 0 // DEBUG
+	 gsl_matrix_free(P);
+	 n++;
+  }
+  while (gsl_permutation_next(perm) == GSL_SUCCESS);
+
+  gsl_permutation_free(perm);
+}
+
+/*
+
+Invert a matrix in GSL
+
+http://www.macapp.net/pmwiki/pmwiki.php?n=Main.InvertMatrix
+
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_cblas.h>
+
+int main (void)
+{
+// Define the dimension n of the matrix
+// and the signum s (for LU decomposition)
+int n = 2;
+int s;
+
+// Define all the used matrices
+gsl_matrix * m = gsl_matrix_alloc (n, n);
+gsl_matrix * inverse = gsl_matrix_alloc (n, n);
+gsl_permutation * perm = gsl_permutation_alloc (n);
+
+// Fill the matrix m
+//
+//
+//
+//
+
+// Make LU decomposition of matrix m
+gsl_linalg_LU_decomp (m, perm, &s);
+
+// Invert the matrix m
+gsl_linalg_LU_invert (m, perm, inverse);
+}
+*/
+
 
 /**
  * Main function of VA tests.

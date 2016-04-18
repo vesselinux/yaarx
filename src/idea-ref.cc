@@ -32,7 +32,7 @@ ushort multiply(long a, long b)
 	 assert(a == 0x10000);
   }
   assert(c != 0);
-  if (c) {							  // c == 0if a = b = 0x10000 = 2^n
+  if (c) {							  // c == 0 if a = b = 0x10000 = 2^n
     ch = (c >> 16) & 65535l;	  // 0xFFFF
     cl = c & 65535l;
     if (cl >= ch) {

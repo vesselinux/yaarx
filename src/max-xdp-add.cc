@@ -62,15 +62,15 @@
  *
  * \see max_adp_xor_i
  */
-void max_xdp_add_i(const int i, const uint32_t k, const uint32_t n, double* p, uint32_t* dd,
+void max_xdp_add_i(const int i, const uint32_t k, const uint32_t n, double* p, WORD_T* dd,
 						 gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1], gsl_vector* C,  
-						 const uint32_t da, const uint32_t db, uint32_t* dd_max, 
+						 const WORD_T da, const WORD_T db, WORD_T* dd_max, 
 						 double* p_max, uint32_t A_size)
 {
   if(k == n) {
 	 assert(*p > *p_max);
 #if 0									  // DEBUG
-	 printf("[%s:%d] B[%2d] update 2^%f -> 2^%f\n", __FILE__, __LINE__, i, log2(*p_max), log2(*p));
+	 printf("[%s:%d] k %d B[%2d] update 2^%f -> 2^%f %llX\n", __FILE__, __LINE__, k, i, log2(*p_max), log2(*p), (WORD_MAX_T)*dd);
 #endif
 	 *p_max = *p;
 	 *dd_max = *dd;
@@ -78,11 +78,11 @@ void max_xdp_add_i(const int i, const uint32_t k, const uint32_t n, double* p, u
   } 
 
   // get the k-th bit of da, db, dc
-  uint32_t x = (da >> k) & 1;
-  uint32_t y = (db >> k) & 1;
+  WORD_T x = (da >> k) & 1;
+  WORD_T y = (db >> k) & 1;
 
   // cycle over the possible values of the k-th bits of *dd
-  for(uint32_t t = 0; t < 2; t++) { 
+  for(WORD_T t = 0; t < 2; t++) { 
 
 	 // temp
 	 //	 gsl_vector* R = gsl_vector_calloc(ADP_XOR_MSIZE);
@@ -95,7 +95,10 @@ void max_xdp_add_i(const int i, const uint32_t k, const uint32_t n, double* p, u
 
 	 // continue only if the probability so far is still bigger than the prob. so far
 	 if(new_p > *p_max) {
-		uint32_t new_dd = *dd | (t << k);
+		WORD_T new_dd = ((*dd) | (WORD_T)t << k);
+#if 0 // DEBUG
+		printf("[%s:%d] %2d %llX\n", __FILE__, __LINE__, k, (WORD_MAX_T)new_dd);
+#endif // #if 1 // DEBUG
 		max_xdp_add_i(i, k+1, n, &new_p, &new_dd, A, B, R, da, db, dd_max, p_max, A_size);
 	 }
 	 gsl_vector_free(R);
@@ -122,8 +125,8 @@ void max_xdp_add_i(const int i, const uint32_t k, const uint32_t n, double* p, u
  * \see max_xdp_add_i, max_adp_xor_bounds
  */
 void max_xdp_add_bounds(gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1],
-								const uint32_t da, const uint32_t db, 
-								uint32_t* dd_max, uint32_t A_size)
+								const WORD_T da, const WORD_T db, 
+								WORD_T* dd_max, uint32_t A_size)
 {
   gsl_vector_set_all(B[WORD_SIZE], 1.0);
 
@@ -137,7 +140,7 @@ void max_xdp_add_bounds(gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1],
 		gsl_vector_set(C, i, 1.0);
 
 		uint32_t n = WORD_SIZE;
-		uint32_t dd_init = 0;
+		WORD_T dd_init = 0;
 		double p_init = gsl_vector_get(B[k], i);
 		double p_max_i = 0.0;
 		max_xdp_add_i(i, k, n, &p_init, &dd_init, A, B, C, da, db, dd_max, &p_max_i, A_size);
@@ -162,8 +165,8 @@ void max_xdp_add_bounds(gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1],
  * \see max_xdp_add, max_xdp_add_i, max_adp_xor
  */
 double max_xdp_add(gsl_matrix* A[2][2][2],
-						 const uint32_t da, const uint32_t db,
-						 uint32_t* dd_max)
+						 const WORD_T da, const WORD_T db,
+						 WORD_T* dd_max)
 {
   gsl_vector* C = gsl_vector_calloc(XDP_ADD_MSIZE);
   gsl_vector_set(C, XDP_ADD_ISTATE, 1.0);
@@ -176,7 +179,7 @@ double max_xdp_add(gsl_matrix* A[2][2][2],
   max_xdp_add_bounds(A, B, da, db, dd_max, XDP_ADD_MSIZE);
 
   uint32_t n = WORD_SIZE;
-  uint32_t dd_init = 0;
+  WORD_T dd_init = 0;
   uint32_t k = 0;
   uint32_t i = XDP_ADD_ISTATE;
   double p_init = gsl_vector_get(B[k], i);
@@ -185,9 +188,11 @@ double max_xdp_add(gsl_matrix* A[2][2][2],
 
 #if 1									  // DEBUG
   double p_the = xdp_add(A, da, db, *dd_max);
-#if 0
-  printf("[%s:%d] XDP_ADD_THE[(%8X,%8X)->%8X] = %f = 2^%f\n", 
-			__FILE__, __LINE__, da, db, *dd_max, p_the, log2(p_the));
+#if 1
+  printf("[%s:%d] XDP_ADD_TH1[(%llX,%llX)->%llX] = %f = 2^%f\n", 
+			__FILE__, __LINE__, (WORD_MAX_T)da, (WORD_MAX_T)db, (WORD_MAX_T)*dd_max, p_max, log2(p_max));
+  printf("[%s:%d] XDP_ADD_TH2[(%llX,%llX)->%llX] = %f = 2^%f\n", 
+			__FILE__, __LINE__, (WORD_MAX_T)da, (WORD_MAX_T)db, (WORD_MAX_T)*dd_max, p_the, log2(p_the));
 #endif
   assert(p_max == p_the);
 #endif
@@ -215,10 +220,11 @@ double max_xdp_add(gsl_matrix* A[2][2][2],
  * \see max_xdp_add
  */
 double max_xdp_add_exper(gsl_matrix* A[2][2][2], 
-								 const uint32_t da, const uint32_t db, 
-								 uint32_t* dc_max)
+								 const WORD_T da, const WORD_T db, 
+								 WORD_T* dc_max)
 {
   double p_max = 0.0;
+#if(WORD_SIZE <= 10)
   for(uint32_t dc = 0; dc < ALL_WORDS; dc++) {
 	 double p = xdp_add(A, da, db, dc);
 	 if(p >= p_max) {
@@ -226,6 +232,8 @@ double max_xdp_add_exper(gsl_matrix* A[2][2][2],
 		*dc_max = dc;
 	 }
   }
+#endif // #if(WORD_SIZE <= 10)
+  assert(WORD_SIZE <= 10);
   return p_max;
 }
 
@@ -243,11 +251,11 @@ double max_xdp_add_exper(gsl_matrix* A[2][2][2],
  *
  * \see max_xdp_add
  */
-double max_xdp_add_lm(uint32_t da, uint32_t db, uint32_t* dc_ret)
+double max_xdp_add_lm(WORD_T da, WORD_T db, WORD_T* dc_ret)
 {
   uint32_t n = WORD_SIZE;
   double p_max = 0.0;
-  uint32_t dc = 0;
+  WORD_T dc = 0;
 
   dc |= (da & 1) ^ (db & 1);
 

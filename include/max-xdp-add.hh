@@ -27,23 +27,23 @@
 #ifndef MAX_XDP_ADD_H
 #define MAX_XDP_ADD_H
 
-void max_xdp_add_i(const int i, const uint32_t k, const uint32_t n, double* p, uint32_t* dd,
+void max_xdp_add_i(const int i, const uint32_t k, const uint32_t n, double* p, WORD_T* dd,
 						 gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1], gsl_vector* C,  
-						 const uint32_t da, const uint32_t db, uint32_t* dd_max, 
+						 const WORD_T da, const WORD_T db, WORD_T* dd_max, 
 						 double* p_max, uint32_t A_size);
 
 void max_xdp_add_bounds(gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1],
-								const uint32_t da, const uint32_t db, 
-								uint32_t* dd_max, uint32_t A_size);
+								const WORD_T da, const WORD_T db, 
+								WORD_T* dd_max, uint32_t A_size);
 
 double max_xdp_add(gsl_matrix* A[2][2][2],
-						 const uint32_t da, const uint32_t db,
-						 uint32_t* dd_max);
+						 const WORD_T da, const WORD_T db,
+						 WORD_T* dd_max);
 
 double max_xdp_add_exper(gsl_matrix* A[2][2][2], 
-								 const uint32_t da, const uint32_t db, 
-								 uint32_t* dc_max);
+								 const WORD_T da, const WORD_T db, 
+								 WORD_T* dc_max);
 
-double max_xdp_add_lm(uint32_t da, uint32_t db, uint32_t* dc_ret);
+double max_xdp_add_lm(WORD_T da, WORD_T db, WORD_T* dc_ret);
 
 #endif  // #ifndef MAX_XDP_ADD_H

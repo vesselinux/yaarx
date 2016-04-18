@@ -74,10 +74,10 @@
  *
  * \see max_adp_xor_bounds
  */
-void max_adp_xor_i(const int i, const uint32_t k, const uint32_t n, double* p, uint32_t* dd,
+void max_adp_xor_i(const WORD_T i, const WORD_T k, const WORD_T n, double* p, WORD_T* dd,
 						 gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1], gsl_vector* C,  
-						 const uint32_t da, const uint32_t db, uint32_t* dd_max, 
-						 double* p_max, uint32_t A_size)
+						 const WORD_T da, const WORD_T db, WORD_T* dd_max, 
+						 double* p_max, WORD_T A_size)
 {
   if(k == n) {
 	 assert(*p > *p_max);
@@ -90,11 +90,11 @@ void max_adp_xor_i(const int i, const uint32_t k, const uint32_t n, double* p, u
   } 
 
   // get the k-th bit of da, db, dc
-  uint32_t x = (da >> k) & 1;
-  uint32_t y = (db >> k) & 1;
+  WORD_T x = (da >> k) & 1;
+  WORD_T y = (db >> k) & 1;
 
   // cycle over the possible values of the k-th bits of *dd
-  for(uint32_t t = 0; t < 2; t++) { 
+  for(WORD_T t = 0; t < 2; t++) { 
 
 	 // temp
 	 //	 gsl_vector* R = gsl_vector_calloc(ADP_XOR_MSIZE);
@@ -107,7 +107,7 @@ void max_adp_xor_i(const int i, const uint32_t k, const uint32_t n, double* p, u
 
 	 // continue only if the probability so far is still bigger than the threshold 
 	 if(new_p > *p_max) {
-		uint32_t new_dd = *dd | (t << k);
+		WORD_T new_dd = *dd | (t << k);
 		max_adp_xor_i(i, k+1, n, &new_p, &new_dd, A, B, R, da, db, dd_max, p_max, A_size);
 	 }
 	 gsl_vector_free(R);
@@ -165,22 +165,22 @@ void max_adp_xor_i(const int i, const uint32_t k, const uint32_t n, double* p, u
  * \see max_adp_xor_i
  */
 void max_adp_xor_bounds(gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1],
-								const uint32_t da, const uint32_t db, 
-								uint32_t* dd_max, uint32_t A_size)
+								const WORD_T da, const WORD_T db, 
+								WORD_T* dd_max, WORD_T A_size)
 {
   gsl_vector_set_all(B[WORD_SIZE], 1.0);
 
-  for(uint32_t k = (WORD_SIZE - 1); k > 0; k--) {
+  for(WORD_T k = (WORD_SIZE - 1); k > 0; k--) {
 
-	 //	 for(uint32_t i = 0; i < ADP_XOR_MSIZE; i++) {
-	 for(uint32_t i = 0; i < A_size; i++) {
+	 //	 for(WORD_T i = 0; i < ADP_XOR_MSIZE; i++) {
+	 for(WORD_T i = 0; i < A_size; i++) {
 
 		//		gsl_vector* C = gsl_vector_calloc(ADP_XOR_MSIZE);
 		gsl_vector* C = gsl_vector_calloc(A_size);
 		gsl_vector_set(C, i, 1.0);
 
-		uint32_t n = WORD_SIZE;
-		uint32_t dd_init = 0;
+		WORD_T n = WORD_SIZE;
+		WORD_T dd_init = 0;
 		double p_init = gsl_vector_get(B[k], i);
 		double p_max_i = 0.0;
 		//		max_adp_xor_i(i, k, n, &p_init, &dd_init, A, B, C, da, db, dd_max, &p_max_i);
@@ -206,23 +206,23 @@ void max_adp_xor_bounds(gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1],
  * \see max_adp_xor_bounds, max_adp_xor_i
  */
 double max_adp_xor(gsl_matrix* A[2][2][2],
-						 const uint32_t da, const uint32_t db,
-						 uint32_t* dd_max)
+						 const WORD_T da, const WORD_T db,
+						 WORD_T* dd_max)
 {
   gsl_vector* C = gsl_vector_calloc(ADP_XOR_MSIZE);
   gsl_vector_set(C, ADP_XOR_ISTATE, 1.0);
 
   gsl_vector* B[WORD_SIZE + 1];
-  for(uint32_t i = 0; i < WORD_SIZE + 1; i++) {
+  for(WORD_T i = 0; i < WORD_SIZE + 1; i++) {
 	 B[i] = gsl_vector_calloc(ADP_XOR_MSIZE);
   }
 
   max_adp_xor_bounds(A, B, da, db, dd_max, ADP_XOR_MSIZE);
 
-  uint32_t n = WORD_SIZE;
-  uint32_t dd_init = 0;
-  uint32_t k = 0;
-  uint32_t i = ADP_XOR_ISTATE;
+  WORD_T n = WORD_SIZE;
+  WORD_T dd_init = 0;
+  WORD_T k = 0;
+  WORD_T i = ADP_XOR_ISTATE;
   double p_init = gsl_vector_get(B[k], i);
   double p_max = 0.0;
   max_adp_xor_i(i, k, n, &p_init, &dd_init, A, B, C, da, db, dd_max, &p_max, ADP_XOR_MSIZE);
@@ -236,7 +236,7 @@ double max_adp_xor(gsl_matrix* A[2][2][2],
   assert(p_max == p_the);
 #endif
 
-  for(uint32_t i = 0; i < WORD_SIZE + 1; i++) {
+  for(WORD_T i = 0; i < WORD_SIZE + 1; i++) {
 	 gsl_vector_free(B[i]);
   }
 
@@ -259,16 +259,18 @@ double max_adp_xor(gsl_matrix* A[2][2][2],
  * \see max_adp_xor
  */
 double max_adp_xor_exper(gsl_matrix* A[2][2][2], 
-								 const uint32_t da, const uint32_t db, 
-								 uint32_t* dc_max)
+								 const WORD_T da, const WORD_T db, 
+								 WORD_T* dc_max)
 {
   double p_max = 0.0;
-  for(uint32_t dc = 0; dc < ALL_WORDS; dc++) {
+#if (WORD_SIZE <= 16)
+  for(WORD_T dc = 0; dc < ALL_WORDS; dc++) {
 	 double p = adp_xor(A, da, db, dc);
 	 if(p >= p_max) {
 		p_max =p;
 		*dc_max = dc;
 	 }
   }
+#endif // #if (WORD_SIZE <= 16)
   return p_max;
 }

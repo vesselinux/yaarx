@@ -97,7 +97,7 @@ void test_tea_add_trail_search()
   key[2] = 0x3AB116AF;
   key[3] = 0x3C50723;
 #endif
-  // Example from the paper (Table 4, left)
+  // Example from the paper (Table 3, left)
 #if 1									  // 18 rounds!!
   assert(TEA_LSH_CONST == 4);
   assert(TEA_RSH_CONST == 5);
@@ -121,11 +121,17 @@ void test_tea_add_trail_search()
   }
 #endif
 
+#if 1									  // print trails in log file: create file
+  FILE* fp_trails_log = fopen(TEA_ADD_TRAILS_LOGFILE, "w");
+  fclose(fp_trails_log);
+#endif
+
 #if 1
   uint32_t nrounds = tea_add_trail_search(key, B, trail);
 #else 
   uint32_t nrounds = NROUNDS;
 #endif
+  assert(nrounds == NROUNDS);
 
   differential_t trail_full[NROUNDS] = {{0, 0, 0, 0.0}};
   uint32_t nrounds_full = tea_add_trail_search_full(key, B, trail_full, nrounds);
@@ -136,19 +142,27 @@ void test_tea_add_trail_search()
   printf("[%s:%d] Final trail:\n", __FILE__, __LINE__);
   double Bn = B[nrounds - 1];
   p_tot = 1.0;
+  fp_trails_log = fopen(TEA_ADD_TRAILS_LOGFILE, "a");
   for(uint32_t i = 0; i < nrounds; i++) {
 	 printf("%2d: %8X <- %8X %f (2^%f)\n", i, trail[i].dy, trail[i].dx, trail[i].p, log2(trail[i].p));
 	 p_tot *= trail[i].p;
+	 fprintf(fp_trails_log, "%8X %8X %10.9f ", trail[i].dy, trail[i].dx, trail[i].p);
   }
+  fprintf(fp_trails_log, "\n");
+  fclose(fp_trails_log);
   printf("p_tot = %16.15f = 2^%f, Bn = %f = 2^%f\n", p_tot, log2(p_tot), Bn, log2(Bn));
 #endif  // #if 0									  // DEBUG
 #if 1									  // DEBUG
   printf("[%s:%d] Final full trail:\n", __FILE__, __LINE__);
   p_tot = 1.0;
+  fp_trails_log = fopen(TEA_ADD_TRAILS_LOGFILE, "a");
   for(uint32_t i = 0; i < nrounds_full; i++) {
 	 printf("%2d: %8X <- %8X %f (2^%f)\n", i, trail_full[i].dy, trail_full[i].dx, trail_full[i].p, log2(trail_full[i].p));
 	 p_tot *= trail_full[i].p;
+	 fprintf(fp_trails_log, "%8X %8X %10.9f ", trail_full[i].dy, trail_full[i].dx, trail_full[i].p);
   }
+  fprintf(fp_trails_log, "\n");
+  fclose(fp_trails_log);
   printf("p_tot = %16.15f = 2^%f\n", p_tot, log2(p_tot));
 #endif  // #if 0									  // DEBUG
 #if 0									  // DEBUG
@@ -165,6 +179,102 @@ void test_tea_add_trail_search()
   //  FILE* fp = fopen("tea-add-threshold-search.log", "a");
   FILE* fp = fopen("log.txt", "a");
   print_trail_latex(fp, nrounds_full, key, trail_full);
+  fclose(fp);
+}
+
+// read trails from data file and store them in an aray
+void tea_add_trails_file_read(std::vector<std::array<differential_t,NROUNDS>>* trail_vec)
+{
+  FILE* fp = fopen(TEA_ADD_TRAILS_LOGFILE, "r");
+
+  if(!fp) {
+	 printf("[%s:%d] File %s does not exist. Exiting...\n", __FILE__, __LINE__, TEA_ADD_TRAILS_LOGFILE);
+	 return;
+  }
+
+  uint32_t dx = 0;
+  uint32_t dy = 0;
+  double p = 0.0;
+
+  char* line = NULL;
+  size_t len = 0;
+  ssize_t read;
+  uint32_t nline = 0;
+  //  double p_diff = 0.0;			  // total prob. of differential
+
+  while((read = getline(&line, &len, fp)) != -1) {
+	 nline++;
+	 int n = 0;
+
+#if 1									  // DEBUG
+	 //	 printf("line #%5d: length %zu :%s\n", nline, read, line);
+	 printf("\rline %d", nline);
+	 fflush(stdout);
+#endif  // #if 1									  // DEBUG
+
+	 uint32_t i = 0;
+	 std::array<differential_t,NROUNDS> i_trail;
+	 //    double p_trail = 1.0;			  // prb. of a single trail
+	 while(sscanf(line, "%X %X %lf %n", &dx, &dy, &p, &n) == 3) {
+		i_trail[i].dx = dx;
+		i_trail[i].dy = dy;
+		i_trail[i].npairs = 0;
+		i_trail[i].p = p;
+
+
+#if 0									  // DEBUG
+		differential_t diff = {dx, dy, 0, p};
+		p_trail *= diff.p;
+		printf("[%2d] %8X %8X %f\n", i, dx, dy, p);
+#endif  // #if 1									  // DEBUG
+
+		line += n;
+		i++;
+	 }
+	 assert(i == NROUNDS);
+	 trail_vec->push_back(i_trail);
+
+	 line = NULL;
+  }
+
+  if (line != NULL) {
+	 free(line);
+  }
+  fclose(fp);
+}
+
+// write trails from array into a file readab;e by GraphViz
+void tea_graphviz_file_write(std::vector<std::array<differential_t,NROUNDS>> trail_vec)
+{
+  FILE* fp = fopen(TEA_GVIZ_DATFILE, "w");
+  fprintf(fp, "digraph G {\n");
+  fprintf(fp, "ranksep = \"1.1 equally\"\n");
+  //  fprintf(fp, "node [shape=point]\n");
+  fprintf(fp, "node [shape=plaintext, fontsize=7]\n");
+
+  for(uint32_t i = 0; i < trail_vec.size(); i++) {
+	 std::array<differential_t,NROUNDS> i_trail = trail_vec.at(i);
+	 for(uint32_t j = 1; j < i_trail.size(); j++) {
+		uint32_t dx_from = i_trail[j-1].dx;
+		uint32_t dy_from = i_trail[j-1].dy;
+		//		double p_from = i_trail[j-1].p;
+		uint32_t dx_to = i_trail[j].dx;
+		uint32_t dy_to = i_trail[j].dy;
+		double p = i_trail[j].p;
+		uint32_t level = j - 1;
+
+	   double scale_fact = 1.0;
+		double pwidth = (p * scale_fact);
+		//		double scale_fact = 1.0;
+		//		double pwidth = (1.0 + (scale_fact * abs(log2(p))));
+
+		//		fprintf(fp, "    \"%2d(%X,%X,%4.2f)\" -> \"%2d(%X,%X,%4.2f)\" [penwidth = %f]\n", level, dx_from, dy_from, log2(p_from), (level+1), dx_to, dy_to, log2(p), pwidth);
+		fprintf(fp, "    \"%2d(%X,%X)\" -> \"%2d(%X,%X)\" [penwidth = %f]\n", level, dx_from, dy_from, (level+1), dx_to, dy_to, pwidth);
+
+	 }
+  }
+
+  fprintf(fp, "}\n");
   fclose(fp);
 }
 
@@ -352,13 +462,20 @@ void raiden(unsigned long *data,unsigned long *result,unsigned long *key)
   result[1] = b1;
 }
 
+void test_add_trails_graphviz_plot()
+{
+  std::vector<std::array<differential_t,NROUNDS>> trail_vec;
+  tea_add_trails_file_read(&trail_vec);
+  tea_graphviz_file_write(trail_vec);
+}
+
 int main()
 {
   srandom(time(NULL));
 
   printf("[%s:%d] Computing pDDT. It may take up to 1 minute. Please wait...\n", __FILE__, __LINE__);
-#if 1
-  test_tea_add_trail_search();
-#endif
+
+  test_add_trails_graphviz_plot();
+  //  test_tea_add_trail_search();
   //  test_trail18();
 }

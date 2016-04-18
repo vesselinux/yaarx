@@ -305,7 +305,7 @@ void tea_add_threshold_search(const int n, const int nrounds, const uint32_t npa
 	 std::set<differential_t, struct_comp_diff_dx_dy>::iterator find_iter = diff_set_dx_dy->lower_bound(diff_dy);
  	 bool b_found = (find_iter != diff_set_dx_dy->end()) && (find_iter->dx == dx);
 	 if(!b_found) {				  // if not found, add new
-#if 0									  // this make the search inefficient for n >= 16
+#if 1									  // this make the search inefficient for n >= 16
 		max_eadp_tea_f(A, dx, &dy, &pn, lsh_const, rsh_const); // max_dy eadp_tea_f
 #else
 		double p_thres = 0.0;
@@ -444,6 +444,36 @@ void tea_add_threshold_search(const int n, const int nrounds, const uint32_t npa
   }
 }
 
+// 
+// Check if a trail is in a vector of trails
+// 
+bool tea_add_is_trail_in_vector(differential_t trail[NROUNDS], std::vector<std::array<differential_t,NROUNDS>> trail_vec)
+{
+  bool b_found = false;
+  uint32_t trail_iter = 0; 
+  while((!b_found) && (trail_iter != trail_vec.size())) { // iterate over trails
+	 std::array<differential_t,NROUNDS> i_trail = trail_vec.at(trail_iter);
+#if 1
+	 bool b_transition_is_same = true;
+	 uint32_t i = 0;
+	 while((b_transition_is_same) && (i != i_trail.size())) { // iterate within a single trail
+		assert(i_trail.size() == NROUNDS);
+		assert(i < NROUNDS);
+		b_transition_is_same = ((i_trail[i].dx == trail[i].dx) && (i_trail[i].dy == trail[i].dy));
+		if(b_transition_is_same) {
+		  i++;
+		}
+	 }
+	 if(i == i_trail.size()) {
+		b_found = true;
+	 } else {
+		trail_iter++;
+	 }
+#endif
+  }
+  return b_found;
+}
+
 /**
  * Full threshold search for ADD differential trails in block cipher TEA,
  * that uses initial bounds pre-computed with \ref tea_add_threshold_search .
@@ -535,7 +565,9 @@ void tea_add_threshold_search_full(const int n, const int nrounds, const uint32_
 											  std::multiset<differential_t, struct_comp_diff_p>* diff_mset_p, // highways
 											  std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy,
 											  std::multiset<differential_t, struct_comp_diff_p>* croads_diff_mset_p, // country roads
-											  std::set<differential_t, struct_comp_diff_dx_dy>* croads_diff_set_dx_dy)
+											  std::set<differential_t, struct_comp_diff_dx_dy>* croads_diff_set_dx_dy,
+											  std::vector<std::array<differential_t,NROUNDS>>* trail_vec) // vector storing multiple trails for NROUNDS (used for debug)
+
 {
   double pn = 0.0;
 
@@ -608,7 +640,7 @@ void tea_add_threshold_search_full(const int n, const int nrounds, const uint32_
 		  diff[n].dx = dx;
 		  diff[n].dy = dy;
 		  diff[n].p = pn;
-		  tea_add_threshold_search_full(n+1, nrounds, npairs, key, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy);
+		  tea_add_threshold_search_full(n+1, nrounds, npairs, key, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy, trail_vec);
 		} else {
 		  b_end = true;
 		}
@@ -644,7 +676,7 @@ void tea_add_threshold_search_full(const int n, const int nrounds, const uint32_
 		  diff[n].dx = dx;
 		  diff[n].dy = dy;
 		  diff[n].p = pn;
-		  tea_add_threshold_search_full(n+1, nrounds, npairs, key, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy);
+		  tea_add_threshold_search_full(n+1, nrounds, npairs, key, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy, trail_vec);
 		} else {
 		  b_end = true;
 		} 
@@ -800,7 +832,7 @@ void tea_add_threshold_search_full(const int n, const int nrounds, const uint32_
 			 diff[n].dx = dx;
 			 diff[n].dy = dy;
 			 diff[n].p = pn;
-			 tea_add_threshold_search_full(n+1, nrounds, npairs, key, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy);
+			 tea_add_threshold_search_full(n+1, nrounds, npairs, key, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy, trail_vec);
 		  }
 #if 0
 		  if(begin_iter != diff_set_dx_dy->begin()) { // if the root was updated, start from beginning
@@ -896,23 +928,57 @@ void tea_add_threshold_search_full(const int n, const int nrounds, const uint32_
 	 }
 	 p *= pn;
 
-	 if((p >= *Bn) && (p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
+	 //	 bool b_same_odiff = ((diff[n].dx != dx) && (diff[n].dy != dy) && (diff[n].dx != 0) && (diff[n].dy != 0));
+	 bool b_same_odiff = ((diff[n].dx != dx) && (diff[n].dy != dy) && (diff[n].p != 0.0));
+	 if(!b_same_odiff) { // {skip the same difference, vpv-20131209 ---
+
+		if((p >= *Bn) && (p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
 #if 1									  // DEBUG
-		if (p > *Bn) {
-		  printf("[%s:%d] %d | Update best found Bn: 2^%f -> 2^%f\n", __FILE__, __LINE__, n, log2(*Bn), log2(p));
+		  if (p > *Bn) {
+			 printf("[%s:%d] %d | Update best found Bn: 2^%f -> 2^%f\n", __FILE__, __LINE__, n, log2(*Bn), log2(p));
+		  }
+#endif
+		  diff[n].dx = dx;
+		  diff[n].dy = dy;
+		  diff[n].p = pn;
+		  *Bn = p;
+		  B[n] = p;
+		  for(int i = 0; i < nrounds; i++) {
+			 trail[i].dx = diff[i].dx;
+			 trail[i].dy = diff[i].dy;
+			 trail[i].p = diff[i].p;
+		  }
+		}
+#if 0									  // for the last round: print trails in log
+		double p_eps = (double)(1.0 / (double)(1UL << 10));
+		if((nrounds == NROUNDS) && (p >= (*Bn * p_eps))) {
+
+		  bool b_trail_found = tea_add_is_trail_in_vector(trail, *trail_vec);
+		  if(!b_trail_found) {
+			 // store trail in vector
+			 std::array<differential_t,NROUNDS> new_trail;
+			 for(uint32_t i = 0; i < (uint32_t)nrounds; i++) {
+				new_trail[i].dx = trail[i].dx;
+				new_trail[i].dy = trail[i].dy;
+				new_trail[i].p = trail[i].p;
+			 }
+			 trail_vec->push_back(new_trail);
+			 // store trail in file
+			 FILE* fp = fopen(TEA_ADD_TRAILS_LOGFILE, "a");
+			 printf("[%s:%d] Add new trail:\n", __FILE__, __LINE__);
+			 double p_tmp = 1.0;
+			 for(uint32_t i = 0; i < (uint32_t)nrounds; i++) {
+				p_tmp *= trail[i].p;
+				fprintf(fp, "%8X %8X %10.9f ", trail[i].dy, trail[i].dx, trail[i].p);
+				printf("%8X %8X %10.9f ", trail[i].dy, trail[i].dx, trail[i].p);
+			 }
+			 fprintf(fp, "\n");
+			 printf(" | p = %f (2^%f)\n", p_tmp, log2(p_tmp));
+			 fclose(fp);
+		  }
 		}
 #endif
-		diff[n].dx = dx;
-		diff[n].dy = dy;
-		diff[n].p = pn;
-		*Bn = p;
-		B[n] = p;
-		for(int i = 0; i < nrounds; i++) {
-		  trail[i].dx = diff[i].dx;
-		  trail[i].dy = diff[i].dy;
-		  trail[i].p = diff[i].p;
-		}
-	 }
+	 }	// --- skip the same difference, vpv-20131209}
   }
 }
 
@@ -1092,9 +1158,9 @@ uint32_t tea_add_trail_search(uint32_t key[4], double B[NROUNDS], differential_t
 		  printf("[%s:%d] Start again from round 1\n", __FILE__, __LINE__);
 		}
 	 }
-  } while((nrounds < NROUNDS) && ((B[nrounds - 1] > p_rand) || (nrounds == 0)));
+	 //  } while((nrounds < NROUNDS) && ((B[nrounds - 1] > p_rand) || (nrounds == 0)));
+  } while(nrounds < NROUNDS);
   //  } // for(int nrounds = 1 ...
-
   printf("[%s:%d] nrounds = %d\n", __FILE__, __LINE__, nrounds);
   assert(nrounds <= NROUNDS);
 
@@ -1131,6 +1197,8 @@ uint32_t tea_add_trail_search_full(uint32_t key[4], double BB[NROUNDS], differen
   uint32_t npairs = NPAIRS;
   uint32_t ret_nrounds = 0;
 
+  std::vector<std::array<differential_t,NROUNDS>> trail_vec; // vector of multiple trails for NROUNDS (used for DEBUG)
+
   std::multiset<differential_t, struct_comp_diff_p> croads_diff_mset_p; // country roads
   std::set<differential_t, struct_comp_diff_dx_dy> croads_diff_set_dx_dy;
 
@@ -1156,6 +1224,8 @@ uint32_t tea_add_trail_search_full(uint32_t key[4], double BB[NROUNDS], differen
 	 trail[i].p = 0.0;
   }
 
+  //#undef TEA_ADD_P_THRES
+  //#define TEA_ADD_P_THRES 0.01
   printf("[%s:%d] num_rounds for second pass: %d\n", __FILE__, __LINE__, num_rounds);
 
   std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy; // Dxy
@@ -1233,7 +1303,7 @@ uint32_t tea_add_trail_search_full(uint32_t key[4], double BB[NROUNDS], differen
 		diff[i].p = 0.0;
 	 }
 
-	 tea_add_threshold_search_full(r, nrounds, npairs, key, A, B, &Bn, diff, trail, lsh_const, rsh_const, &diff_mset_p, &diff_set_dx_dy, &croads_diff_mset_p, &croads_diff_set_dx_dy);
+	 tea_add_threshold_search_full(r, nrounds, npairs, key, A, B, &Bn, diff, trail, lsh_const, rsh_const, &diff_mset_p, &diff_set_dx_dy, &croads_diff_mset_p, &croads_diff_set_dx_dy, &trail_vec);
 
 #if 1									  // DEBUG
 	 printf("[%s:%d] %s()\n", __FILE__, __LINE__, __FUNCTION__);
@@ -1298,7 +1368,8 @@ uint32_t tea_add_trail_search_full(uint32_t key[4], double BB[NROUNDS], differen
 		}
 	 }
 	 //bool b_adv = 
-  } while((nrounds < NROUNDS) && ((B[nrounds - 1] > p_rand) || (nrounds == 0)));
+	 //  } while((nrounds < NROUNDS) && ((B[nrounds - 1] > p_rand) || (nrounds == 0)));
+  } while(nrounds < NROUNDS);
   //  } while((nrounds < NROUNDS) && ((B[nrounds - 1] != 0.0) || (nrounds == 0) ) && (B[nrounds - 1] > p_rand));
   //  } // 2-nd round search
 

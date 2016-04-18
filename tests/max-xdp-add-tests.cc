@@ -41,41 +41,45 @@ void test_max_xdp_add()
   xdp_add_alloc_matrices(A);
   xdp_add_sf(A);
   xdp_add_normalize_matrices(A);
-  uint32_t da = random32() & MASK;
-  uint32_t db = random32() & MASK;
-  uint32_t dc = 0;
+  WORD_T da = xrandom();//0x700000000;//xrandom() & MASK;
+  WORD_T db = xrandom();//0x700000000;//xrandom() & MASK;
+  WORD_T dc = 0;
   double p0 = max_xdp_add(A, da, db, &dc);
   assert((p0 >= 0.0) && (p0 <= 1.0));
   double p1 = xdp_add(A, da, db, dc);
   assert((p1 >= 0.0) && (p1 <= 1.0));
   assert(p0 == p1);
-  double p2 = xdp_add_exper(da, db, dc);
-  assert(p1 == p2);
 #if DEBUG_MAX_XDP_ADD_TESTS
   printf("[%s:%d] XDP_ADD_0[(%8X,%8X)->%8X] = %6.5f (2^%f)\n", 
 			__FILE__, __LINE__, da, db, dc, p0, log2(p0));
   printf("[%s:%d] XDP_ADD_1[(%8X,%8X)->%8X] = %6.5f (2^%f)\n", 
 			__FILE__, __LINE__, da, db, dc, p1, log2(p1));
+#endif  // #if DEBUG_MAX_XDP_ADD_TESTS
+#if(WORD_SIZE <= 10)
+  double p2 = xdp_add_exper(da, db, dc);
   printf("[%s:%d] XDP_ADD_2[(%8X,%8X)->%8X] = %6.5f\n", 
 			__FILE__, __LINE__, da, db, dc, p2);
-#endif  // #if DEBUG_MAX_XDP_ADD_TESTS
+  assert(p1 == p2);
+#endif // #if(WORD_SIZE <= 10)
   xdp_add_free_matrices(A);
   printf("[%s:%d] Test %s() OK.\n", __FILE__, __LINE__, __FUNCTION__);
 }
 
 void test_max_xdp_add_is_max()
 {
+#if(WORD_SIZE <= 10)
   printf("[%s:%d] Running test %s() ...\n", __FILE__, __LINE__, __FUNCTION__);
   gsl_matrix* A[2][2][2];
   xdp_add_alloc_matrices(A);
   xdp_add_sf(A);
   xdp_add_normalize_matrices(A);
-
   uint64_t N = (1ULL << WORD_SIZE);
-  for(uint32_t da = 0; da < N; da++) {
-	 for(uint32_t db = 0; db < N; db++) {
-		uint32_t dc1 = 0;
-		uint32_t dc2 = 0;
+  for(uint32_t i = 0; i < N; i++) {
+	 for(uint32_t j = 0; j < N; j++) {
+		WORD_T da = i;
+		WORD_T db = j;
+		WORD_T dc1 = 0;
+		WORD_T dc2 = 0;
 		double p1 = max_xdp_add(A, da, db, &dc1);
 		assert((p1 >= 0.0) && (p1 <= 1.0));
 		double p2 = max_xdp_add_exper(A, da, db, &dc2);
@@ -93,6 +97,7 @@ void test_max_xdp_add_is_max()
   }
   printf("\n[%s:%d] Test %s() OK.\n", __FILE__, __LINE__, __FUNCTION__);
   xdp_add_free_matrices(A);
+#endif // #if(WORD_SIZE <= 10)
 }
 
 /**
@@ -100,6 +105,7 @@ void test_max_xdp_add_is_max()
  */
 void test_max_xdp_add_vs_lm_all()
 {
+#if(WORD_SIZE <= 10)
   printf("[%s:%d] Running test %s() ...\n", __FILE__, __LINE__, __FUNCTION__);
   gsl_matrix* A[2][2][2];
   xdp_add_alloc_matrices(A);
@@ -145,6 +151,7 @@ void test_max_xdp_add_vs_lm_all()
   }
   xdp_add_free_matrices(A);
   printf("\n[%s:%d] WORD_SIZE = %d. Test %s() OK.\n", __FILE__, __LINE__, WORD_SIZE, __FUNCTION__);
+#endif // #if(WORD_SIZE <= 10)
 }
 
 /**
@@ -152,14 +159,13 @@ void test_max_xdp_add_vs_lm_all()
  */
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
-  assert(WORD_SIZE <= 10);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   srandom(time(NULL));
-  test_max_xdp_add();
+  //  test_max_xdp_add();
   test_max_xdp_add_is_max();
   // must be power of 2 for AOP to work
-  if((WORD_SIZE == 4) || (WORD_SIZE == 8)) {
-	 test_max_xdp_add_vs_lm_all();
-  }
+  //  if((WORD_SIZE == 4) || (WORD_SIZE == 8)) {
+  //  test_max_xdp_add_vs_lm_all();
+  //  } else {
   return 0;
 }

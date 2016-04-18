@@ -42,6 +42,8 @@
 #include "xtea-f-xor-pddt.hh"
 #endif
 
+#define XTEA_P_ADJUST_APPROX 1
+
 /** 
  * Compute an initial estimate of the probability of a differential
  * trail on \f$(n+1)\f$ rounds, by greedily extending the best found
@@ -67,7 +69,8 @@
  */ 
 double xtea_xor_init_estimate(uint32_t next_round, uint32_t lsh_const, uint32_t rsh_const, uint32_t npairs,
 										gsl_matrix* A[2][2][2], double B[NROUNDS], differential_t trail[NROUNDS], 
-										std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy,										
+										std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy,
+										std::multiset<differential_t, struct_comp_diff_p>* diff_mset_p,
 										uint32_t round_key[64], uint32_t round_delta[64])
 {
   double Bn_init = 0.0;
@@ -76,10 +79,12 @@ double xtea_xor_init_estimate(uint32_t next_round, uint32_t lsh_const, uint32_t 
   uint32_t dy = 0;
   double p_f = nz_xdp_xtea_f(A, dx, &dy, lsh_const, rsh_const);
   uint32_t dyy = 0;			  // to be computed
-  double p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+  //  double p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+  double p_add2 = max_xdp_add_lm(dxx, dy, &dyy);
   double p_next = p_add2 * p_f;
-
+#if XTEA_P_ADJUST_APPROX									  // !!!
   p_next = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[next_round], round_delta[next_round], lsh_const, rsh_const);
+#endif  // #if XTEA_P_ADJUST_APPROX
   Bn_init = B[next_round - 1] * p_next;
 
   if(diff_set_dx_dy->size() < XTEA_XOR_MAX_PDDT_SIZE) {
@@ -88,7 +93,14 @@ double xtea_xor_init_estimate(uint32_t next_round, uint32_t lsh_const, uint32_t 
 	 tmp_diff.dy = dy;		  // !
 	 tmp_diff.p = p_f;		  // !
 
-	 diff_set_dx_dy->insert(tmp_diff);
+	 if(tmp_diff.p >= XTEA_XOR_P_THRES) {
+		uint32_t old_size = diff_set_dx_dy->size();
+		diff_set_dx_dy->insert(tmp_diff);
+		uint32_t new_size = diff_set_dx_dy->size();
+		if(old_size != new_size) {
+		  diff_mset_p->insert(tmp_diff);
+		}
+	 }
   }
   trail[next_round].dx = dx;
   trail[next_round].dy = dyy; // !
@@ -210,10 +222,13 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
 		double p_f = mset_iter->p;
 		uint32_t dxx = dy;		  // the second input difference to the first round is set to dy
 		uint32_t dyy = 0;			  // to be computed
-		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		//		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		double p_add2 = max_xdp_add_lm(dxx, dy, &dyy);
 		// the final prob. is the product of the probabilities of the F-function and the second add operation
 		pn = p_add2 * p_f;
+#if XTEA_P_ADJUST_APPROX
 		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 
 		if((pn >= *Bn) && (pn != 0.0)) { // discard zero probability
 		  dxx_init = dxx;
@@ -238,9 +253,12 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
 		double p_f = mset_iter->p;
 		uint32_t dxx = dy;		  // the second input difference to the first round is set to dy
 		uint32_t dyy = 0;			  // to be computed
-		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);		
+		//		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);		
+		double p_add2 = max_xdp_add_lm(dxx, dy, &dyy);		
 		pn = p_add2 * p_f;		  // product of the probabilities of the F-function and the second add operation
+#if XTEA_P_ADJUST_APPROX
 		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 
 		double p = pn * B[nrounds - 1 - (n + 1)];
 		assert(B[nrounds - 1 - (n + 1)] != 0.0);
@@ -265,6 +283,8 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
   }
 
   if((n >= 1) && (n != (nrounds - 1))) { // Round-i and not last round
+	 assert(diff_set_dx_dy->size() == diff_mset_p->size());
+
 	 uint32_t dx = diff[n - 1].dy; // !
 	 uint32_t dy = 0;
 
@@ -277,59 +297,59 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
 	 std::set<differential_t, struct_comp_diff_dx_dy>::iterator find_iter = diff_set_dx_dy->lower_bound(diff_dy);
  	 bool b_found = (find_iter != diff_set_dx_dy->end()) && (find_iter->dx == dx);
 	 if(!b_found) {				  // if not found, add new
-		double pn = nz_xdp_xtea_f(A, dx, &dy, lsh_const, rsh_const);
+		double pn = nz_xdp_xtea_f(A, dx, &dy, lsh_const, rsh_const); // max
 		diff_dy.dx = dx;  
 		diff_dy.dy = dy;
 		diff_dy.p = pn;
 
-		// Add the new diff to Dp only if it has better prob. than the min.
-		double p_min = diff_mset_p->rbegin()->p;
-		if(diff_dy.p >= p_min) {
-		  diff_mset_p->insert(diff_dy);
+		if(diff_dy.p >= XTEA_XOR_P_THRES) {
+		  uint32_t old_size = diff_set_dx_dy->size();
+		  diff_set_dx_dy->insert(diff_dy);
+		  uint32_t new_size = diff_set_dx_dy->size();
+		  if(old_size != new_size) {
+			 diff_mset_p->insert(diff_dy);
+		  }
 		}
-
-		diff_set_dx_dy->insert(diff_dy);
-		find_iter = diff_set_dx_dy->lower_bound(diff_dy);
-	 } 
-	 assert((find_iter->dx == dx));
-
-	 while((find_iter->dx < (dx + 1)) && (find_iter != diff_set_dx_dy->end())) {
+	 } else {						  // found
 		assert((find_iter->dx == dx));
 		diff_dy = *find_iter;
+	 } 
 
-		dx = diff_dy.dx;
-		dy = diff_dy.dy;
-		double p_f = diff_dy.p;
-		uint32_t dxx = diff[n - 1].dx;
-		uint32_t dyy = 0;			  // to be computed
-		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);		
-		pn = p_add2 * p_f;		  // product of the probabilities of the F-function and the second add operation
-		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+	 dx = diff_dy.dx;
+	 dy = diff_dy.dy;
+	 double p_f = diff_dy.p;
+	 uint32_t dxx = diff[n - 1].dx;
+	 uint32_t dyy = 0;			  // to be computed
+	 //		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);		
+	 double p_add2 = max_xdp_add_lm(dxx, dy, &dyy);		
+	 pn = p_add2 * p_f;		  // product of the probabilities of the F-function and the second add operation
+#if XTEA_P_ADJUST_APPROX
+	 pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 
-		double p = 1.0;
-		for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
-		  p *= diff[i].p;
-		}
-		p = p * pn * B[nrounds - 1 - (n + 1)]; 
+	 double p = 1.0;
+	 for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
+		p *= diff[i].p;
+	 }
+	 p = p * pn * B[nrounds - 1 - (n + 1)]; 
 
-		// store the beginnig
-		std::set<differential_t, struct_comp_diff_dx_dy>::iterator begin_iter = diff_set_dx_dy->begin();
-		if((p >= *Bn) && (p != 0.0)) {
-		  diff[n].dx = dx;
-		  diff[n].dy = dyy;	  // !
-		  diff[n].p = pn;
-		  xtea_xor_threshold_search(n+1, nrounds, npairs, round_key, round_delta, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, dxx_init, dxx_init_in);
-		}
-		if(begin_iter != diff_set_dx_dy->begin()) { // if the root was updated, start from beginning
-		  diff_dy.dx = dx;  
-		  diff_dy.dy = 0;
-		  diff_dy.p = 0.0;
-		  find_iter = diff_set_dx_dy->lower_bound(diff_dy);
-		  printf("[%s:%d] Return to beginning\n", __FILE__, __LINE__);
-		  assert((find_iter->dx == dx));
-		} else {
-		  find_iter++;
-		}
+	 // store the beginnig
+	 std::set<differential_t, struct_comp_diff_dx_dy>::iterator begin_iter = diff_set_dx_dy->begin();
+	 if((p >= *Bn) && (p != 0.0)) {
+		diff[n].dx = dx;
+		diff[n].dy = dyy;	  // !
+		diff[n].p = pn;
+		xtea_xor_threshold_search(n+1, nrounds, npairs, round_key, round_delta, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, dxx_init, dxx_init_in);
+	 }
+	 if(begin_iter != diff_set_dx_dy->begin()) { // if the root was updated, start from beginning
+		diff_dy.dx = dx;  
+		diff_dy.dy = 0;
+		diff_dy.p = 0.0;
+		find_iter = diff_set_dx_dy->lower_bound(diff_dy);
+		printf("[%s:%d] Return to beginning\n", __FILE__, __LINE__);
+		assert((find_iter->dx == dx));
+	 } else {
+		find_iter++;
 	 }
   }
 
@@ -348,9 +368,12 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
 		p_f = diff_mset_p->begin()->p;
 		dxx = diff[n - 1].dx;
 		dyy = 0;			  // to be computed
-		p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		//		p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		p_add2 = max_xdp_add_lm(dxx, dy, &dyy);
 		pn = p_add2 * p_f;
+#if XTEA_P_ADJUST_APPROX
 		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 	 } else {
 
 		dx = diff[n - 1].dy;
@@ -373,23 +396,29 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
 		  diff_max_dy.p = pn;
 
 		  // Add the new diff to Dp only if it has better prob. than the min.
-		  double p_min = diff_mset_p->rbegin()->p;
-		  if(diff_max_dy.p >= p_min) {
-			 diff_mset_p->insert(diff_max_dy);
+		  if(pn >= XTEA_XOR_P_THRES) {
+			 bool b_found = (diff_set_dx_dy->find(diff_max_dy) != diff_set_dx_dy->end());
+			 if(!b_found) {
+				uint32_t old_size = diff_set_dx_dy->size();
+				diff_set_dx_dy->insert(diff_max_dy);
+				uint32_t new_size = diff_set_dx_dy->size();
+				if(old_size != new_size) {
+				  diff_mset_p->insert(diff_max_dy);
+				}
+			 }
 		  }
 
-		  diff_set_dx_dy->insert(diff_max_dy);
-		  find_iter = diff_set_dx_dy->lower_bound(diff_max_dy);
-		} 
-		assert((find_iter->dx == dx));
+		} else {
+		  assert((find_iter->dx == dx));
 
-		diff_max_dy = *find_iter;
-		while((find_iter->dx < (dx + 1)) && (find_iter != diff_set_dx_dy->end())) { // get the max among the available
+		  diff_max_dy = *find_iter;
+		  while((find_iter->dx < (dx + 1)) && (find_iter != diff_set_dx_dy->end())) { // get the max among the available
 
-		  if(find_iter->p > diff_max_dy.p) {
-			 diff_max_dy = *find_iter;
+			 if(find_iter->p > diff_max_dy.p) {
+				diff_max_dy = *find_iter;
+			 }
+			 find_iter++;
 		  }
-		  find_iter++;
 		}
 
 		dx = diff_max_dy.dx;
@@ -397,9 +426,12 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
 		p_f = diff_max_dy.p;
 		dxx = diff[n - 1].dx;
 		dyy = 0;			  // to be computed
-		p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		//	 p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		p_add2 = max_xdp_add_lm(dxx, dy, &dyy);
 		pn = p_add2 * p_f;
+#if XTEA_P_ADJUST_APPROX
 		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 
 	 }
 
@@ -458,6 +490,8 @@ void xtea_xor_threshold_search(const int n, const int nrounds, const uint32_t np
  *
  */
 uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64],
+										 std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy,
+										 std::multiset<differential_t, struct_comp_diff_p>* diff_mset_p,
 										 double B[NROUNDS], differential_t trail[NROUNDS])
 {
   uint32_t lsh_const = TEA_LSH_CONST; 
@@ -491,23 +525,24 @@ uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t
 	 trail[i].p = 0.0;
   }
 
-  std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy; // Dxy
-  std::multiset<differential_t, struct_comp_diff_p> diff_mset_p;	 // Dp
+  //  std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy; // Dxy
+  //  std::multiset<differential_t, struct_comp_diff_p> diff_mset_p;	 // Dp
 
-  xtea_f_xor_pddt(word_size, p_thres, lsh_const, rsh_const, &diff_set_dx_dy);
+  xtea_f_xor_pddt(word_size, p_thres, lsh_const, rsh_const, diff_set_dx_dy);
 #if 0
   uint32_t key_0 = round_key[0];
   uint32_t delta_0 = round_delta[0];
-  xtea_f_xor_pddt_adjust_to_key(num_rounds, npairs, lsh_const, rsh_const, key_0, delta_0, p_thres, &diff_set_dx_dy);
+  xtea_f_xor_pddt_adjust_to_key(num_rounds, npairs, lsh_const, rsh_const, key_0, delta_0, p_thres, diff_set_dx_dy);
 #endif
-  xtea_xor_pddt_dxy_to_dp(&diff_mset_p, diff_set_dx_dy);
+  xtea_xor_pddt_dxy_to_dp(diff_mset_p, *diff_set_dx_dy);
 #if 0									  // DEBUG
   printf("[%s:%d] Dp , p_thres = %f 2^%f\n", __FILE__, __LINE__, p_thres, log2(p_thres));
   print_mset(diff_mset_p);
 #endif
 
-  printf("Initial set sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
-  assert(diff_set_dx_dy.size() == diff_mset_p.size());
+  printf("Initial set sizes: Dp %d, Dxy %d\n", diff_mset_p->size(), diff_set_dx_dy->size());
+  assert(diff_set_dx_dy->size() == diff_mset_p->size());
+  assert(diff_set_dx_dy->size() != 0);
 
   // initial bound
   double Bn_init = 0.0;
@@ -522,7 +557,8 @@ uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t
   do {
 	 nrounds++;
 
-	 printf("[%s:%d] nrounds = %d, Bn_init = 2^%f : key %8X %8X %8X %8X\n", __FILE__, __LINE__, nrounds, log2(Bn_init), key[0], key[1], key[2], key[3]);
+	 printf("[%s:%d] nrounds = %d, Bn_init = 2^%f, Dp %d Dxy %d\n", __FILE__, __LINE__, nrounds, log2(Bn_init), diff_mset_p->size(), diff_set_dx_dy->size());
+
 	 double Bn = Bn_init;		  // initial bound
 	 B[nrounds - 1] = Bn_init;
 	 int r = 0;						  // initial round
@@ -535,7 +571,7 @@ uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t
 		diff[i].p = 0.0;
 	 }
 
-	 xtea_xor_threshold_search(r, nrounds, npairs, round_key, round_delta, A, B, &Bn, diff, trail, lsh_const, rsh_const, &diff_mset_p, &diff_set_dx_dy, dxx_init, &dxx_init_in);
+	 xtea_xor_threshold_search(r, nrounds, npairs, round_key, round_delta, A, B, &Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, dxx_init, &dxx_init_in);
 	 assert(B[nrounds - 1] == Bn);
 	 dxx_init = dxx_init_in;
 
@@ -549,7 +585,8 @@ uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t
 		}
 		printf("\n");
 	 }
-	 printf("pDDT sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+	 printf("pDDT sizes: Dp %d, Dxy %d\n", diff_mset_p->size(), diff_set_dx_dy->size());
+	 assert(diff_mset_p->size() == diff_set_dx_dy->size());
 #endif
 #if 1									  // INFO
 	 double p_tot = 1.0;
@@ -561,9 +598,10 @@ uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t
 #endif
 	 // compute initial estimate for next round
 	 uint32_t next_round = nrounds;
-	 Bn_init = xtea_xor_init_estimate(next_round, lsh_const, rsh_const, npairs, A, B, trail, &diff_set_dx_dy, round_key, round_delta);
+	 Bn_init = xtea_xor_init_estimate(next_round, lsh_const, rsh_const, npairs, A, B, trail, diff_set_dx_dy, diff_mset_p, round_key, round_delta);
 
-  } while((nrounds < NROUNDS) && ((B[nrounds - 1] > p_rand) || (nrounds == 0)));
+	 //  } while((nrounds < NROUNDS) && ((B[nrounds - 1] > p_rand) || (nrounds == 0)));
+  } while(nrounds < NROUNDS);
   //  } // for(nrounds...)
 
   printf("[%s:%d] nrounds = %d\n", __FILE__, __LINE__, nrounds);
@@ -615,10 +653,13 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 		double p_f = mset_iter->p;
 		uint32_t dxx = dy;		  // the second input difference to the first round is set to dy
 		uint32_t dyy = 0;			  // to be computed
-		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		//		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		double p_add2 = max_xdp_add_lm(dxx, dy, &dyy);
 		// the final prob. is the product of the probabilities of the F-function and the second add operation
 		pn = p_add2 * p_f;
+#if XTEA_P_ADJUST_APPROX
 		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 
 #if 1									  // DEBUG
 		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
@@ -649,9 +690,11 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 		double p_f = mset_iter->p;
 		uint32_t dxx = dy;		  // the second input difference to the first round is set to dy
 		uint32_t dyy = 0;			  // to be computed
-		double p_add2 = max_xdp_add(A, dxx, dy, &dyy);		
+		double p_add2 = max_xdp_add_lm(dxx, dy, &dyy);		
 		pn = p_add2 * p_f;		  // product of the probabilities of the F-function and the second add operation
+#if XTEA_P_ADJUST_APPROX
 		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 
 		double p = pn * B[nrounds - 1 - (n + 1)];
 		assert(B[nrounds - 1 - (n + 1)] != 0.0);
@@ -705,11 +748,11 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 	 std::set<differential_t, struct_comp_diff_dx_dy> croads_diff_set_dx_dy;
 	 uint32_t dx_prev = diff[n - 1].dx;
 	 assert(diff_set_dx_dy->size() != 0);
-	 uint32_t cnt_new = xtea_f_da_db_xor_pddt(WORD_SIZE, p_min, lsh_const, rsh_const, dx_prev, diff_dy.dx, diff_set_dx_dy, &croads_diff_set_dx_dy);
+	 uint32_t cnt_new = xtea_f_da_db_xor_pddt(WORD_SIZE, p_min, lsh_const, rsh_const, dx_prev, diff_dy.dx, diff_set_dx_dy, diff_mset_p,  &croads_diff_set_dx_dy);
 	 if(cnt_new != 0) {
 #if 1									  // DEBUG
-		printf("\r[%s:%d] [%2d / %2d]: Added %d new country roads: p_min = %f (2^%f). New sizes: Dxy %d.", 
-				 __FILE__, __LINE__, n, NROUNDS, cnt_new, p_min, log2(p_min), croads_diff_set_dx_dy.size());
+		printf("\r[%s:%d] [%2d / %2d]: Added %d new country roads: p_min = %f (2^%f). New sizes: Dp %d Dxy %d.", 
+				 __FILE__, __LINE__, n, NROUNDS, cnt_new, p_min, log2(p_min), diff_mset_p->size(), diff_set_dx_dy->size());
 		fflush(stdout);
 #endif
 	 }
@@ -749,42 +792,33 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 	 std::multiset<differential_t, struct_comp_diff_p>::iterator find_iter = found_mset_p.begin();
 	 // ---}
 
-	 // check if the differential is not already in the set
-#if 0
-	 std::set<differential_t, struct_comp_diff_dx_dy>::iterator find_iter = diff_set_dx_dy->lower_bound(diff_dy);
- 	 bool b_found = (find_iter != diff_set_dx_dy->end()) && (find_iter->dx == dx);
-	 if(!b_found) {				  // if not found, add new
-		double pn = nz_xdp_xtea_f(A, dx, &dy, lsh_const, rsh_const);
-		diff_dy.dx = dx;  
-		diff_dy.dy = dy;
-		diff_dy.p = pn;
-
-		// Add the new diff to Dp only if it has better prob. than the min.
-		double p_min = diff_mset_p->rbegin()->p;
-		if(diff_dy.p >= p_min) {
-		  diff_mset_p->insert(diff_dy);
-		}
-
-		diff_set_dx_dy->insert(diff_dy);
-		find_iter = diff_set_dx_dy->lower_bound(diff_dy);
-	 } 
-	 assert((find_iter->dx == dx));
-#endif
-
 	 //	 while((find_iter->dx < (dx + 1)) && (find_iter != diff_set_dx_dy->end())) {
 	 if(find_iter->dx == dx) {
 		while((find_iter->dx == dx) && (find_iter != found_mset_p.end())) {
 		  assert((find_iter->dx == dx));
 		  diff_dy = *find_iter;
 
+		  // Add the new diff to Dp only if it has better prob. than the min.
+		  if(diff_dy.p >= XTEA_XOR_P_THRES) {
+			 uint32_t old_size = diff_set_dx_dy->size();
+			 diff_set_dx_dy->insert(diff_dy);
+			 uint32_t new_size = diff_set_dx_dy->size();
+			 if(old_size != new_size) {
+				diff_mset_p->insert(diff_dy);
+			 }
+		  }
+
 		  dx = diff_dy.dx;
 		  dy = diff_dy.dy;
 		  double p_f = diff_dy.p;
 		  uint32_t dxx = diff[n - 1].dx;
 		  uint32_t dyy = 0;			  // to be computed
-		  double p_add2 = max_xdp_add(A, dxx, dy, &dyy);		
+		  //		  double p_add2 = max_xdp_add(A, dxx, dy, &dyy);		
+		  double p_add2 = max_xdp_add_lm(dxx, dy, &dyy);		
 		  pn = p_add2 * p_f;		  // product of the probabilities of the F-function and the second add operation
+#if XTEA_P_ADJUST_APPROX
 		  pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 
 		  double p = 1.0;
 		  for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
@@ -800,7 +834,6 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 			 diff[n].p = pn;
 			 xtea_xor_threshold_search_full(n+1, nrounds, npairs, round_key, round_delta, A, B, Bn, diff, trail, lsh_const, rsh_const, diff_mset_p, diff_set_dx_dy, dxx_init, dxx_init_in);
 		  }
-
 
 		  if(begin_iter != diff_set_dx_dy->begin()) { // if the root was updated, start from beginning
 			 diff_dy.dx = dx;  
@@ -831,9 +864,12 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 		p_f = diff_mset_p->begin()->p;
 		dxx = diff[n - 1].dx;
 		dyy = 0;			  // to be computed
-		p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		//		p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		p_add2 = max_xdp_add_lm(dxx, dy, &dyy);
 		pn = p_add2 * p_f;
+#if XTEA_P_ADJUST_APPROX
 		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 	 } else {
 
 		dx = diff[n - 1].dy;
@@ -859,8 +895,12 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 		  if(pn >= XTEA_XOR_P_THRES) {
 			 bool b_found = (diff_set_dx_dy->find(diff_max_dy) != diff_set_dx_dy->end());
 			 if(!b_found) {
-				diff_mset_p->insert(diff_max_dy);
+				uint32_t old_size = diff_set_dx_dy->size();
 				diff_set_dx_dy->insert(diff_max_dy);
+				uint32_t new_size = diff_set_dx_dy->size();
+				if(old_size != new_size) {
+				  diff_mset_p->insert(diff_max_dy);
+				}
 			 }
 		  }
 
@@ -873,29 +913,31 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 
 		  diff_set_dx_dy->insert(diff_max_dy);
 		  find_iter = diff_set_dx_dy->lower_bound(diff_max_dy);
-		} 
 #endif	
-	 } else {
-		assert((find_iter->dx == dx));
+		} else {
+		  assert((find_iter->dx == dx));
 
-		diff_max_dy = *find_iter;
-		while((find_iter->dx < (dx + 1)) && (find_iter != diff_set_dx_dy->end())) { // get the max among the available
+		  diff_max_dy = *find_iter;
+		  while((find_iter->dx < (dx + 1)) && (find_iter != diff_set_dx_dy->end())) { // get the max among the available
 
-		  if(find_iter->p > diff_max_dy.p) {
-			 diff_max_dy = *find_iter;
+			 if(find_iter->p > diff_max_dy.p) {
+				diff_max_dy = *find_iter;
+			 }
+			 find_iter++;
 		  }
-		  find_iter++;
 		}
-	 }
 
-	 dx = diff_max_dy.dx;
-	 dy = diff_max_dy.dy;
-	 p_f = diff_max_dy.p;
-	 dxx = diff[n - 1].dx;
-	 dyy = 0;			  // to be computed
-	 p_add2 = max_xdp_add(A, dxx, dy, &dyy);
-	 pn = p_add2 * p_f;
-	 pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+		dx = diff_max_dy.dx;
+		dy = diff_max_dy.dy;
+		p_f = diff_max_dy.p;
+		dxx = diff[n - 1].dx;
+		dyy = 0;			  // to be computed
+		//	 p_add2 = max_xdp_add(A, dxx, dy, &dyy);
+		p_add2 = max_xdp_add_lm(dxx, dy, &dyy);
+		pn = p_add2 * p_f;
+#if XTEA_P_ADJUST_APPROX
+		pn = xdp_xtea_f2_fk_approx(npairs, dxx, dx, dyy, round_key[n], round_delta[n], lsh_const, rsh_const); // adjust the probability to the round key
+#endif  // #if XTEA_P_ADJUST_APPROX
 
 	 }
 
@@ -905,23 +947,30 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 	 }
 	 p *= pn;
 
-	 if((p >= *Bn) && (p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
-#if 1									  // DEBUG
-		if (p > *Bn) {
-		  printf("[%s:%d] %d | Update best found Bn: 2^%f -> 2^%f\n", __FILE__, __LINE__, n, log2(*Bn), log2(p));
+    if((p >= *Bn) && (p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
+	 //	 if((p >= *Bn) && (p != 1.0) && (p != 0.0) && (dx != trail[n].dx) && (dyy != trail[n].dy)) { // skip the 0-diff trail (p = 1.0)
+		bool b_same_diffs = false;
+		if((n > 2) && (dx == trail[n].dx) && (dyy == trail[n].dy)) {
+		  b_same_diffs = true;
 		}
+#if 1									  // DEBUG
+		if(!b_same_diffs) {
+		  if (p > *Bn) {
+			 printf("[%s:%d] %d | Update best found Bn: 2^%f -> 2^%f\n", __FILE__, __LINE__, n, log2(*Bn), log2(p));
+		  }
 #endif
-		diff[n].dx = dx;
-		diff[n].dy = dyy;			  // !
-		diff[n].p = pn;
-		*Bn = p;
-		B[n] = p;
-		*dxx_init_in = dxx_init;
-		for(int i = 0; i < nrounds; i++) {
-		  trail[i].dx = diff[i].dx;
-		  trail[i].dy = diff[i].dy;
-		  trail[i].p = diff[i].p;
-		  //		  printf("[%s:%d] %d | %8X %8X 2^%f\n", __FILE__, __LINE__, i, trail[i].dx, trail[i].dy, log2(trail[i].p));
+		  diff[n].dx = dx;
+		  diff[n].dy = dyy;			  // !
+		  diff[n].p = pn;
+		  *Bn = p;
+		  B[n] = p;
+		  *dxx_init_in = dxx_init;
+		  for(int i = 0; i < nrounds; i++) {
+			 trail[i].dx = diff[i].dx;
+			 trail[i].dy = diff[i].dy;
+			 trail[i].p = diff[i].p;
+			 //		  printf("[%s:%d] %d | %8X %8X 2^%f\n", __FILE__, __LINE__, i, trail[i].dx, trail[i].dy, log2(trail[i].p));
+		  }
 		}
 	 }
   }
@@ -932,12 +981,14 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
  * \ref xtea_xor_threshold_search_full
  */
 uint32_t xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uint32_t round_delta[64],
+												std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy, // Dxy
+												std::multiset<differential_t, struct_comp_diff_p> diff_mset_p,	 // Dp
 												double BB[NROUNDS], differential_t trail[NROUNDS])
 {
   uint32_t lsh_const = TEA_LSH_CONST; 
   uint32_t rsh_const = TEA_RSH_CONST;
-  double p_thres = XTEA_XOR_P_THRES;
-  uint32_t word_size = WORD_SIZE;
+  //  double p_thres = XTEA_XOR_P_THRES;
+  //  uint32_t word_size = WORD_SIZE;
   uint32_t npairs = NPAIRS;
   uint32_t num_rounds = NROUNDS;
   uint32_t ret_nrounds = 0;
@@ -966,9 +1017,9 @@ uint32_t xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uin
 	 trail[i].p = 0.0;
   }
 
+#if 0																					 // precomputed
   std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy; // Dxy
   std::multiset<differential_t, struct_comp_diff_p> diff_mset_p;	 // Dp
-
   xtea_f_xor_pddt(word_size, p_thres, lsh_const, rsh_const, &diff_set_dx_dy);
 #if 0
   uint32_t key_0 = round_key[0];
@@ -980,6 +1031,7 @@ uint32_t xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uin
   printf("[%s:%d] Dp , p_thres = %f 2^%f\n", __FILE__, __LINE__, p_thres, log2(p_thres));
   print_mset(diff_mset_p);
 #endif
+#endif  // #if 0
 
   printf("Initial set sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
   assert(diff_set_dx_dy.size() == diff_mset_p.size());
@@ -1065,7 +1117,9 @@ uint32_t xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uin
 		} else {
 		  if(trail[i].p == 0) {
 			 nrounds -= 1;
+#if 1									  // !!!
 			 scale_fact *= 0.5;
+#endif
 			 for(int j = 0; j < NROUNDS; j++) { // copy the original bounds
 				B[j] = BB[j];
 			 }
@@ -1077,8 +1131,9 @@ uint32_t xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uin
 		  }
 		}
 	 }
-  } while((nrounds < NROUNDS) && ((B[nrounds - 1] > p_rand) || (nrounds == 0)));
+	 //  } while((nrounds < NROUNDS) && ((B[nrounds - 1] > p_rand) || (nrounds == 0)));
   //  } // for(nrounds...)
+  } while(nrounds < NROUNDS);
 
   ret_nrounds = nrounds;
 

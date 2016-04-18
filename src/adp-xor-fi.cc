@@ -105,6 +105,86 @@ void adp_xor_fixed_input_normalize_matrices(gsl_matrix* A[2][2][2])
   }
 }
 
+/**
+ * Print the matrices for \f$\mathrm{adp}^{\oplus}_{\mathrm{FI}}\f$ in a format
+ * readable by the computer algebra system Sage (http://www.sagemath.org/).
+ *
+ * \param A transition probability matrices for \f$\mathrm{adp}^{\oplus}_{\mathrm{FI}}\f$.
+ */
+void adp_xor_fixed_input_print_matrices_sage(gsl_matrix* A[2][2][2])
+{
+  printf("# [%s:%d] Matrices for ADP-XOR-FI generated with %s() \n", __FILE__, __LINE__, __FUNCTION__);
+
+  printf("#--- Normalization factor --- \n");
+  printf("f = %f\n", ADP_XOR_FI_NORM);
+
+  // print L
+  gsl_vector* L = gsl_vector_calloc(ADP_XOR_FI_MSIZE);
+  gsl_vector_set_all(L, 1.0);
+  printf("#--- Vector L --- \n");
+  printf("L = vector(QQ,[ ");
+  for(int col = 0; col < ADP_XOR_FI_MSIZE; col++){
+	 double e = gsl_vector_get(L, col);
+	 printf("%4.3f", e);
+	 if(col == ADP_XOR_FI_MSIZE - 1) {
+		printf(" ");
+	 } else {
+		printf(", ");
+	 }
+  }
+  printf("])\n\n");
+
+  // print C
+  gsl_vector* C = gsl_vector_calloc(ADP_XOR_FI_MSIZE);
+  gsl_vector_set_zero(C);
+  gsl_vector_set(C, ADP_XOR_FI_ISTATE, 1.0);
+  printf("#--- Vector C --- \n");
+  printf("C = vector(QQ,[ ");
+  for(int col = 0; col < ADP_XOR_FI_MSIZE; col++){
+	 double e = gsl_vector_get(C, col);
+	 printf("%4.3f", e);
+	 if(col == ADP_XOR_FI_MSIZE - 1) {
+		printf(" ");
+	 } else {
+		printf(", ");
+	 }
+  }
+  printf("])\n\n");
+
+  // print A
+  for(int i = 0; i < ADP_XOR_FI_NMATRIX; i++){
+	 int a = (i >> 0) & 1;
+	 int b = (i >> 1) & 1;
+	 int c = (i >> 2) & 1;
+	 printf("#---AA%d%d%d--- \n", c, b, a);
+	 printf("AA%d%d%d = matrix(QQ,%d,%d,[\n", c, b, a, ADP_XOR_FI_MSIZE, ADP_XOR_FI_MSIZE);
+	 for(int row = 0; row < ADP_XOR_FI_MSIZE; row++){
+		for(int col = 0; col < ADP_XOR_FI_MSIZE; col++){
+		  double e = gsl_matrix_get(A[a][b][c], row, col);
+		  printf("%3.2f", e);
+		  if((row == ADP_XOR_FI_MSIZE - 1) && (col == ADP_XOR_FI_MSIZE - 1)) {
+			 printf(" ");
+		  } else {
+			 printf(", ");
+		  }
+		}
+		printf("\n");
+	 }
+	 printf("])\n\n");
+	 //	 printf("\n");
+  }
+  for(int i = 0; i < ADP_XOR_FI_NMATRIX; i++){
+	 int a = (i >> 0) & 1;
+	 int b = (i >> 1) & 1;
+	 int c = (i >> 2) & 1;
+	 printf("A%d%d%d = f * AA%d%d%d\n", c, b, a, c, b, a);
+  }
+  printf("\n");
+  printf("A = [A000, A001, A010, A011, A100, A101, A110, A111]\n");
+  printf("\n");
+  printf("AA = [AA000, AA001, AA010, AA011, AA100, AA101, AA110, AA111]\n");
+}
+
 /** 
  * S-function for \f$\mathrm{adp}^{\oplus}_{\mathrm{FI}}\f$:
  * \f$\mathrm{adp}^{\oplus}(a,db \rightarrow db)\f$.
@@ -136,7 +216,9 @@ void adp_xor_fixed_input_sf(gsl_matrix* A[2][2][2])
 		t /= 2;
 		int32_t in_s2 = (t & 1) - 1;
 		t /= 2;
-		//					printf("[%2d] %2d%2d \n", u, in_s2, in_s1);
+#if 0									  // DEBUG
+		printf("[%2d] %2d%2d \n", u, in_s2, in_s1);
+#endif
 
 		for(uint32_t j = 0; j < 2; j++) {
 		  uint32_t b1 = j;

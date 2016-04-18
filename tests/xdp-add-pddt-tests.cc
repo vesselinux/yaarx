@@ -37,8 +37,45 @@
 void test_xdp_add_pddt()
 {
   uint32_t n = WORD_SIZE;
-  double p_thres = 0.05;
-  xdp_add_pddt(n, p_thres);
+  double p_thres = 0.1;
+  uint32_t max_size = (1ULL << 20);
+
+  // init A
+  gsl_matrix* A[2][2][2];
+  xdp_add_alloc_matrices(A);
+  xdp_add_sf(A);
+  xdp_add_normalize_matrices(A);
+
+  // init C
+  gsl_vector* C = gsl_vector_calloc(XDP_ADD_MSIZE);
+  gsl_vector_set(C, XDP_ADD_ISTATE, 1.0);
+
+  std::multiset<differential_3d_t, struct_comp_diff_3d_p> diff_mset_p;
+  std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz> diff_set_dx_dy_dz;
+  xdp_add_pddt(n, p_thres, max_size, &diff_set_dx_dy_dz, &diff_mset_p);
+  printf("[%s:%d] p_thres = %f (2^%f), n = %d, #diffs = %d %d\n", __FILE__, __LINE__, 
+			p_thres, log2(p_thres), WORD_SIZE, diff_set_dx_dy_dz.size(), diff_mset_p.size());
+  assert(diff_set_dx_dy_dz.size() == diff_mset_p.size());
+  uint32_t cnt = 0;
+
+  std::multiset<differential_3d_t, struct_comp_diff_3d_p>::iterator set_iter;
+  for(set_iter = diff_mset_p.begin(); set_iter != diff_mset_p.end(); set_iter++) {
+	 differential_3d_t i_diff = *set_iter;
+	 double p_the = xdp_add(A, i_diff.dx, i_diff.dy, i_diff.dz);
+#if 0									  // print all
+	 printf("[%s:%d] %4d: XDP_ADD_THRES[(%8X,%8X)->%8X] = %6.5f\n", 
+			  __FILE__, __LINE__, cnt, i_diff.dx, i_diff.dy, i_diff.dz, i_diff.p);
+#endif				 // #if 0
+	 assert(p_the == i_diff.p);
+	 cnt++;
+  }
+  std::multiset<differential_3d_t, struct_comp_diff_3d_p> diff_mset_p_exper;
+  xdp_add_pddt_exper(&diff_mset_p_exper, p_thres);
+  printf("[%s:%d] THE #%d, EXP #%d\n", __FILE__, __LINE__, diff_mset_p.size(), diff_mset_p_exper.size());
+  assert(diff_mset_p.size() == diff_mset_p_exper.size());
+
+  gsl_vector_free(C);
+  xdp_add_free_matrices(A);
 }
 
 /**

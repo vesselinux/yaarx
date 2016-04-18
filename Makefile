@@ -1,16 +1,37 @@
 CC = g++
 DEBUG = -g
-LFLAGS = -Wall
-CFLAGS = -O3 -std=c++0x -Wall -c
-GSL_LIB = -lgsl -lgslcblas -lgmpxx -lgmp
+COMPILE_WITH_CODING_TOOL_LIB = false
+# compile on the HP cluster
+#CFLAGS = -O3 -std=c++0x -Wall -I/opt/apps/HPCBIOS.20130301/software/GSL/1.15-goalf-1.1.0-no-OFED/include/ -c
+#LIBS = -L/opt/apps/HPCBIOS.20130301/software/GSL/1.15-goalf-1.1.0-no-OFED/lib -lgsl -lgslcblas -lgmpxx -lgmp
+# compile on local machine
+#CFLAGS = -O3 -flto -mpopcnt -std=c++11 -c 
+# -DNDEBUG disables all assert() -- see: http://www.cplusplus.com/reference/cassert/assert/
+#CFLAGS = -O3 -std=gnu++11 -mpopcnt -mtune=native -m64 -flto -Wall -DNDEBUG -c # with NDEBUG
+#override CFLAGS += -O3 -std=gnu++11 -mpopcnt -mtune=native -m64 -flto -Wall -c
+#CFLAGS += -O3 -std=gnu++11 -mpopcnt -mtune=native -m64 -flto -Wall -c # <-
+#CFLAGS = -O3 -Wall -std=c++11 -mpopcnt -flto -pg -c # profiling with gprof
+#CFLAGS = -O3 -ffloat-store -std=c++0x -Wall -c 
+#CFLAGS = -O2 -std=c++0x -Wall -c 
+#CFLAGS = -O1 -std=c++0x -Wall -c 
+CFLAGS = -O3 -std=c++11 -Wall -c 
+#LIBS = -lgsl -lgslcblas -lgmpxx -lgmp -pg # profiling with gprof
+LIBS = -lgsl -lgslcblas -lgmpxx -lgmp
+#endif
+# Compilation with special flags: http://codeforces.com/blog/entry/15547
+#CFLAGS = -Wall -Wextra -pedantic -std=c++11 -O2 -Wshadow -Wformat=2 -Wfloat-equal -Wconversion -Wlogical-op -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2 -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -fstack-protector -c
+#CFLAGS = -O3 -std=c++0x -Wall -I/usr/include/graphviz/ -c 
+#LIBS = -lgsl -lgslcblas -lgmpxx -lgmp -lgvc
 INCLUDES= ./include/
 SOURCE_PATH = ./src/
 BIN_PATH = ./bin/
 OBJ_PATH = ./obj/
 TESTS_PATH = ./tests/
 
-#CFLAGS = -g -pg -std=c++0x -Wall -c
+
+#CFLAGS = -pg -std=c++0x -Wall -I/opt/apps/HPCBIOS.20130301/software/GSL/1.15-goalf-1.1.0-no-OFED/include/ -c
 #LFLAGS = -Wall -pg
+
 #CFLAGS = -O3 -march=native -ftree-vectorize -ftree-vectorizer-verbose=3 -foptimize-sibling-calls -fmerge-all-constants -std=c++0x -Wall -c
 
 all: programs tests
@@ -59,17 +80,38 @@ tests: adp-xor-tests \
 VA_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)bsdr.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)va-tests.o
 
 va-tests: common.o adp-xor.o xdp-add.o max-xdp-add.o bsdr.o xdp-add-diff-set.o va-tests.o
-	$(CC) $(LFLAGS) $(VA_TESTS_OBJ) -o $(BIN_PATH)va-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(VA_TESTS_OBJ) -o $(BIN_PATH)va-tests $(LIBS)
 
 va-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)va-tests.cc -o $(OBJ_PATH)va-tests.o
+
+# --- ADP-ROT-TESTS ---
+
+ADP_ROT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-rot.o $(OBJ_PATH)adp-rot-tests.o
+
+adp-rot-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-rot.o $(OBJ_PATH)adp-rot-tests.o
+	$(CC) $(LFLAGS) $(ADP_ROT_TESTS_OBJ) -o $(BIN_PATH)adp-rot-tests $(LIBS)
+
+$(OBJ_PATH)adp-rot-tests.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-rot-tests.cc -o $(OBJ_PATH)adp-rot-tests.o
+
+$(OBJ_PATH)adp-rot.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-rot.cc -o $(OBJ_PATH)adp-rot.o
+
+ADP_ROT_PROGRAM_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-rot.o $(OBJ_PATH)adp-rot-program.o
+
+adp-rot-program: $(OBJ_PATH)common.o $(OBJ_PATH)adp-rot.o $(OBJ_PATH)adp-rot-program.o
+	$(CC) $(LFLAGS) $(ADP_ROT_PROGRAM_OBJ) -o $(BIN_PATH)adp-rot-program $(LIBS)
+
+$(OBJ_PATH)adp-rot-program.o:
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-rot-program.cc -o $(OBJ_PATH)adp-rot-program.o
 
 # --- ADP-MUL ---
 
 ADP_MUL_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-mul.o $(OBJ_PATH)adp-mul-tests.o
 
 adp-mul-tests: common.o adp-mul.o adp-mul-tests.o
-	$(CC) $(LFLAGS) $(ADP_MUL_TESTS_OBJ) -o $(BIN_PATH)adp-mul-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_MUL_TESTS_OBJ) -o $(BIN_PATH)adp-mul-tests $(LIBS)
 
 adp-mul-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-mul-tests.cc -o $(OBJ_PATH)adp-mul-tests.o
@@ -79,13 +121,216 @@ adp-mul.o:
 
 # -- IDEA --
 
-IDEA_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)idea.o
+IDEA_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)bsdr.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-count-odiff.o $(OBJ_PATH)adp-xor-fi.o $(OBJ_PATH)adp-xor-fi-count-odiff.o $(OBJ_PATH)adp-mul.o $(OBJ_PATH)idea.o
 
-idea: common.o idea.o
-	$(CC) $(LFLAGS) $(IDEA_TESTS_OBJ) -o $(BIN_PATH)idea $(GSL_LIB)
+idea: common.o bsdr.o adp-xor.o adp-xor-count-odiff.o adp-xor-fi.o adp-xor-fi-count-odiff.o adp-mul.o idea.o
+	$(CC) $(LFLAGS) $(IDEA_TESTS_OBJ) -o $(BIN_PATH)idea $(LIBS)
 
 idea.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)idea.cc -o $(OBJ_PATH)idea.o
+
+# -- SIMON --
+
+SIMON_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)simon.o
+
+simon: common.o simon.o
+	$(CC) $(LFLAGS) $(SIMON_TESTS_OBJ) -o $(BIN_PATH)simon $(LIBS)
+
+simon.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)simon.cc -o $(OBJ_PATH)simon.o
+
+# -- SPECK --
+
+SPECK_MARKOV_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)speck.o $(OBJ_PATH)speck-tests.o
+
+.PHONY: speck-tests
+speck-tests: $(BIN_PATH)speck-tests
+
+$(BIN_PATH)speck-tests: $(OBJ_PATH)common.o $(OBJ_PATH)speck.o $(OBJ_PATH)speck-tests.o
+	$(CC) $(LFLAGS) $(SPECK_MARKOV_TESTS_OBJ) -o $(BIN_PATH)speck-tests $(LIBS)
+
+$(OBJ_PATH)speck-tests.o: $(TESTS_PATH)speck-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)speck-tests.cc -o $(OBJ_PATH)speck-tests.o
+
+# -- SPECK --
+
+SPECK_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)speck.o
+
+speck: $(OBJ_PATH)common.o $(OBJ_PATH)speck.o
+	$(CC) $(LFLAGS) $(SPECK_TESTS_OBJ) -o $(BIN_PATH)speck $(LIBS)
+
+$(OBJ_PATH)speck.o: $(SOURCE_PATH)speck.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)speck.cc -o $(OBJ_PATH)speck.o
+
+
+# --- XDP-AND ---
+
+XDP_AND_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-and-tests.o
+
+xdp-and-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-and-tests.o
+	$(CC) $(LFLAGS) $(XDP_AND_TESTS_OBJ) -o $(BIN_PATH)xdp-and-tests $(LIBS)
+
+$(OBJ_PATH)xdp-and.o: $(SOURCE_PATH)xdp-and.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xdp-and.cc -o $(OBJ_PATH)xdp-and.o
+
+$(OBJ_PATH)xdp-and-tests.o: $(TESTS_PATH)xdp-and-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)xdp-and-tests.cc -o $(OBJ_PATH)xdp-and-tests.o
+
+# --- XDP-ROT-AND ---
+
+XDP_ROT_AND_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-rot-and.o $(OBJ_PATH)xdp-rot-and-tests.o
+
+xdp-rot-and-tests: common.o xdp-and.o xdp-rot-and.o xdp-rot-and-tests.o
+	$(CC) $(LFLAGS) $(XDP_ROT_AND_TESTS_OBJ) -o $(BIN_PATH)xdp-rot-and-tests $(LIBS)
+
+xdp-rot-and.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xdp-rot-and.cc -o $(OBJ_PATH)xdp-rot-and.o
+
+xdp-rot-and-tests.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)xdp-rot-and-tests.cc -o $(OBJ_PATH)xdp-rot-and-tests.o
+
+# --- SIMON-XOR-THRESHOLD_SEARCH ---
+
+SIMON_XOR_THRESHOLD_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)simon.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-rot-and.o $(OBJ_PATH)simon-xor-ddt-search.o $(OBJ_PATH)simon-xor-threshold-search.o  $(OBJ_PATH)simon-xor-threshold-search-tests.o
+
+simon-xor-threshold-search-tests: common.o simon.o xdp-and.o xdp-rot-and.o simon-xor-ddt-search.o simon-xor-threshold-search.o simon-xor-threshold-search-tests.o
+	$(CC) $(LFLAGS) $(SIMON_XOR_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)simon-xor-threshold-search-tests $(LIBS)
+
+simon-xor-ddt-search.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)simon-xor-ddt-search.cc -o $(OBJ_PATH)simon-xor-ddt-search.o
+
+simon-xor-threshold-search.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)simon-xor-threshold-search.cc -o $(OBJ_PATH)simon-xor-threshold-search.o
+
+simon-xor-threshold-search-tests.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)simon-xor-threshold-search-tests.cc -o $(OBJ_PATH)simon-xor-threshold-search-tests.o
+
+# --- SPECK-XOR-THRESHOLD-SEARCH ---
+
+SPECK_XOR_THRESHOLD_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-pddt.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)speck.o $(OBJ_PATH)speck-xor-ddt-search.o $(OBJ_PATH)speck-xor-threshold-search.o $(OBJ_PATH)speck-xor-threshold-search-tests.o
+
+speck-xor-threshold-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-pddt.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)speck.o $(OBJ_PATH)speck-xor-ddt-search.o $(OBJ_PATH)speck-xor-threshold-search.o $(OBJ_PATH)speck-xor-threshold-search-tests.o
+	$(CC) $(LFLAGS) $(SPECK_XOR_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)speck-xor-threshold-search-tests $(LIBS)
+
+$(OBJ_PATH)speck-xor-threshold-search-tests.o: $(TESTS_PATH)speck-xor-threshold-search-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)speck-xor-threshold-search-tests.cc -o $(OBJ_PATH)speck-xor-threshold-search-tests.o
+
+$(OBJ_PATH)speck-xor-threshold-search.o: $(SOURCE_PATH)speck-xor-threshold-search.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)speck-xor-threshold-search.cc -o $(OBJ_PATH)speck-xor-threshold-search.o
+
+$(OBJ_PATH)speck-xor-ddt-search.o: $(SOURCE_PATH)speck-xor-ddt-search.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)speck-xor-ddt-search.cc -o $(OBJ_PATH)speck-xor-ddt-search.o
+
+# --- SPECK-BEST-DIFF-SEARCH ---
+
+SPECK_BEST_DIFF_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)speck.o $(OBJ_PATH)speck-xor-threshold-search.o $(OBJ_PATH)speck-best-diff-search-tests.o
+
+speck-best-diff-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)speck.o $(OBJ_PATH)speck-xor-threshold-search.o $(OBJ_PATH)speck-best-diff-search-tests.o
+	$(CC) $(LFLAGS) $(SPECK_BEST_DIFF_SEARCH_TESTS_OBJ) -o $(BIN_PATH)speck-best-diff-search-tests $(LIBS)
+
+$(OBJ_PATH)speck-best-diff-search-tests.o: $(TESTS_PATH)speck-best-diff-search-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)speck-best-diff-search-tests.cc -o $(OBJ_PATH)speck-best-diff-search-tests.o
+
+# --- SPECK-BEST-LINEAR-SEARCH ---
+
+SPECK_BEST_LINEAR_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)speck.o $(OBJ_PATH)speck-best-linear-search-tests.o
+
+speck-best-linear-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)speck.o $(OBJ_PATH)speck-best-linear-search-tests.o
+	$(CC) $(LFLAGS) $(SPECK_BEST_LINEAR_SEARCH_TESTS_OBJ) -o $(BIN_PATH)speck-best-linear-search-tests $(LIBS)
+
+$(OBJ_PATH)speck-best-linear-search-tests.o: $(TESTS_PATH)speck-best-linear-search-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)speck-best-linear-search-tests.cc -o $(OBJ_PATH)speck-best-linear-search-tests.o
+
+# --- SPECKEY-BEST-DIFF-SEARCH ---
+
+SPECKEY_BEST_DIFF_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)speckey-best-diff-search-tests.o
+
+.PHONY: speckey-best-diff-search-tests
+speckey-best-diff-search-tests: $(BIN_PATH)speckey-best-diff-search-tests
+
+$(BIN_PATH)speckey-best-diff-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)speckey-best-diff-search-tests.o
+	$(CC) $(LFLAGS) $(SPECKEY_BEST_DIFF_SEARCH_TESTS_OBJ) -o $(BIN_PATH)speckey-best-diff-search-tests $(LIBS)
+
+$(OBJ_PATH)speckey-best-diff-search-tests.o: $(TESTS_PATH)speckey-best-diff-search-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)speckey-best-diff-search-tests.cc -o $(OBJ_PATH)speckey-best-diff-search-tests.o
+
+# --- SPECKEY-BEST-LINEAR-SEARCH ---
+
+SPECKEY_BEST_LINEAR_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)speckey-best-linear-search-tests.o
+
+.PHONY: speckey-best-linear-search-tests
+speckey-best-linear-search-tests: $(BIN_PATH)speckey-best-linear-search-tests
+
+$(BIN_PATH)speckey-best-linear-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)speckey-best-linear-search-tests.o
+	$(CC) $(LFLAGS) $(SPECKEY_BEST_LINEAR_SEARCH_TESTS_OBJ) -o $(BIN_PATH)speckey-best-linear-search-tests $(LIBS)
+
+$(OBJ_PATH)speckey-best-linear-search-tests.o: $(TESTS_PATH)speckey-best-linear-search-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)speckey-best-linear-search-tests.cc -o $(OBJ_PATH)speckey-best-linear-search-tests.o
+
+# --- MARX-BEST-DIFF-SEARCH ---
+
+MARX_BEST_DIFF_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)marx-best-diff-search-tests.o
+
+.PHONY: marx-best-diff-search-tests
+marx-best-diff-search-tests: $(BIN_PATH)marx-best-diff-search-tests
+
+$(BIN_PATH)marx-best-diff-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)marx-best-diff-search-tests.o
+	$(CC) $(LFLAGS) $(MARX_BEST_DIFF_SEARCH_TESTS_OBJ) -o $(BIN_PATH)marx-best-diff-search-tests $(LIBS)
+
+$(OBJ_PATH)marx-best-diff-search-tests.o: $(TESTS_PATH)marx-best-diff-search-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)marx-best-diff-search-tests.cc -o $(OBJ_PATH)marx-best-diff-search-tests.o
+
+# --- MARX-BEST-LINEAR-SEARCH ---
+
+MARX_BEST_LINEAR_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)marx-best-linear-search-tests.o
+
+.PHONY: marx-best-linear-search-tests
+marx-best-linear-search-tests: $(BIN_PATH)marx-best-linear-search-tests
+
+$(BIN_PATH)marx-best-linear-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)marx-best-linear-search-tests.o
+	$(CC) $(LFLAGS) $(MARX_BEST_LINEAR_SEARCH_TESTS_OBJ) -o $(BIN_PATH)marx-best-linear-search-tests $(LIBS)
+
+$(OBJ_PATH)marx-best-linear-search-tests.o: $(TESTS_PATH)marx-best-linear-search-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)marx-best-linear-search-tests.cc -o $(OBJ_PATH)marx-best-linear-search-tests.o
+
+# --- SPARX-WIDETRAIL-SEARCH ---
+
+SPARX_WIDETRAIL_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)sparx-widetrail-search-tests.o
+
+.PHONY: sparx-widetrail-search-tests
+sparx-widetrail-search-tests: $(BIN_PATH)sparx-widetrail-search-tests
+
+$(BIN_PATH)sparx-widetrail-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)sparx-widetrail-search-tests.o
+	$(CC) $(LFLAGS) $(SPARX_WIDETRAIL_SEARCH_TESTS_OBJ) -o $(BIN_PATH)sparx-widetrail-search-tests $(LIBS)
+
+$(OBJ_PATH)sparx-widetrail-search-tests.o: $(TESTS_PATH)sparx-widetrail-search-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)sparx-widetrail-search-tests.cc -o $(OBJ_PATH)sparx-widetrail-search-tests.o
+
+# --- SPARX-WIDETRAIL-SINGLEPART-SEARCH ---
+
+SPARX_WIDETRAIL_SINGLEPART_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)sparx-widetrail-singlepart-tests.o
+
+.PHONY: sparx-widetrail-singlepart-tests
+sparx-widetrail-singlepart-tests: $(BIN_PATH)sparx-widetrail-singlepart-tests
+
+$(BIN_PATH)sparx-widetrail-singlepart-tests: $(OBJ_PATH)common.o $(OBJ_PATH)sparx-widetrail-singlepart-tests.o
+	$(CC) $(LFLAGS) $(SPARX_WIDETRAIL_SINGLEPART_TESTS_OBJ) -o $(BIN_PATH)sparx-widetrail-singlepart-tests $(LIBS)
+
+$(OBJ_PATH)sparx-widetrail-singlepart-tests.o: $(TESTS_PATH)sparx-widetrail-singlepart-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)sparx-widetrail-singlepart-tests.cc -o $(OBJ_PATH)sparx-widetrail-singlepart-tests.o
+
+# --- LAX-CIPHER ---
+
+LAX_CIPHER_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)lax-cipher-tests.o
+
+.PHONY: lax-cipher-tests
+lax-cipher-tests: $(BIN_PATH)lax-cipher-tests
+
+$(BIN_PATH)lax-cipher-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)lax-cipher-tests.o
+	$(CC) $(LFLAGS) $(LAX_CIPHER_TESTS_OBJ) -o $(BIN_PATH)lax-cipher-tests $(LIBS)
+
+$(OBJ_PATH)lax-cipher-tests.o: $(TESTS_PATH)lax-cipher-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)lax-cipher-tests.cc -o $(OBJ_PATH)lax-cipher-tests.o
 
 # -- BSDR --
 
@@ -96,21 +341,31 @@ bsdr.o:
 
 XDP-ADD-DIFF-SET_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)xdp-add-diff-set-tests.o
 
-xdp-add-diff-set-tests: common.o adp-xor.o xdp-add.o max-xdp-add.o xdp-add-diff-set.o xdp-add-diff-set-tests.o
-	$(CC) $(LFLAGS) $(XDP-ADD-DIFF-SET_TESTS_OBJ) -o $(BIN_PATH)xdp-add-diff-set-tests $(GSL_LIB)
+xdp-add-diff-set-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)xdp-add-diff-set-tests.o
+	$(CC) $(LFLAGS) $(XDP-ADD-DIFF-SET_TESTS_OBJ) -o $(BIN_PATH)xdp-add-diff-set-tests $(LIBS)
 
-xdp-add-diff-set.o: 
+$(OBJ_PATH)xdp-add-diff-set.o: $(SOURCE_PATH)xdp-add-diff-set.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xdp-add-diff-set.cc -o $(OBJ_PATH)xdp-add-diff-set.o
 
-xdp-add-diff-set-tests.o: 
+$(OBJ_PATH)xdp-add-diff-set-tests.o: $(TESTS_PATH)xdp-add-diff-set-tests.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)xdp-add-diff-set-tests.cc -o $(OBJ_PATH)xdp-add-diff-set-tests.o
+
+# --- TWEETCIPHER ---
+
+TWEETCIPHER_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)tweetcipher-tests.o
+
+tweetcipher-tests: common.o tweetcipher-tests.o
+	$(CC) $(LFLAGS) $(TWEETCIPHER_TESTS_OBJ) -o $(BIN_PATH)tweetcipher-tests $(LIBS)
+
+tweetcipher-tests.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)tweetcipher-tests.cc -o $(OBJ_PATH)tweetcipher-tests.o
 
 # --- THREEFISH ---
 
 THREEFISH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)threefish.o $(OBJ_PATH)threefish-xor.o $(OBJ_PATH)threefish-add.o $(OBJ_PATH)threefish-tests.o
 
 threefish-tests: common.o xdp-add.o max-xdp-add.o xdp-add-diff-set.o threefish.o threefish-xor.o threefish-add.o threefish-tests.o
-	$(CC) $(LFLAGS) $(THREEFISH_TESTS_OBJ) -o $(BIN_PATH)threefish-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(THREEFISH_TESTS_OBJ) -o $(BIN_PATH)threefish-tests $(LIBS)
 
 threefish-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)threefish-tests.cc -o $(OBJ_PATH)threefish-tests.o
@@ -129,7 +384,7 @@ threefish-add.o:
 SALSA_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)salsa.o $(OBJ_PATH)salsa-tests.o
 
 salsa-tests: common.o xdp-add.o xdp-add-diff-set.o salsa.o salsa-tests.o
-	$(CC) $(LFLAGS) $(SALSA_TESTS_OBJ) -o $(BIN_PATH)salsa-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(SALSA_TESTS_OBJ) -o $(BIN_PATH)salsa-tests $(LIBS)
 
 salsa-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)salsa-tests.cc -o $(OBJ_PATH)salsa-tests.o
@@ -137,12 +392,53 @@ salsa-tests.o:
 salsa.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)salsa.cc -o $(OBJ_PATH)salsa.o
 
+# --- RC5 ---
+# Note: some files need the CodingTool library
+
+ifdef $(COMPILE_WITH_CODING_TOOL_LIB)
+RC5_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)adp-rot.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)rc5-ref.o $(OBJ_PATH)rc5-lwcs.o  $(OBJ_PATH)rc5-dc.o $(OBJ_PATH)rc5-eq.o $(OBJ_PATH)rc5-alex.o $(OBJ_PATH)add-approx.o $(OBJ_PATH)rc5-blind-oracle.o $(OBJ_PATH)rc5-tests.o -L../codingtool/lib/ 
+else
+RC5_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)adp-rot.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)rc5-ref.o $(OBJ_PATH)rc5-eq.o $(OBJ_PATH)rc5-dc.o $(OBJ_PATH)rc5-alex.o $(OBJ_PATH)add-approx.o $(OBJ_PATH)rc5-blind-oracle.o $(OBJ_PATH)rc5-tests.o
+endif
+
+ifdef $(COMPILE_WITH_CODING_TOOL_LIB)
+rc5-tests: common.o adp-xor.o max-adp-xor.o adp-rot.o xdp-add.o max-xdp-add.o xdp-add-diff-set.o rc5-ref.o rc5-lwcs.o rc5-dc.o rc5-eq.o rc5-alex.o add-approx.o rc5-blind-oracle.o rc5-tests.o
+	$(CC) $(LFLAGS) $(RC5_TESTS_OBJ) -o $(BIN_PATH)rc5-tests $(LIBS) -lCodingTool
+rc5-tests.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) -I../codingtool/includes/ $(TESTS_PATH)rc5-tests.cc -o $(OBJ_PATH)rc5-tests.o
+rc5-lwcs.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) -I../codingtool/includes/ $(SOURCE_PATH)rc5-lwcs.cc -o $(OBJ_PATH)rc5-lwcs.o
+else
+rc5-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)adp-rot.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xdp-add-diff-set.o $(OBJ_PATH)rc5-ref.o $(OBJ_PATH)rc5-eq.o $(OBJ_PATH)rc5-dc.o $(OBJ_PATH)rc5-alex.o $(OBJ_PATH)add-approx.o $(OBJ_PATH)rc5-blind-oracle.o $(OBJ_PATH)rc5-tests.o
+	$(CC) $(LFLAGS) $(RC5_TESTS_OBJ) -o $(BIN_PATH)rc5-tests $(LIBS)
+$(OBJ_PATH)rc5-tests.o: $(TESTS_PATH)rc5-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)rc5-tests.cc -o $(OBJ_PATH)rc5-tests.o
+endif
+
+$(OBJ_PATH)rc5-ref.o: $(SOURCE_PATH)rc5-ref.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)rc5-ref.cc -o $(OBJ_PATH)rc5-ref.o
+
+$(OBJ_PATH)rc5-eq.o: $(SOURCE_PATH)rc5-eq.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)rc5-eq.cc -o $(OBJ_PATH)rc5-eq.o
+
+$(OBJ_PATH)rc5-dc.o: $(SOURCE_PATH)rc5-dc.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)rc5-dc.cc -o $(OBJ_PATH)rc5-dc.o
+
+$(OBJ_PATH)rc5-alex.o: $(SOURCE_PATH)rc5-alex.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)rc5-alex.cc -o $(OBJ_PATH)rc5-alex.o
+
+$(OBJ_PATH)add-approx.o: $(SOURCE_PATH)add-approx.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)add-approx.cc -o $(OBJ_PATH)add-approx.o
+
+$(OBJ_PATH)rc5-blind-oracle.o: $(SOURCE_PATH)rc5-blind-oracle.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)rc5-blind-oracle.cc -o $(OBJ_PATH)rc5-blind-oracle.o
+
 # --- XTEA-XOR-THRESHOLD-SEARCH
 
 XTEA_XOR_THRESHOLD_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xtea.o $(OBJ_PATH)xdp-xtea-f-fk.o $(OBJ_PATH)xtea-f-xor-pddt.o $(OBJ_PATH)xtea-xor-threshold-search.o $(OBJ_PATH)xtea-xor-threshold-search-tests.o
 
 xtea-xor-threshold-search: common.o xdp-add.o max-xdp-add.o xtea.o xdp-xtea-f-fk.o xtea-f-xor-pddt.o xtea-xor-threshold-search.o xtea-xor-threshold-search-tests.o
-	$(CC) $(LFLAGS) $(XTEA_XOR_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)xtea-xor-threshold-search $(GSL_LIB)
+	$(CC) $(LFLAGS) $(XTEA_XOR_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)xtea-xor-threshold-search $(LIBS)
 
 xtea-f-xor-pddt.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xtea-f-xor-pddt.cc -o $(OBJ_PATH)xtea-f-xor-pddt.o
@@ -158,7 +454,7 @@ xtea-xor-threshold-search-tests.o:
 XTEA_ADD_THRESHOLD_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)adp-xor-fi.o $(OBJ_PATH)max-adp-xor-fi.o $(OBJ_PATH)adp-shift.o $(OBJ_PATH)xtea.o $(OBJ_PATH)adp-xtea-f-fk.o $(OBJ_PATH)tea.o $(OBJ_PATH)eadp-tea-f.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-set.o $(OBJ_PATH)adp-tea-f-fk.o $(OBJ_PATH)tea-f-add-pddt.o $(OBJ_PATH)xtea-f-add-pddt.o $(OBJ_PATH)xtea-add-threshold-search.o $(OBJ_PATH)xtea-add-threshold-search-tests.o
 
 xtea-add-threshold-search: common.o adp-xor.o max-adp-xor.o adp-xor-fi.o max-adp-xor-fi.o adp-shift.o xtea.o adp-xtea-f-fk.o tea.o eadp-tea-f.o adp-xor3.o max-adp-xor3.o max-adp-xor3-set.o adp-tea-f-fk.o tea-f-add-pddt.o xtea-f-add-pddt.o xtea-add-threshold-search.o xtea-add-threshold-search-tests.o
-	$(CC) $(LFLAGS) $(XTEA_ADD_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)xtea-add-threshold-search $(GSL_LIB)
+	$(CC) $(LFLAGS) $(XTEA_ADD_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)xtea-add-threshold-search $(LIBS)
 
 xtea-f-add-pddt.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xtea-f-add-pddt.cc -o $(OBJ_PATH)xtea-f-add-pddt.o
@@ -174,7 +470,7 @@ xtea-add-threshold-search-tests.o:
 ADP_XTEA_F_FK_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)adp-xor-fi.o $(OBJ_PATH)max-adp-xor-fi.o $(OBJ_PATH)adp-shift.o $(OBJ_PATH)xtea.o $(OBJ_PATH)adp-xtea-f-fk.o $(OBJ_PATH)adp-xtea-f-fk-tests.o
 
 adp-xtea-f-fk-tests: common.o adp-xor.o max-adp-xor.o adp-xor-fi.o max-adp-xor-fi.o adp-shift.o xtea.o adp-xtea-f-fk.o adp-xtea-f-fk-tests.o
-	$(CC) $(LFLAGS) $(ADP_XTEA_F_FK_TESTS_OBJ) -o $(BIN_PATH)adp-xtea-f-fk-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_XTEA_F_FK_TESTS_OBJ) -o $(BIN_PATH)adp-xtea-f-fk-tests $(LIBS)
 
 adp-xtea-f-fk.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xtea-f-fk.cc -o $(OBJ_PATH)adp-xtea-f-fk.o
@@ -187,7 +483,7 @@ adp-xtea-f-fk-tests.o:
 XDP_XTEA_F_FK_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)xtea.o $(OBJ_PATH)xdp-xtea-f-fk.o $(OBJ_PATH)xdp-xtea-f-fk-tests.o
 
 xdp-xtea-f-fk-tests: common.o xdp-add.o max-xdp-add.o xtea.o xdp-xtea-f-fk.o xdp-xtea-f-fk-tests.o
-	$(CC) $(LFLAGS) $(XDP_XTEA_F_FK_TESTS_OBJ) -o $(BIN_PATH)xdp-xtea-f-fk-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(XDP_XTEA_F_FK_TESTS_OBJ) -o $(BIN_PATH)xdp-xtea-f-fk-tests $(LIBS)
 
 xdp-xtea-f-fk.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xdp-xtea-f-fk.cc -o $(OBJ_PATH)xdp-xtea-f-fk.o
@@ -203,7 +499,7 @@ xtea.o:
 XDP_TEA_F_FK_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)tea.o $(OBJ_PATH)xdp-tea-f-fk.o $(OBJ_PATH)xdp-tea-f-fk-tests.o
 
 xdp-tea-f-fk-tests: common.o tea.o xdp-tea-f-fk.o xdp-tea-f-fk-tests.o
-	$(CC) $(LFLAGS) $(XDP_TEA_F_FK_TESTS_OBJ) -o $(BIN_PATH)xdp-tea-f-fk-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(XDP_TEA_F_FK_TESTS_OBJ) -o $(BIN_PATH)xdp-tea-f-fk-tests $(LIBS)
 
 xdp-tea-f-fk.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xdp-tea-f-fk.cc -o $(OBJ_PATH)xdp-tea-f-fk.o
@@ -216,7 +512,7 @@ xdp-tea-f-fk-tests.o:
 TEA_ADD_THRESHOLD_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-set.o $(OBJ_PATH)adp-shift.o $(OBJ_PATH)tea.o $(OBJ_PATH)eadp-tea-f.o $(OBJ_PATH)adp-tea-f-fk.o $(OBJ_PATH)tea-f-add-pddt.o $(OBJ_PATH)tea-add-threshold-search.o $(OBJ_PATH)tea-add-threshold-search-tests.o
 
 tea-add-threshold-search: common.o adp-xor3.o max-adp-xor3.o max-adp-xor3-set.o adp-shift.o tea.o eadp-tea-f.o adp-tea-f-fk.o tea-f-add-pddt.o tea-add-threshold-search.o tea-add-threshold-search-tests.o
-	$(CC) $(LFLAGS) $(TEA_ADD_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)tea-add-threshold-search $(GSL_LIB)
+	$(CC) $(LFLAGS) $(TEA_ADD_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)tea-add-threshold-search $(LIBS)
 
 tea-add-threshold-search.o:
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)tea-add-threshold-search.cc -o $(OBJ_PATH)tea-add-threshold-search.o
@@ -229,7 +525,7 @@ tea-add-threshold-search-tests.o:
 TEA_F_ADD_PDDT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-set.o $(OBJ_PATH)adp-shift.o $(OBJ_PATH)tea.o $(OBJ_PATH)eadp-tea-f.o $(OBJ_PATH)adp-tea-f-fk.o $(OBJ_PATH)tea-f-add-pddt.o $(OBJ_PATH)tea-f-add-pddt-tests.o
 
 tea-f-add-pddt-tests: common.o adp-xor3.o max-adp-xor3.o max-adp-xor3-set.o tea.o adp-shift.o eadp-tea-f.o adp-tea-f-fk.o tea-f-add-pddt.o tea-f-add-pddt-tests.o
-	$(CC) $(LFLAGS) $(TEA_F_ADD_PDDT_TESTS_OBJ) -o $(BIN_PATH)tea-f-add-pddt-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(TEA_F_ADD_PDDT_TESTS_OBJ) -o $(BIN_PATH)tea-f-add-pddt-tests $(LIBS)
 
 tea-f-add-pddt-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)tea-f-add-pddt-tests.cc -o $(OBJ_PATH)tea-f-add-pddt-tests.o
@@ -242,7 +538,7 @@ tea-f-add-pddt.o:
 TEA_ADD_DDT_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)tea.o $(OBJ_PATH)adp-tea-f-fk-ddt.o $(OBJ_PATH)tea-add-ddt-search.o $(OBJ_PATH)tea-add-ddt-search-tests.o
 
 tea-add-ddt-search-tests: common.o tea.o adp-tea-f-fk-ddt.o tea-add-ddt-search.o tea-add-ddt-search-tests.o
-	$(CC) $(LFLAGS) $(TEA_ADD_DDT_SEARCH_TESTS_OBJ) -o $(BIN_PATH)tea-add-ddt-search-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(TEA_ADD_DDT_SEARCH_TESTS_OBJ) -o $(BIN_PATH)tea-add-ddt-search-tests $(LIBS)
 
 tea-add-ddt-search.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)tea-add-ddt-search.cc -o $(OBJ_PATH)tea-add-ddt-search.o
@@ -255,7 +551,7 @@ tea-add-ddt-search-tests.o:
 ADP_TEA_F_FK_DDT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)tea.o $(OBJ_PATH)adp-tea-f-fk-ddt.o $(OBJ_PATH)adp-tea-f-fk-ddt-tests.o
 
 adp-tea-f-fk-ddt-tests: common.o tea.o adp-tea-f-fk-ddt.o adp-tea-f-fk-ddt-tests.o
-	$(CC) $(LFLAGS) $(ADP_TEA_F_FK_DDT_TESTS_OBJ) -o $(BIN_PATH)adp-tea-f-fk-ddt-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_TEA_F_FK_DDT_TESTS_OBJ) -o $(BIN_PATH)adp-tea-f-fk-ddt-tests $(LIBS)
 
 adp-tea-f-fk-ddt.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-tea-f-fk-ddt.cc -o $(OBJ_PATH)adp-tea-f-fk-ddt.o
@@ -268,7 +564,7 @@ adp-tea-f-fk-ddt-tests.o:
 ADP_TEA_F_FK_NOSHIFT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)tea.o $(OBJ_PATH)adp-tea-f-fk-noshift.o $(OBJ_PATH)adp-tea-f-fk-noshift-tests.o
 
 adp-tea-f-fk-noshift-tests: common.o tea.o adp-tea-f-fk-noshift.o adp-tea-f-fk-noshift-tests.o
-	$(CC) $(LFLAGS) $(ADP_TEA_F_FK_NOSHIFT_TESTS_OBJ) -o $(BIN_PATH)adp-tea-f-fk-noshift-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_TEA_F_FK_NOSHIFT_TESTS_OBJ) -o $(BIN_PATH)adp-tea-f-fk-noshift-tests $(LIBS)
 
 adp-tea-f-fk-noshift.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-tea-f-fk-noshift.cc -o $(OBJ_PATH)adp-tea-f-fk-noshift.o
@@ -281,7 +577,7 @@ adp-tea-f-fk-noshift-tests.o:
 ADP_TEA_F_FK_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)tea.o $(OBJ_PATH)adp-tea-f-fk.o $(OBJ_PATH)adp-tea-f-fk-tests.o
 
 adp-tea-f-fk-tests: common.o tea.o adp-tea-f-fk.o adp-tea-f-fk-tests.o
-	$(CC) $(LFLAGS) $(ADP_TEA_F_FK_TESTS_OBJ) -o $(BIN_PATH)adp-tea-f-fk-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_TEA_F_FK_TESTS_OBJ) -o $(BIN_PATH)adp-tea-f-fk-tests $(LIBS)
 
 adp-tea-f-fk.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-tea-f-fk.cc -o $(OBJ_PATH)adp-tea-f-fk.o
@@ -296,13 +592,13 @@ MAX_EADP_TEA_F_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-ad
 EADP_TEA_F_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-set.o  $(OBJ_PATH)adp-shift.o $(OBJ_PATH)tea.o $(OBJ_PATH)eadp-tea-f.o $(OBJ_PATH)eadp-tea-f-tests.o
 
 eadp-tea-f: common.o adp-xor3.o max-adp-xor3.o max-adp-xor3-set.o adp-shift.o tea.o eadp-tea-f.o eadp-tea-f-program.o
-	$(CC) $(LFLAGS) $(EADP_TEA_F_OBJ) -o $(BIN_PATH)eadp-tea-f $(GSL_LIB)
+	$(CC) $(LFLAGS) $(EADP_TEA_F_OBJ) -o $(BIN_PATH)eadp-tea-f $(LIBS)
 
 max-eadp-tea-f: common.o adp-xor3.o max-adp-xor3.o max-adp-xor3-set.o adp-shift.o tea.o eadp-tea-f.o max-eadp-tea-f-program.o
-	$(CC) $(LFLAGS) $(MAX_EADP_TEA_F_OBJ) -o $(BIN_PATH)max-eadp-tea-f $(GSL_LIB)
+	$(CC) $(LFLAGS) $(MAX_EADP_TEA_F_OBJ) -o $(BIN_PATH)max-eadp-tea-f $(LIBS)
 
 eadp-tea-f-tests: common.o adp-xor3.o max-adp-xor3.o max-adp-xor3-set.o  adp-shift.o tea.o eadp-tea-f.o eadp-tea-f-tests.o
-	$(CC) $(LFLAGS) $(EADP_TEA_F_TESTS_OBJ) -o $(BIN_PATH)eadp-tea-f-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(EADP_TEA_F_TESTS_OBJ) -o $(BIN_PATH)eadp-tea-f-tests $(LIBS)
 
 tea.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)tea.cc -o $(OBJ_PATH)tea.o
@@ -324,19 +620,19 @@ eadp-tea-f-tests.o:
 MAX_XDP_ADD_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)max-xdp-add-program.o
 MAX_XDP_ADD_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)max-xdp-add-tests.o
 
-max-xdp-add: common.o xdp-add.o max-xdp-add.o max-xdp-add-program.o
-	$(CC) $(LFLAGS) $(MAX_XDP_ADD_OBJ) -o $(BIN_PATH)max-xdp-add $(GSL_LIB)
+max-xdp-add: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)max-xdp-add-program.o
+	$(CC) $(LFLAGS) $(MAX_XDP_ADD_OBJ) -o $(BIN_PATH)max-xdp-add $(LIBS)
 
-max-xdp-add-tests: common.o xdp-add.o max-xdp-add.o max-xdp-add-tests.o
-	$(CC) $(LFLAGS) $(MAX_XDP_ADD_TESTS_OBJ) -o $(BIN_PATH)max-xdp-add-tests $(GSL_LIB)
+max-xdp-add-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)max-xdp-add-tests.o
+	$(CC) $(LFLAGS) $(MAX_XDP_ADD_TESTS_OBJ) -o $(BIN_PATH)max-xdp-add-tests $(LIBS)
 
-max-xdp-add.o: 
+$(OBJ_PATH)max-xdp-add.o: $(SOURCE_PATH)max-xdp-add.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-xdp-add.cc -o $(OBJ_PATH)max-xdp-add.o
 
-max-xdp-add-program.o: 
+$(OBJ_PATH)max-xdp-add-program.o: $(SOURCE_PATH)max-xdp-add-program.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-xdp-add-program.cc -o $(OBJ_PATH)max-xdp-add-program.o
 
-max-xdp-add-tests.o: 
+$(OBJ_PATH)max-xdp-add-tests.o: $(TESTS_PATH)max-xdp-add-tests.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)max-xdp-add-tests.cc -o $(OBJ_PATH)max-xdp-add-tests.o
 
 # --- XDP-ADD ---
@@ -344,20 +640,36 @@ max-xdp-add-tests.o:
 XDP_ADD_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)xdp-add-program.o
 XDP_ADD_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)xdp-add-tests.o
 
-xdp-add: common.o xdp-add.o xdp-add-program.o 
-	$(CC) $(LFLAGS) $(XDP_ADD_OBJ) -o $(BIN_PATH)xdp-add $(GSL_LIB)
+xdp-add: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)xdp-add-program.o 
+	$(CC) $(LFLAGS) $(XDP_ADD_OBJ) -o $(BIN_PATH)xdp-add $(LIBS)
 
-xdp-add-tests: common.o xdp-add.o xdp-add-tests.o
-	$(CC) $(LFLAGS) $(XDP_ADD_TESTS_OBJ) -o $(BIN_PATH)xdp-add-tests $(GSL_LIB)
+xdp-add-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)xdp-add-tests.o
+	$(CC) $(LFLAGS) $(XDP_ADD_TESTS_OBJ) -o $(BIN_PATH)xdp-add-tests $(LIBS)
 
-xdp-add.o: 
+$(OBJ_PATH)xdp-add.o: $(SOURCE_PATH)xdp-add.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xdp-add.cc -o $(OBJ_PATH)xdp-add.o
 
-xdp-add-program.o: 
+$(OBJ_PATH)xdp-add-program.o: $(SOURCE_PATH)xdp-add-program.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xdp-add-program.cc -o $(OBJ_PATH)xdp-add-program.o
 
-xdp-add-tests.o: 
+$(OBJ_PATH)xdp-add-tests.o: $(TESTS_PATH)xdp-add-tests.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)xdp-add-tests.cc -o $(OBJ_PATH)xdp-add-tests.o
+
+# --- XLP-ADD ---
+
+XLP_ADD_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)xlp-add-tests.o
+
+xlp-add: $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)xlp-add-program.o 
+	$(CC) $(LFLAGS) $(XLP_ADD_OBJ) -o $(BIN_PATH)xlp-add $(LIBS)
+
+xlp-add-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xlp-add.o $(OBJ_PATH)xlp-add-tests.o
+	$(CC) $(LFLAGS) $(XLP_ADD_TESTS_OBJ) -o $(BIN_PATH)xlp-add-tests $(LIBS)
+
+$(OBJ_PATH)xlp-add.o: $(SOURCE_PATH)xlp-add.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xlp-add.cc -o $(OBJ_PATH)xlp-add.o
+
+$(OBJ_PATH)xlp-add-tests.o: $(TESTS_PATH)xlp-add-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)xlp-add-tests.cc -o $(OBJ_PATH)xlp-add-tests.o
 
 # --- MAX-ADP-XOR-FI ---
 
@@ -365,10 +677,10 @@ MAX_ADP_XOR_FI_OBJ = $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)ad
 MAX_ADP_XOR_FI_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)adp-xor-fi.o $(OBJ_PATH)max-adp-xor-fi.o $(OBJ_PATH)max-adp-xor-fi-tests.o
 
 max-adp-xor-fi: adp-xor.o max-adp-xor.o adp-xor-fi.o max-adp-xor-fi.o max-adp-xor-fi-program.o
-	$(CC) $(LFLAGS) $(MAX_ADP_XOR_FI_OBJ) -o $(BIN_PATH)max-adp-xor-fi $(GSL_LIB)
+	$(CC) $(LFLAGS) $(MAX_ADP_XOR_FI_OBJ) -o $(BIN_PATH)max-adp-xor-fi $(LIBS)
 
 max-adp-xor-fi-tests: common.o max-adp-xor.o adp-xor-fi.o max-adp-xor-fi.o max-adp-xor-fi-tests.o
-	$(CC) $(LFLAGS) $(MAX_ADP_XOR_FI_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor-fi-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(MAX_ADP_XOR_FI_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor-fi-tests $(LIBS)
 
 max-adp-xor-fi.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-adp-xor-fi.cc -o $(OBJ_PATH)max-adp-xor-fi.o
@@ -385,10 +697,10 @@ ADP_XOR_FI_OBJ = $(OBJ_PATH)adp-xor-fi.o $(OBJ_PATH)adp-xor-fi-program.o
 ADP_XOR_FI_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor-fi.o $(OBJ_PATH)adp-xor-fi-tests.o
 
 adp-xor-fi: adp-xor-fi.o adp-xor-fi-program.o
-	$(CC) $(LFLAGS) $(ADP_XOR_FI_OBJ) -o $(BIN_PATH)adp-xor-fi $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_XOR_FI_OBJ) -o $(BIN_PATH)adp-xor-fi $(LIBS)
 
 adp-xor-fi-tests: common.o adp-xor-fi.o adp-xor-fi-tests.o
-	$(CC) $(LFLAGS) $(ADP_XOR_FI_TESTS_OBJ) -o $(BIN_PATH)adp-xor-fi-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_XOR_FI_TESTS_OBJ) -o $(BIN_PATH)adp-xor-fi-tests $(LIBS)
 
 adp-xor-fi.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor-fi.cc -o $(OBJ_PATH)adp-xor-fi.o
@@ -399,12 +711,25 @@ adp-xor-fi-program.o:
 adp-xor-fi-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-xor-fi-tests.cc -o $(OBJ_PATH)adp-xor-fi-tests.o
 
+# --- ADP-XOR-FI-COUNT-ODIFF  ---
+
+ADP_XOR_FI_COUNT_ODIFF_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor-fi.o $(OBJ_PATH)adp-xor-fi-count-odiff.o $(OBJ_PATH)adp-xor-fi-count-odiff-tests.o
+
+adp-xor-fi-count-odiff-tests: common.o adp-xor-fi.o adp-xor-fi-count-odiff.o adp-xor-fi-count-odiff-tests.o
+	$(CC) $(LFLAGS) $(ADP_XOR_FI_COUNT_ODIFF_TESTS_OBJ) -o $(BIN_PATH)adp-xor-fi-count-odiff-tests $(LIBS)
+
+adp-xor-fi-count-odiff-tests.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-xor-fi-count-odiff-tests.cc -o $(OBJ_PATH)adp-xor-fi-count-odiff-tests.o
+
+adp-xor-fi-count-odiff.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor-fi-count-odiff.cc -o $(OBJ_PATH)adp-xor-fi-count-odiff.o
+
 # --- MAX-ADP-XOR3-SET ---
 
 MAX_ADP_XOR3_SET_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-set.o $(OBJ_PATH)max-adp-xor3-set-tests.o
 
 max-adp-xor3-set-tests: common.o adp-xor3.o max-adp-xor3.o max-adp-xor3-set.o max-adp-xor3-set-tests.o
-	$(CC) $(LFLAGS) $(MAX_ADP_XOR3_SET_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor3-set-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(MAX_ADP_XOR3_SET_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor3-set-tests $(LIBS)
 
 max-adp-xor3-set-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)max-adp-xor3-set-tests.cc -o $(OBJ_PATH)max-adp-xor3-set-tests.o
@@ -418,13 +743,13 @@ MAX_ADP_XOR3_OBJ = $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)ma
 MAX_ADP_XOR3_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-tests.o
 
 max-adp-xor3: adp-xor3.o max-adp-xor3.o max-adp-xor3-program.o
-	$(CC) $(LFLAGS) $(MAX_ADP_XOR3_OBJ) -o $(BIN_PATH)max-adp-xor3 $(GSL_LIB)
+	$(CC) $(LFLAGS) $(MAX_ADP_XOR3_OBJ) -o $(BIN_PATH)max-adp-xor3 $(LIBS)
 
 max-adp-xor3-program.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-adp-xor3-program.cc -o $(OBJ_PATH)max-adp-xor3-program.o
 
 max-adp-xor3-tests: common.o adp-xor3.o max-adp-xor3.o max-adp-xor3-tests.o
-	$(CC) $(LFLAGS) $(MAX_ADP_XOR3_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor3-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(MAX_ADP_XOR3_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor3-tests $(LIBS)
 
 max-adp-xor3-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)max-adp-xor3-tests.cc -o $(OBJ_PATH)max-adp-xor3-tests.o
@@ -438,10 +763,10 @@ ADP_XOR3_OBJ = $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)adp-xor3-program.o
 ADP_XOR3_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)adp-xor3-tests.o
 
 adp-xor3: adp-xor3.o adp-xor3-program.o
-	$(CC) $(LFLAGS) $(ADP_XOR3_OBJ) -o $(BIN_PATH)adp-xor3 $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_XOR3_OBJ) -o $(BIN_PATH)adp-xor3 $(LIBS)
 
 adp-xor3-tests: common.o adp-xor3.o adp-xor3-tests.o
-	$(CC) $(LFLAGS) $(ADP_XOR3_TESTS_OBJ) -o $(BIN_PATH)adp-xor3-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_XOR3_TESTS_OBJ) -o $(BIN_PATH)adp-xor3-tests $(LIBS)
 
 adp-xor3.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor3.cc -o $(OBJ_PATH)adp-xor3.o
@@ -457,19 +782,19 @@ adp-xor3-tests.o:
 MAX_ADP_XOR_OBJ = $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)max-adp-xor-program.o
 MAX_ADP_XOR_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)max-adp-xor-tests.o
 
-max-adp-xor: adp-xor.o max-adp-xor.o max-adp-xor-program.o
-	$(CC) $(LFLAGS) $(MAX_ADP_XOR_OBJ) -o $(BIN_PATH)max-adp-xor $(GSL_LIB)
+max-adp-xor: $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)max-adp-xor-program.o
+	$(CC) $(LFLAGS) $(MAX_ADP_XOR_OBJ) -o $(BIN_PATH)max-adp-xor $(LIBS)
 
-max-adp-xor-tests: common.o adp-xor.o max-adp-xor.o max-adp-xor-tests.o
-	$(CC) $(LFLAGS) $(MAX_ADP_XOR_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor-tests $(GSL_LIB)
+max-adp-xor-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)max-adp-xor.o $(OBJ_PATH)max-adp-xor-tests.o
+	$(CC) $(LFLAGS) $(MAX_ADP_XOR_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor-tests $(LIBS)
 
-max-adp-xor.o: 
+$(OBJ_PATH)max-adp-xor.o: $(SOURCE_PATH)max-adp-xor.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-adp-xor.cc -o $(OBJ_PATH)max-adp-xor.o
 
-max-adp-xor-program.o: 
+$(OBJ_PATH)max-adp-xor-program.o: $(SOURCE_PATH)max-adp-xor-program.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-adp-xor-program.cc -o $(OBJ_PATH)max-adp-xor-program.o
 
-max-adp-xor-tests.o: 
+$(OBJ_PATH)max-adp-xor-tests.o: $(TESTS_PATH)max-adp-xor-tests.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)max-adp-xor-tests.cc -o $(OBJ_PATH)max-adp-xor-tests.o
 
 # --- ADP-RSH-XOR ---
@@ -477,7 +802,7 @@ max-adp-xor-tests.o:
 ADP_RSH_XOR_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-shift.o $(OBJ_PATH)adp-rsh-xor.o $(OBJ_PATH)adp-rsh-xor-tests.o
 
 adp-rsh-xor-tests: common.o adp-xor.o adp-shift.o adp-rsh-xor.o adp-rsh-xor-tests.o
-	$(CC) $(LFLAGS) $(ADP_RSH_XOR_TESTS_OBJ) -o $(BIN_PATH)adp-rsh-xor-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_RSH_XOR_TESTS_OBJ) -o $(BIN_PATH)adp-rsh-xor-tests $(LIBS)
 
 adp-rsh-xor.o:
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-rsh-xor.cc -o $(OBJ_PATH)adp-rsh-xor.o
@@ -492,13 +817,13 @@ ADP_RSH_OBJ = $(OBJ_PATH)adp-shift.o $(OBJ_PATH)adp-rsh-program.o
 ADP_SHIFT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-shift.o $(OBJ_PATH)adp-shift-tests.o
 
 adp-lsh: common.o adp-shift.o adp-lsh-program.o
-	$(CC) $(LFLAGS) $(ADP_LSH_OBJ) -o $(BIN_PATH)adp-lsh $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_LSH_OBJ) -o $(BIN_PATH)adp-lsh $(LIBS)
 
 adp-rsh: common.o adp-shift.o adp-rsh-program.o
-	$(CC) $(LFLAGS) $(ADP_RSH_OBJ) -o $(BIN_PATH)adp-rsh $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_RSH_OBJ) -o $(BIN_PATH)adp-rsh $(LIBS)
 
 adp-shift-tests: common.o adp-shift.o adp-shift-tests.o
-	$(CC) $(LFLAGS) $(ADP_SHIFT_TESTS_OBJ) -o $(BIN_PATH)adp-shift-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_SHIFT_TESTS_OBJ) -o $(BIN_PATH)adp-shift-tests $(LIBS)
 
 adp-lsh-program.o:
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-lsh-program.cc -o $(OBJ_PATH)adp-lsh-program.o
@@ -516,13 +841,13 @@ adp-shift-tests.o:
 
 XDP_ADD_PDDT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)xdp-add-pddt.o $(OBJ_PATH)xdp-add-pddt-tests.o
 
-xdp-add-pddt-tests: common.o xdp-add.o xdp-add-pddt.o xdp-add-pddt-tests.o
-	$(CC) $(LFLAGS) $(XDP_ADD_PDDT_TESTS_OBJ) -o $(BIN_PATH)xdp-add-pddt-tests $(GSL_LIB)
+xdp-add-pddt-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)xdp-add-pddt.o $(OBJ_PATH)xdp-add-pddt-tests.o
+	$(CC) $(LFLAGS) $(XDP_ADD_PDDT_TESTS_OBJ) -o $(BIN_PATH)xdp-add-pddt-tests $(LIBS)
 
-xdp-add-pddt.o: 
+$(OBJ_PATH)xdp-add-pddt.o: $(SOURCE_PATH)xdp-add-pddt.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)xdp-add-pddt.cc -o $(OBJ_PATH)xdp-add-pddt.o
 
-xdp-add-pddt-tests.o: 
+$(OBJ_PATH)xdp-add-pddt-tests.o: $(TESTS_PATH)xdp-add-pddt-tests.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)xdp-add-pddt-tests.cc -o $(OBJ_PATH)xdp-add-pddt-tests.o
 
 # --- ADP-XOR-PDDT ---
@@ -530,7 +855,7 @@ xdp-add-pddt-tests.o:
 ADP_XOR_PDDT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-pddt.o $(OBJ_PATH)adp-xor-pddt-tests.o
 
 adp-xor-pddt-tests: common.o adp-xor.o adp-xor-pddt.o adp-xor-pddt-tests.o
-	$(CC) $(LFLAGS) $(ADP_XOR_PDDT_TESTS_OBJ) -o $(BIN_PATH)adp-xor-pddt-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_XOR_PDDT_TESTS_OBJ) -o $(BIN_PATH)adp-xor-pddt-tests $(LIBS)
 
 adp-xor-pddt.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor-pddt.cc -o $(OBJ_PATH)adp-xor-pddt.o
@@ -543,7 +868,7 @@ adp-xor-pddt-tests.o:
 ADP_ARX_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-arx.o $(OBJ_PATH)max-adp-arx.o $(OBJ_PATH)adp-arx-tests.o
 
 adp-arx-tests: common.o adp-arx.o max-adp-arx.o adp-arx-tests.o
-	$(CC) $(LFLAGS) $(ADP_ARX_TESTS_OBJ) -o $(BIN_PATH)adp-arx-tests $(GSL_LIB)
+	$(CC) $(LFLAGS) $(ADP_ARX_TESTS_OBJ) -o $(BIN_PATH)adp-arx-tests $(LIBS)
 
 adp-arx.o:
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-arx.cc -o $(OBJ_PATH)adp-arx.o
@@ -559,25 +884,69 @@ adp-arx-tests.o:
 ADP_XOR_OBJ = $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-program.o
 ADP_XOR_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-tests.o
 
-adp-xor: adp-xor.o adp-xor-program.o
-	$(CC) $(LFLAGS) $(ADP_XOR_OBJ) -o $(BIN_PATH)adp-xor $(GSL_LIB)
+adp-xor: $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-program.o
+	$(CC) $(LFLAGS) $(ADP_XOR_OBJ) -o $(BIN_PATH)adp-xor $(LIBS)
 
-adp-xor-tests: common.o adp-xor.o adp-xor-tests.o
-	$(CC) $(LFLAGS) $(ADP_XOR_TESTS_OBJ) -o $(BIN_PATH)adp-xor-tests $(GSL_LIB)
+adp-xor-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-tests.o
+	$(CC) $(LFLAGS) $(ADP_XOR_TESTS_OBJ) -o $(BIN_PATH)adp-xor-tests $(LIBS)
 
-adp-xor.o:
+$(OBJ_PATH)adp-xor.o: $(SOURCE_PATH)adp-xor.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor.cc -o $(OBJ_PATH)adp-xor.o
 
-adp-xor-program.o: 
+$(OBJ_PATH)adp-xor-program.o: $(SOURCE_PATH)adp-xor-program.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor-program.cc -o $(OBJ_PATH)adp-xor-program.o
 
-adp-xor-tests.o: 
+$(OBJ_PATH)adp-xor-tests.o: $(TESTS_PATH)adp-xor-tests.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-xor-tests.cc -o $(OBJ_PATH)adp-xor-tests.o
+
+# --- ADP-XOR-COUNT-ODIFF ---
+
+ADP_XOR_COUNT_ODIFF_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-count-odiff.o $(OBJ_PATH)adp-xor-count-odiff-tests.o
+
+adp-xor-count-odiff-tests: common.o adp-xor.o adp-xor-count-odiff.o adp-xor-count-odiff-tests.o
+	$(CC) $(LFLAGS) $(ADP_XOR_COUNT_ODIFF_TESTS_OBJ) -o $(BIN_PATH)adp-xor-count-odiff-tests $(LIBS)
+
+adp-xor-count-odiff-tests.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-xor-count-odiff-tests.cc -o $(OBJ_PATH)adp-xor-count-odiff-tests.o
+
+adp-xor-count-odiff.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor-count-odiff.cc -o $(OBJ_PATH)adp-xor-count-odiff.o
+
+# --- GRAPHVIZ-TEST ---
+
+GRAPHVIZ_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)graphviz-tests.o
+
+graphviz-tests: common.o graphviz-tests.o
+	$(CC) $(LFLAGS) $(GRAPHVIZ_TESTS_OBJ) -o $(BIN_PATH)graphviz-tests $(LIBS)
+
+graphviz-tests.o: 
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)graphviz-tests.cc -o $(OBJ_PATH)graphviz-tests.o
 
 # --- COMMON ---
 
-common.o: 
+$(OBJ_PATH)common.o: $(SOURCE_PATH)common.cc
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)common.cc -o $(OBJ_PATH)common.o
 
 clean:
 	rm -v $(BIN_PATH)*; rm -v $(OBJ_PATH)*.o
+
+# --- MORUS ---
+
+MORUS_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)morus-tests.o
+
+morus-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)morus-tests.o
+	$(CC) $(LFLAGS) $(MORUS_TESTS_OBJ) -o $(BIN_PATH)morus-tests $(LIBS)
+
+$(OBJ_PATH)morus-tests.o: $(TESTS_PATH)morus-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)morus-tests.cc -o $(OBJ_PATH)morus-tests.o
+
+# --- LINEAR_CODE ---
+
+LINEAR_CODE_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)linear-code-tests.o
+
+linear-code-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-add.o $(OBJ_PATH)max-xdp-add.o $(OBJ_PATH)linear-code-tests.o
+	$(CC) $(LFLAGS) $(LINEAR_CODE_TESTS_OBJ) -o $(BIN_PATH)linear-code-tests $(LIBS)
+
+$(OBJ_PATH)linear-code-tests.o: $(TESTS_PATH)linear-code-tests.cc
+	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)linear-code-tests.cc -o $(OBJ_PATH)linear-code-tests.o
+

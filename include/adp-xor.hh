@@ -47,19 +47,12 @@
 #endif
 
 void adp_xor_alloc_matrices(gsl_matrix* A[2][2][2]);
-
 void adp_xor_free_matrices(gsl_matrix* A[2][2][2]);
-
 void adp_xor_normalize_matrices(gsl_matrix* A[2][2][2]);
-
 void adp_xor_print_matrices(gsl_matrix* A[2][2][2]);
-
 void adp_xor_print_matrices_sage(gsl_matrix* A[2][2][2]);
-
 void adp_xor_sf(gsl_matrix* A[2][2][2]);
-
-double adp_xor(gsl_matrix* A[2][2][2], uint32_t da, uint32_t db, uint32_t dc);
-
-double adp_xor_exper(const uint32_t da, const uint32_t db, const uint32_t dc);
+double adp_xor(gsl_matrix* A[2][2][2], const WORD_T da, const WORD_T db, const WORD_T dc);
+double adp_xor_exper(const WORD_T da, const WORD_T db, const WORD_T dc);
 
 #endif  // #ifndef ADP_XOR_H

@@ -52,6 +52,8 @@ void adp_xor_fixed_input_free_matrices(gsl_matrix* A[2][2][2]);
 
 void adp_xor_fixed_input_normalize_matrices(gsl_matrix* A[2][2][2]);
 
+void adp_xor_fixed_input_print_matrices_sage(gsl_matrix* A[2][2][2]);
+
 void adp_xor_fixed_input_sf(gsl_matrix* A[2][2][2]);
 
 double adp_xor_fixed_input(gsl_matrix* A[2][2][2], uint32_t a, uint32_t db, uint32_t dc);

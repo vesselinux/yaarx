@@ -321,7 +321,7 @@ void xdp_add_sf(gsl_matrix* A[2][2][2])
  * \return \f$p = \mathrm{xdp}^{+}(da, db \rightarrow dc)\f$
  * \see adp_xor
  */
-double xdp_add(gsl_matrix* A[2][2][2], uint32_t da, uint32_t db, uint32_t dc)
+double xdp_add(gsl_matrix* A[2][2][2], WORD_T da, WORD_T db, WORD_T dc)
 {
   double p = 1.0;
   gsl_vector* R;
@@ -363,7 +363,7 @@ double xdp_add(gsl_matrix* A[2][2][2], uint32_t da, uint32_t db, uint32_t dc)
 	 printf("[%s:%d] k = %d: a %d | b %d | c %d | %f\n", __FILE__, __LINE__, pos, i, j, k, p);
 #endif
   }
-#if 0									  // DEBUG
+#if 0							  // DEBUG
   printf("R  ");
   for(int i = 0; i < XDP_ADD_MSIZE; i++) {
 	 double e = gsl_vector_get(C, i);
@@ -384,7 +384,7 @@ double xdp_add(gsl_matrix* A[2][2][2], uint32_t da, uint32_t db, uint32_t dc)
   gsl_vector_free(L);
 
 #if 0									  // DEBUG
-  printf("%8X %8X -> %8X : %f", da, db, dc, p);
+  printf("%llX %llX -> %llX : %f 2^%4.2f\n", (WORD_MAX_T)da, (WORD_MAX_T)db, (WORD_MAX_T)dc, p, log2(p));
 #endif
 
   return p;
@@ -400,8 +400,10 @@ double xdp_add(gsl_matrix* A[2][2][2], uint32_t da, uint32_t db, uint32_t dc)
  * \return \f$p = \mathrm{xdp}^{+}(da, db \rightarrow dc)\f$
  * \see xdp_add
  */
-double xdp_add_exper(const uint32_t da, const uint32_t db, const uint32_t dc)
+double xdp_add_exper(const WORD_T da, const WORD_T db, const WORD_T dc)
 {
+  double p = 0.0;
+#if(WORD_SIZE <= 16)
   uint64_t N = (1ULL << WORD_SIZE);
   uint32_t cnt = 0;
 
@@ -420,7 +422,8 @@ double xdp_add_exper(const uint32_t da, const uint32_t db, const uint32_t dc)
 		  cnt++;
 	 }
   }
-  double p = (double)cnt / (double)all;
+  p = (double)cnt / (double)all;
+#endif // #if(WORD_SIZE <= 16)
   return p;
 }
 
@@ -430,12 +433,29 @@ double xdp_add_exper(const uint32_t da, const uint32_t db, const uint32_t dc)
  * y = aop(x): y[i] = 1 iff x[i..j] = 11..1 has odd length .
  *
  */
-uint32_t aop(uint32_t x, uint32_t n)
+WORD_T aop(WORD_T x, WORD_T n_in)
 {
-  // n must be power of 2
-  assert((n == 2) || (n == 4) || (n == 8) || (n == 16) || (n == 32));
+  //  assert(0 == 1);
+  WORD_T n = n_in;
 
-  uint32_t L = log2(n);
+  // set n to the closest power of 2 from above
+#if 1 // TEST
+  bool b_is_pow2 = ((n == 2) || (n == 4) || (n == 8) || (n == 16) || (n == 32) || (n == 64));
+  if(!b_is_pow2) {
+	 if(n < 2) n = 2;
+	 if((n > 2) && (n < 4)) n = 4;
+	 if((n > 4) && (n < 8)) n = 8;
+	 if((n > 8) && (n < 16)) n = 16;
+	 if((n > 16) && (n < 32)) n = 32;
+	 if((n > 32) && (n < 64)) n = 64;
+	 if((n > 64) && (n < 128)) n = 128;
+  }
+#endif  // #if // TEST
+
+  // n must be power of 2
+  assert((n == 2) || (n == 4) || (n == 8) || (n == 16) || (n == 32) || (n == 64));
+
+  WORD_T L = (WORD_T)log2(n);
 
 #if 0 // DEBUG
   printf("log2(%d) = %d\n", n, L);
@@ -444,8 +464,8 @@ uint32_t aop(uint32_t x, uint32_t n)
   printf("\n");
 #endif // #if 0 // DEBUG
 
-  uint32_t a[WORD_SIZE] = {0};  // x[]
-  uint32_t b[WORD_SIZE] = {0};  // y[]
+  WORD_T a[WORD_SIZE] = {0};  // x[]
+  WORD_T b[WORD_SIZE] = {0};  // y[]
 
   a[1] = x & (x >> 1);
 
@@ -461,8 +481,9 @@ uint32_t aop(uint32_t x, uint32_t n)
   printf("| %d\n", 1);
 #endif // #if 0 // DEBUG
 
-  for(uint32_t i = 2; i < L; i++) {
-	 uint32_t r = (1U << (i - 1));
+  for(WORD_T i = 2; i < L; i++) {
+	 //	 WORD_T r = (1U << (i - 1));
+	 WORD_T r = ((WORD_T)1 << (i - 1));
 	 a[i] = a[i-1] & (a[i-1] >> r);
 
 #if 0 // DEBUG
@@ -493,8 +514,9 @@ uint32_t aop(uint32_t x, uint32_t n)
   printf("\n");
 #endif // #if 0 // DEBUG
 
-  for(uint32_t i = 2; i <= L; i++) {
-	 uint32_t r = (1U << (i - 1));
+  for(WORD_T i = 2; i <= L; i++) {
+	 //	 WORD_T r = (1U << (i - 1));
+	 WORD_T r = ((WORD_T)1 << (i - 1));
 	 b[i] = b[i-1] | ((b[i-1] >> r) & a[i-1]);
 
 #if 0 // DEBUG
@@ -513,7 +535,7 @@ uint32_t aop(uint32_t x, uint32_t n)
 #endif // #if 0 // DEBUG
 
   }
-  uint32_t y = b[L];
+  WORD_T y = b[L];
 
 #if 0 // DEBUG
   printf("y = ");
@@ -544,10 +566,10 @@ uint32_t aop(uint32_t x, uint32_t n)
  * 
  * \see aop .
  */
-uint32_t cap(uint32_t x, uint32_t y)
+WORD_T cap(WORD_T x, WORD_T y)
 {
-  uint32_t n = WORD_SIZE;
-  uint32_t a = ~(x ^ y);
+  WORD_T n = WORD_SIZE;
+  WORD_T a = ~(x ^ y);
 
   a &= MASK;
 
@@ -557,8 +579,8 @@ uint32_t cap(uint32_t x, uint32_t y)
 	 a &= ~(1 << (n - 1));		  // !!!
   }
 
-  uint32_t b = a & (a >> 1) & (x ^ (x >> 1));
-  uint32_t c = aop(b, n);
+  WORD_T b = a & (a >> 1) & (x ^ (x >> 1));
+  WORD_T c = aop(b, n);
 
 #if 0 // DEBUG
   printf("[%s:%d] x = ", __FILE__, __LINE__);
@@ -585,7 +607,7 @@ uint32_t cap(uint32_t x, uint32_t y)
  * \param z third input word.
  * \return \p TRUE if \f$x  = y = z\f$; \p FALSE otherwise.
  */
-bool is_eq(uint32_t x, uint32_t y, uint32_t z) 
+bool is_eq(WORD_T x, WORD_T y, WORD_T z) 
 {
   return ((x == y) && (x == z));
 }
@@ -600,10 +622,24 @@ bool is_eq(uint32_t x, uint32_t y, uint32_t z)
  * \param y second input word.
  * \param z third input word.
  * \return \f$e : e[i] = 1 \iff x[i] = y[i] = z[i],~ 0 \le i < n\f$.
+ *
+ * \note credits: Yann Le Core
  */
-uint32_t eq(uint32_t x, uint32_t y, uint32_t z) 
+WORD_T eq(const WORD_T x, const WORD_T y, const WORD_T z)
 {
-  uint32_t e = 0;
+  //  WORD_T e = ~((x ^ y) | (x ^ z)) & MASK; // yann
+  WORD_T e = ((x & y & z) | (~x & ~y & ~z)) & MASK;
+  return e;
+}
+
+WORD_T eq_unoptimized(const WORD_T x, const WORD_T y, const WORD_T z) 
+{
+#if 0	// DEBUG
+  printf("[%s:%d] %s() %llX %llX %llX\n", __FILE__, __LINE__, __FUNCTION__, 
+			(WORD_MAX_T)x, (WORD_MAX_T)y, (WORD_MAX_T)z);
+#endif // #if 1	// DEBUG
+
+  WORD_T e = 0;
 
   for(uint32_t i = 0; i < WORD_SIZE; i++) {
 	 uint32_t x_i = (x >> i) & 1;
@@ -611,8 +647,11 @@ uint32_t eq(uint32_t x, uint32_t y, uint32_t z)
 	 uint32_t z_i = (z >> i) & 1;
 
 	 if(is_eq(x_i, y_i, z_i)) {
-		e |= (1 << i);		
+		e |= (1ULL << i);		
 	 }
+#if 0	// DEBUG
+	 printf("[%s:%d] %d: %d %d %d %llX\n", __FILE__, __LINE__, i, x_i, y_i, z_i, e);
+#endif // #if 1	// DEBUG
   }
 #if 0	// DEBUG
   printf("\nx = ");
@@ -624,29 +663,78 @@ uint32_t eq(uint32_t x, uint32_t y, uint32_t z)
   printf("\ne = ");
   print_binary(e);
   printf("\n");
-#endif
+  printf("\nn = ");
+  print_binary(~e);
+  printf("\n");
+#endif // #if 0	// DEBUG
   return e;
 }
 
 /**
- * The XOR differential probability of ADD (\f$\mathrm{xdp}^{+}\f$),
- * as proposed in [Algorithm 2, Lipmaa, Moriai, FSE 2001]. \b Complexity: \f$O(n)\f$.
- *
- * \param da first input difference.
- * \param db second input difference.
- * \param dc output difference.
- * \return \f$p = \mathrm{xdp}^{+}(da, db \rightarrow dc)\f$
- * \see xdp_add
+ * Checks of the differential (da, db -> dc) is possible.
  */
-double xdp_add_lm(uint32_t da, uint32_t db, uint32_t dc)
+bool xdp_add_is_nonzero(WORD_T da, WORD_T db, WORD_T dc)
 {
-  double p = 0.0;
-  uint32_t mask = (0xffffffff >> (32 - (WORD_SIZE - 1)));
   bool b_is_possible = ((eq((da << 1), (db << 1), (dc << 1)) & (da ^ db ^ dc ^ (da << 1))) == 0);
-  if(b_is_possible) {
-	 uint32_t neq = ~eq(da, db, dc); // positions at which da,db and dc are not equal
-	 uint32_t w = hw32(neq & mask);
-	 p = (double)1.0 / (double)pow(2,w);
-  }
-  return p;
+  return b_is_possible;
 }
+
+
+/**
+ * Same as \ref eq but taking the word size as in input parameter
+ *
+ * \note credits: Yann Le Core
+ */
+#if 0 // not used
+WORD_T eq(const WORD_T x, const WORD_T y, const WORD_T z, const uint32_t word_size)
+{
+#if (WORD_SIZE <= 32)
+  WORD_T mask = ~(0xffffffffUL << word_size);
+#else // #if (WORD_SIZE > 32)
+  WORD_T mask = ~(0xffffffffffffffffUL << word_size);
+#endif // #if (WORD_SIZE <= 32)
+  //  WORD_T e = ~((x ^ y) | (x ^ z)) & mask; // yann
+  WORD_T e = ((x & y & z) | (~x & ~y & ~z)) & mask;
+
+  return e;
+}
+#endif
+
+WORD_T eq_unoptimized(const WORD_T x, const WORD_T y, const WORD_T z, const uint32_t word_size) 
+{
+#if 0 // DEBUG
+  printf("[%s:%d] %s() %llX %llX %llX %d\n", __FILE__, __LINE__, __FUNCTION__, 
+			(WORD_MAX_T)da, (WORD_MAX_T)db, (WORD_MAX_T)dc, wprd_size);
+#endif// #if 0 // DEBUG
+
+  WORD_T e = 0;
+
+  for(uint32_t i = 0; i < word_size; i++) {
+	 uint32_t x_i = (x >> i) & 1;
+	 uint32_t y_i = (y >> i) & 1;
+	 uint32_t z_i = (z >> i) & 1;
+
+	 if(is_eq(x_i, y_i, z_i)) {
+		e |= (1ULL << i);		
+	 }
+#if 0	// DEBUG
+	 printf("[%s:%d] %d: %d %d %d %llX\n", __FILE__, __LINE__, i, x_i, y_i, z_i, e);
+#endif // #if 1	// DEBUG
+  }
+#if 0	// DEBUG
+  printf("\nx = ");
+  print_binary(x);
+  printf("\ny = ");
+  print_binary(y);
+  printf("\nz = ");
+  print_binary(z);
+  printf("\ne = ");
+  print_binary(e);
+  printf("\n");
+  printf("\nn = ");
+  print_binary(~e);
+  printf("\n");
+#endif // #if 0	// DEBUG
+  return e;
+}
+

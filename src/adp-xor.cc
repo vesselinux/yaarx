@@ -216,6 +216,19 @@ void adp_xor_print_matrices_sage(gsl_matrix* A[2][2][2])
   printf("AA = [AA000, AA001, AA010, AA011, AA100, AA101, AA110, AA111]\n");
 }
 
+/*
+State outline:
+
+S[ 0] -1 0 0
+S[ 1] -1 0 1
+S[ 2] -1 1 0
+S[ 3] -1 1 1
+S[ 4]  0 0 0
+S[ 5]  0 0 1
+S[ 6]  0 1 0
+S[ 7]  0 1 1
+*/
+
 /** 
  * S-function for \f$\mathrm{adp}^{\oplus}\f$:
  * \f$\mathrm{adp}^{\oplus}(da,db \rightarrow db)\f$.
@@ -252,8 +265,9 @@ void adp_xor_sf(gsl_matrix* A[2][2][2])
 		t /= 2;
 		int32_t in_s3 = (t & 1) - 1;
 		t /= 2;
-		//					printf("[%2d] %2d%2d%2d \n", u, in_s3, in_s2, in_s1);
-
+#if 0									  // DEBUG
+		printf("S[%2d] %2d%2d%2d \n", u, in_s3, in_s2, in_s1);
+#endif
 		for(uint32_t j = 0; j < nvals; j++) {
 		  uint32_t a1 = (j >> 0) & 1;
 		  uint32_t b1 = (j >> 1) & 1;
@@ -323,7 +337,7 @@ void adp_xor_sf(gsl_matrix* A[2][2][2])
  * \returns \f$\mathrm{adp}^{\oplus}(da,db \rightarrow db)\f$.
  * \sa xdp_add
  */
-double adp_xor(gsl_matrix* A[2][2][2], uint32_t da, uint32_t db, uint32_t dc)
+double adp_xor(gsl_matrix* A[2][2][2], const WORD_T da, const WORD_T db, const WORD_T dc)
 {
   double p = 1.0;
   gsl_vector* R;
@@ -404,27 +418,30 @@ double adp_xor(gsl_matrix* A[2][2][2], uint32_t da, uint32_t db, uint32_t dc)
  * \returns \f$\mathrm{adp}^{\oplus}(da,db \rightarrow db)\f$.
  * \see adp_xor
  */
-double adp_xor_exper(const uint32_t da, const uint32_t db, const uint32_t dc)
+double adp_xor_exper(const WORD_T da, const WORD_T db, const WORD_T dc)
 {
-  assert(WORD_SIZE <= 10);
+  double p = 0.0;
+#if(WORD_SIZE <= 10)
   uint64_t N = (1ULL << WORD_SIZE);
   uint32_t cnt = 0;
 
   uint32_t all = N * N;				  // all input pairs
 
-  for(uint32_t a1 = 0; a1 < N; a1++) {
-	 uint32_t a2 = (a1 + da) % MOD;
-	 for(uint32_t b1 = 0; b1 < N; b1++) {
-		uint32_t b2 = (b1 + db) % MOD;
+  for(WORD_T a1 = 0; a1 < N; a1++) {
+	 WORD_T a2 = (a1 + da) % MOD;
+	 for(WORD_T b1 = 0; b1 < N; b1++) {
+		WORD_T b2 = (b1 + db) % MOD;
 		//		printf("%8X %8X\n", a1, b1);
-		uint32_t c1 = a1 ^ b1;
-		uint32_t c2 = a2 ^ b2;
-		uint32_t dx = (c2 - c1 + MOD) % MOD;
+		WORD_T c1 = a1 ^ b1;
+		WORD_T c2 = a2 ^ b2;
+		WORD_T dx = (c2 - c1 + MOD) % MOD;
 		assert((dx >= 0) && (dx < MOD));
 		if(dx == dc)
 		  cnt++;
 	 }
   }
-  double p = (double)cnt / (double)all;
+  p = (double)cnt / (double)all;
+#endif // #if(WORD_SIZE <= 10)
+  assert(WORD_SIZE <= 10);
   return p;
 }

@@ -29,6 +29,8 @@
 
 double adp_lsh_exper(uint32_t da, uint32_t db, int l);
 
+void adp_lrot_odiffs(const uint32_t da, const int r, uint32_t dx[4], double P[4]);
+
 double adp_lsh(uint32_t da, uint32_t db, int l);
 
 double adp_rsh_exper(const uint32_t da, const uint32_t db, const int r);

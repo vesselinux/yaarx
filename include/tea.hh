@@ -28,13 +28,23 @@
 #define TEA_H
 
 #ifndef TEA_ADD_P_THRES
-#define TEA_ADD_P_THRES 0.05//0.0002//0.001//0.008//0.05 /**< Probability threshold for ADD differences. */
+#define TEA_ADD_P_THRES 0.05//0.01//0.05//0.0002//0.001//0.008//0.05 /**< Probability threshold for ADD differences. */
 #endif
 #ifndef TEA_ADD_MAX_PDDT_SIZE	// 2^20 ~= 1,048,576
 #define TEA_ADD_MAX_PDDT_SIZE (1U << 25) /**< Maximum size of the pDDT for ADD differences. */
 #endif
 #ifndef TEA_NCYCLES
 #define TEA_NCYCLES 32 /**< Cycles in TEA: 1 cycle = 2 rounds. */
+#endif
+#ifndef TEA_ADD_TRAILS_LOGFILE
+//#define TEA_ADD_TRAILS_LOGFILE "tea-add-trails.log"
+//#define TEA_ADD_TRAILS_LOGFILE "tea-add-trails-1.log"
+#define TEA_ADD_TRAILS_LOGFILE "tea-add-trails-nz.log"
+#endif
+#ifndef TEA_GVIZ_DATFILE
+//#define TEA_GVIZ_DATFILE "tea-gviz.dat"
+//#define TEA_GVIZ_DATFILE "tea-gviz-1.dat"
+#define TEA_GVIZ_DATFILE "tea-gviz-nz.dat"
 #endif
 
 void tea_encrypt(uint32_t* v, uint32_t* k, int nrounds);

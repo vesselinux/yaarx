@@ -76,17 +76,17 @@ void test_xdp_add_dset_init_states()
 	 xdp_add_dset_init_states(pos, C, da_set, db_set, dc_set);
 
 	 if(da_set.fixed == FIXED) {
-		printf("%d", da_set.diff);
+		printf("%d", (uint32_t)da_set.diff);
 	 } else {
 		printf("*");
 	 }
 	 if(db_set.fixed == FIXED) {
-		printf("%d", db_set.diff);
+		printf("%d", (uint32_t)db_set.diff);
 	 } else {
 		printf("*");
 	 }
 	 if(dc_set.fixed == FIXED) {
-		printf("%d", dc_set.diff);
+		printf("%d", (uint32_t)dc_set.diff);
 	 } else {
 		printf("*");
 	 }
@@ -119,25 +119,25 @@ void test_xdp_add_dset()
   xdp_add_normalize_matrices(AA);
 
 #if 1
-  da_set.diff  = random32() & MASK;
-  da_set.fixed = random32() & MASK;//0xFFFFFFFF & MASK;
-  db_set.diff  = random32() & MASK;
-  db_set.fixed = random32() & MASK;//0xFFFFFFFF & MASK; 
-  dc_set.diff  = random32() & MASK;
-  dc_set.fixed = random32() & MASK;//0xFFFFFFFF & MASK; 
+  da_set.diff  = xrandom() & MASK;
+  da_set.fixed = xrandom() & MASK;//0xFFFFFFFF & MASK;
+  db_set.diff  = xrandom() & MASK;
+  db_set.fixed = xrandom() & MASK;//0xFFFFFFFF & MASK; 
+  dc_set.diff  = xrandom() & MASK;
+  dc_set.fixed = xrandom() & MASK;//0xFFFFFFFF & MASK; 
 #else
-  da_set.diff  = 0;//random32() & MASK;
-  da_set.fixed = 0;//random32() & MASK;
-  db_set.diff  = 0;//random32() & MASK;
-  db_set.fixed = 1;//random32() & MASK;
-  dc_set.diff  = 4;//random32() & MASK;
-  dc_set.fixed = 3;//random32() & MASK;
+  da_set.diff  = 0;//xrandom() & MASK;
+  da_set.fixed = 0;//xrandom() & MASK;
+  db_set.diff  = 0;//xrandom() & MASK;
+  db_set.fixed = 1;//xrandom() & MASK;
+  dc_set.diff  = 4;//xrandom() & MASK;
+  dc_set.fixed = 3;//xrandom() & MASK;
 #endif
-  printf("[%s:%d] da db dc = (%8X,%8X), (%8X,%8X), (%8X,%8X)\n",
+  printf("[%s:%d] da db dc = (%llX,%llX), (%llX,%llX), (%llX,%llX)\n",
 			__FILE__, __LINE__, 
-			da_set.diff, da_set.fixed, 
-			db_set.diff, db_set.fixed, 
-			dc_set.diff, dc_set.fixed);
+			(WORD_MAX_T)da_set.diff, (WORD_MAX_T)da_set.fixed, 
+			(WORD_MAX_T)db_set.diff, (WORD_MAX_T)db_set.fixed, 
+			(WORD_MAX_T)dc_set.diff, (WORD_MAX_T)dc_set.fixed);
 
   printf("[%s:%d] XDP_ADD_DIFF_SET ", __FILE__, __LINE__);
   printf("\n da = ");
@@ -159,6 +159,7 @@ void test_xdp_add_dset()
 
 void test_xdp_add_dset_vs_exper_all()
 {
+#if(WORD_SIZE <= 4)
   gsl_matrix* A[2][2][2];		  // xdp-add
   xdp_add_alloc_matrices(A);
   xdp_add_sf(A);
@@ -234,7 +235,7 @@ void test_xdp_add_dset_vs_exper_all()
   xdp_add_dset_free_matrices_all(AAA);
   xdp_add_dset_free_matrices(AA);
   xdp_add_free_matrices(A);
-
+#endif // #if(WORD_SIZE <= 4)
 }
 
 void test_xdp_add_dset_vs_exper_rand()
@@ -257,12 +258,12 @@ void test_xdp_add_dset_vs_exper_rand()
 
   for(uint32_t i = 0; i < N; i++) {
 
-	 da_set.diff  = random32() & MASK;
-	 da_set.fixed = random32() & MASK;
-	 db_set.diff  = random32() & MASK;
-	 db_set.fixed = random32() & MASK;
-	 dc_set.diff  = random32() & MASK;
-	 dc_set.fixed = random32() & MASK;
+	 da_set.diff  = xrandom() & MASK;
+	 da_set.fixed = xrandom() & MASK;
+	 db_set.diff  = xrandom() & MASK;
+	 db_set.fixed = xrandom() & MASK;
+	 dc_set.diff  = xrandom() & MASK;
+	 dc_set.fixed = xrandom() & MASK;
 
 #if 0									  // DEBUG
 	 printf("[%s:%d] da db dc = (%8X,%8X), (%8X,%8X), (%8X,%8X)\n",
@@ -300,6 +301,7 @@ void test_xdp_add_dset_vs_exper_rand()
 
 void test_xdp_add_input_diff_to_output_dset_all()
 {
+#if(WORD_SIZE <= 12)
   printf("[%s:%d] Running test %s() ...\n", __FILE__, __LINE__, __FUNCTION__);
   gsl_matrix* A[2][2][2];
   xdp_add_alloc_matrices(A);
@@ -332,9 +334,13 @@ void test_xdp_add_input_diff_to_output_dset_all()
 		}
 
 		uint32_t dc = 0;
+#if 0
 		double p_max = max_xdp_add(A, da, db, &dc);
+#else
+		double p_max = max_xdp_add_lm(da, db, &dc);
+#endif
 #if 1									  // DEBUG
-		printf("[%s:%d] p_set %f p_max %f | %f %d\n", __FILE__, __LINE__, p, p_max, (p - p_max), dc_set_all.size());
+		printf("[%s:%d] p_set %f p_max %f | %f %d\n", __FILE__, __LINE__, p, p_max, (p - p_max), (uint32_t)dc_set_all.size());
 #endif
 		assert(p >= p_max);
 		//  printf("Total: %f, max (%f %8X)\n", p, p_max, dc);
@@ -343,6 +349,7 @@ void test_xdp_add_input_diff_to_output_dset_all()
   }
   xdp_add_free_matrices(A);
   printf("[%s:%d] WORD_SIZE = %d. Test %s() OK.\n", __FILE__, __LINE__, WORD_SIZE, __FUNCTION__);
+#endif // #if(WORD_SIZE <= 12)
 }
 
 /**
@@ -357,38 +364,38 @@ void test_xdp_add_input_dsets_to_input_diffs()
 
   diff_set_t da_set = {0,0};
   diff_set_t db_set = {0,0};
-  uint32_t da[2] = {0,0};
-  uint32_t db[2] = {0,0};
+  WORD_T da[2] = {0,0};
+  WORD_T db[2] = {0,0};
 
-  da_set.diff = random32() & MASK;
-  da_set.fixed = random32() & MASK;
+  da_set.diff = xrandom() & MASK;
+  da_set.fixed = xrandom() & MASK;
 
-  db_set.diff = random32() & MASK;
-  db_set.fixed = random32() & MASK;
+  db_set.diff = xrandom() & MASK;
+  db_set.fixed = xrandom() & MASK;
 
   xdp_add_input_dsets_to_input_diffs(da_set, db_set, da, db);
 
-  printf("[%s:%d] Input sets: da (%8X,%8X), db (%8X,%8X)\n", 
-			__FILE__, __LINE__, da_set.diff, da_set.fixed, db_set.diff, db_set.fixed);
-  printf("[%s:%d] Output diffs: 0:(%8X,%8X), 1:(%8X,%8X)\n",
-			__FILE__, __LINE__, da[0], db[0], da[1], db[1]);
+  printf("[%s:%d] Input sets: da (%llX,%llX), db (%llX,%llX)\n", 
+			__FILE__, __LINE__, (WORD_MAX_T)da_set.diff, (WORD_MAX_T)da_set.fixed, (WORD_MAX_T)db_set.diff, (WORD_MAX_T)db_set.fixed);
+  printf("[%s:%d] Output diffs: 0:(%llX,%llX), 1:(%llX,%llX)\n",
+			__FILE__, __LINE__, (WORD_MAX_T)da[0], (WORD_MAX_T)db[0], (WORD_MAX_T)da[1], (WORD_MAX_T)db[1]);
 
   diff_set_t dc_set[2] = {{0,0}};
 
   for(uint32_t j = 0; j < 2; j++) {
 	 xdp_add_input_diff_to_output_dset(da[j], db[j], &dc_set[j]);
 
-	 std::vector<uint32_t> dc_set_all;
+	 std::vector<WORD_T> dc_set_all;
 	 xdp_add_dset_gen_diff_all(dc_set[j], &dc_set_all);
 
 	 double p = 0.0;
-	 std::vector<uint32_t>::iterator vec_iter;
+	 std::vector<WORD_T>::iterator vec_iter;
 	 for(vec_iter = dc_set_all.begin(); vec_iter != dc_set_all.end(); vec_iter++) {
-		uint32_t dc_i = *vec_iter;
+		WORD_T dc_i = *vec_iter;
 		double p_i = xdp_add(A, da[j], db[j], dc_i);
 #if 1									  // DEBUG
-		printf("[%s:%d] XDP_ADD[(%8X,%8X)->%8X] = %6.5f\n", 
-				 __FILE__, __LINE__, da[j], db[j], dc_i, p_i);
+		printf("[%s:%d] XDP_ADD[(%llX,%llX)->%llX] = %6.5f 2^%4.2f\n", 
+				 __FILE__, __LINE__, (WORD_MAX_T)da[j], (WORD_MAX_T)db[j], (WORD_MAX_T)dc_i, p_i, log2(p_i));
 #endif
 		assert(p_i != 0.0);
 		p += p_i;
@@ -404,6 +411,7 @@ void test_xdp_add_input_dsets_to_input_diffs()
  */
 void test_xdp_add_input_dsets_to_input_diffs_all()
 {
+#if(WORD_SIZE <= 6)
   gsl_matrix* A[2][2][2];
   xdp_add_alloc_matrices(A);
   xdp_add_sf(A);
@@ -426,10 +434,10 @@ void test_xdp_add_input_dsets_to_input_diffs_all()
 
 			 xdp_add_input_dsets_to_input_diffs(da_set, db_set, da, db);
 #if 1
-			 printf("[%s:%d] Input sets: da (%8X,%8X), db (%8X,%8X)\n", 
-					  __FILE__, __LINE__, da_set.diff, da_set.fixed, db_set.diff, db_set.fixed);
-			 printf("[%s:%d] Input diffs: 0:(%8X,%8X), 1:(%8X,%8X)\n",
-					  __FILE__, __LINE__, da[0], db[0], da[1], db[1]);
+			 printf("[%s:%d] Input sets: da (%llX,%llX), db (%llX,%llX)\n", 
+					  __FILE__, __LINE__, (WORD_MAX_T)da_set.diff, (WORD_MAX_T)da_set.fixed, (WORD_MAX_T)db_set.diff, (WORD_MAX_T)db_set.fixed);
+			 printf("[%s:%d] Input diffs: 0:(%llX,%llX), 1:(%llX,%llX)\n",
+					  __FILE__, __LINE__, (WORD_MAX_T)da[0], (WORD_MAX_T)db[0], (WORD_MAX_T)da[1], (WORD_MAX_T)db[1]);
 #endif
 			 diff_set_t dc_set[2] = {{0,0}};
 
@@ -454,8 +462,8 @@ void test_xdp_add_input_dsets_to_input_diffs_all()
 				printf("[%s:%d] p[%d] = %f\n", __FILE__, __LINE__, j, p[j]);
 			 }
 
-			 uint32_t hw0 = hw32(da[0] ^ db[0]);
-			 uint32_t hw1 = hw32(da[1] ^ db[1]);
+			 uint32_t hw0 = hamming_weight(da[0] ^ db[0]);
+			 uint32_t hw1 = hamming_weight(da[1] ^ db[1]);
 			 if(hw0 > hw1) {
 				assert(p[0] < p[1]);
 			 }
@@ -483,7 +491,7 @@ void test_xdp_add_input_dsets_to_input_diffs_all()
   }
 
   xdp_add_free_matrices(A);
-
+#endif // #if(WORD_SIZE <= 6)
 }
 
 /**
@@ -492,6 +500,7 @@ void test_xdp_add_input_dsets_to_input_diffs_all()
  */
 void test_xdp_add_input_dsets_to_input_diffs_belong_all()
 {
+#if(WORD_SIZE <= 6)
   gsl_matrix* A[2][2][2];
   xdp_add_alloc_matrices(A);
   xdp_add_sf(A);
@@ -515,10 +524,10 @@ void test_xdp_add_input_dsets_to_input_diffs_belong_all()
 
 			 xdp_add_input_dsets_to_input_diffs(da_set, db_set, da, db);
 #if 1
-			 printf("[%s:%d] Input sets: da (%8X,%8X), db (%8X,%8X)\n", 
-					  __FILE__, __LINE__, da_set.diff, da_set.fixed, db_set.diff, db_set.fixed);
-			 printf("[%s:%d] Input diffs: 0:(%8X,%8X), 1:(%8X,%8X)\n",
-					  __FILE__, __LINE__, da[0], db[0], da[1], db[1]);
+			 printf("[%s:%d] Input sets: da (%llX,%llX), db (%llX,%llX)\n", 
+					  __FILE__, __LINE__, (WORD_MAX_T)da_set.diff, (WORD_MAX_T)da_set.fixed, (WORD_MAX_T)db_set.diff, (WORD_MAX_T)db_set.fixed);
+			 printf("[%s:%d] Input diffs: 0:(%llX,%llX), 1:(%llX,%llX)\n",
+					  __FILE__, __LINE__, (WORD_MAX_T)da[0], (WORD_MAX_T)db[0], (WORD_MAX_T)da[1], (WORD_MAX_T)db[1]);
 #endif
 			 bool b_da_found[2] = {false, false};
 			 std::vector<uint32_t> da_set_all;
@@ -566,6 +575,7 @@ void test_xdp_add_input_dsets_to_input_diffs_belong_all()
 
   xdp_add_free_matrices(A);
   printf("[%s:%d] OK\n", __FILE__, __LINE__);
+#endif // #if(WORD_SIZE <= 6)
 }
 
 void test_xdp_add_count_nz()
@@ -609,7 +619,8 @@ void test_lrot_dset()
 
   db_set = lrot_dset(da_set, rot_const);
 
-  printf("[%s:%d] %8X %8X %d\n", __FILE__, __LINE__, da_set.diff, db_set.diff, rot_const);
+  printf("[%s:%d] %llX %llX %d\n", __FILE__, __LINE__, 
+			(WORD_MAX_T)da_set.diff, (WORD_MAX_T)db_set.diff, rot_const);
 }
 
 void test_xor_dset()
@@ -623,11 +634,13 @@ void test_xor_dset()
   //  dc_set = xor_dset(da_set, db_set, &p, b_single_diff);
   dc_set = xor_dset(da_set, db_set);
 
-  printf("[%s:%d] %8X %8X -> %8X\n", __FILE__, __LINE__, da_set.diff, db_set.diff, dc_set.diff);
+  printf("[%s:%d] %llX %llX -> %llX\n", __FILE__, __LINE__, 
+			(WORD_MAX_T)da_set.diff, (WORD_MAX_T)db_set.diff, (WORD_MAX_T)dc_set.diff);
 }
 
 void test_rmax_xdp_add_dset_is_max_all()
 {
+#if(WORD_SIZE <= 8)
   gsl_matrix* A[2][2][2];
   xdp_add_alloc_matrices(A);
   xdp_add_sf(A);
@@ -736,6 +749,7 @@ void test_rmax_xdp_add_dset_is_max_all()
   xdp_add_dset_free_matrices(AA);
   xdp_add_free_matrices(A);
   printf("[%s:%d] OK\n", __FILE__, __LINE__);
+#endif // #if(WORD_SIZE <= 8)
 }
 
 void test_rmax_xdp_add_dset_is_max_rand()
@@ -771,17 +785,17 @@ void test_rmax_xdp_add_dset_is_max_rand()
 
 	 // 80000000 20000010 | 0.250000 0.500000 ( 1000000        0) A0000010
 	 //	 80020001
-	 da_set.diff  = random32() & MASK;
-	 da_set.fixed = random32() & MASK;
-	 db_set.diff  = random32() & MASK;
-	 db_set.fixed = random32() & MASK;
+	 da_set.diff  = xrandom() & MASK;
+	 da_set.fixed = xrandom() & MASK;
+	 db_set.diff  = xrandom() & MASK;
+	 db_set.fixed = xrandom() & MASK;
 #endif
 
 #if 1									  // DEBUG
-	 printf("[%s:%d] da db dc = (%8X,%8X), (%8X,%8X)\n",
+	 printf("[%s:%d] da db dc = (%llX,%llX), (%llX,%llX)\n",
 			  __FILE__, __LINE__,
-			  da_set.diff, da_set.fixed, 
-			  db_set.diff, db_set.fixed);
+			  (WORD_MAX_T)da_set.diff, (WORD_MAX_T)da_set.fixed, 
+			  (WORD_MAX_T)db_set.diff, (WORD_MAX_T)db_set.fixed);
 	 printf("\n da = ");
 	 xdp_add_dset_print_set(da_set);
 	 printf("\n db = ");
@@ -800,12 +814,12 @@ void test_rmax_xdp_add_dset_is_max_rand()
 
 #if 1									  // TEST
 	 if((da_set.fixed == 0) && (db_set.fixed == 0)) {
-		uint32_t da = da_set.diff;
-		uint32_t db = db_set.diff;
-		uint32_t dc_max = 0;
+		WORD_T da = da_set.diff;
+		WORD_T db = db_set.diff;
+		WORD_T dc_max = 0;
 		double p_max_tmp = max_xdp_add_lm(da, db, &dc_max);
 		//				p_max_tmp /= xdp_add_dset_size(dc_set_2);
-		printf("%f %f (%8X %8X) %8X\n", p_max_tmp, p_max_2, dc_set_2.diff, dc_set_2.fixed, dc_max);
+		printf("%f %f (%llX %llX) %llX\n", p_max_tmp, p_max_2, (WORD_MAX_T)dc_set_2.diff, (WORD_MAX_T)dc_set_2.fixed, (WORD_MAX_T)dc_max);
 		assert(p_max_tmp == p_max_2);
 	 }
 #endif
@@ -854,18 +868,18 @@ void test_rmax_xdp_add_dset_is_max_rand()
  */
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   //  assert(WORD_SIZE <= 10);
   srandom(time(NULL));
 
   //  test_xdp_add_count_nz();
-  test_rmax_xdp_add_dset_is_max_rand();
+  //  test_rmax_xdp_add_dset_is_max_rand();
   //  test_rmax_xdp_add_dset_is_max_all();			  // <-
   //  test_xdp_add_input_dsets_to_input_diffs_belong_all();
   //  test_xor_dset();
   //  test_lrot_dset();
   //  test_xdp_add_input_dsets_to_input_diffs_all();
-  //  test_xdp_add_input_dsets_to_input_diffs();
+  test_xdp_add_input_dsets_to_input_diffs();
   //  test_xdp_add_input_diff_to_output_dset_all();
   //  test_xdp_add_dset_vs_exper_all();
   //  test_xdp_add_dset();

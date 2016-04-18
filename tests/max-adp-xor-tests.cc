@@ -41,30 +41,35 @@ void test_max_adp_xor()
   adp_xor_alloc_matrices(A);
   adp_xor_sf(A);
   adp_xor_normalize_matrices(A);
-  uint32_t da = random32() & MASK;
-  uint32_t db = random32() & MASK;
-  uint32_t dc = 0;
+  WORD_T da = ~0ULL;//0xffffffff;//gen_sparse(8, WORD_SIZE);//0xffffffff;//random32() & MASK;
+  WORD_T db = ~0ULL;//0xffffffff;//gen_sparse(8, WORD_SIZE);//0xffffffff;//random32() & MASK;
+  WORD_T dc = 0;
   double p0 = max_adp_xor(A, da, db, &dc);
   assert((p0 >= 0.0) && (p0 <= 1.0));
   double p1 = adp_xor(A, da, db, dc);
   assert((p1 >= 0.0) && (p1 <= 1.0));
   assert(p0 == p1);
+#if DEBUG_MAX_ADP_XOR_TESTS
+  printf("[%s:%d] ADP_XOR_0[(%16llX,%16llX)->%16llX] = %6.5f 2^%4.2f\n", 
+			__FILE__, __LINE__, (WORD_MAX_T)da, (WORD_MAX_T)db, (WORD_MAX_T)dc, p0, log2(p0));
+  printf("[%s:%d] ADP_XOR_1[(%16llX,%16llX)->%16llX] = %6.5f 2^%4.2f\n", 
+			__FILE__, __LINE__, (WORD_MAX_T)da, (WORD_MAX_T)db, (WORD_MAX_T)dc, p1, log2(p1));
+#endif  // #if DEBUG_MAX_ADP_XOR_TESTS
+#if(WORD_SIZE <= 10)
   double p2 = adp_xor_exper(da, db, dc);
   assert(p1 == p2);
 #if DEBUG_MAX_ADP_XOR_TESTS
-  printf("[%s:%d] ADP_XOR_0[(%8X,%8X)->%8X] = %6.5f\n", 
-			__FILE__, __LINE__, da, db, dc, p0);
-  printf("[%s:%d] ADP_XOR_1[(%8X,%8X)->%8X] = %6.5f\n", 
-			__FILE__, __LINE__, da, db, dc, p1);
-  printf("[%s:%d] ADP_XOR_2[(%8X,%8X)->%8X] = %6.5f\n", 
-			__FILE__, __LINE__, da, db, dc, p2);
+  printf("[%s:%d] ADP_XOR_2[(%16llX,%16llX)->%16llX] = %6.5f\n", 
+			__FILE__, __LINE__, (WORD_MAX_T)da, (WORD_MAX_T)db, (WORD_MAX_T)dc, p2);
 #endif  // #if DEBUG_MAX_ADP_XOR_TESTS
+#endif // #if(WORD_SIZE <= 10)
   adp_xor_free_matrices(A);
   printf("[%s:%d] WORD_SIZE = %d. Test %s() OK.\n", __FILE__, __LINE__, WORD_SIZE, __FUNCTION__);
 }
 
 void test_max_adp_xor_is_max()
 {
+#if (WORD_SIZE <= 8)
   printf("[%s:%d] Running test %s() ...\n", __FILE__, __LINE__, __FUNCTION__);
   gsl_matrix* A[2][2][2];
   adp_xor_alloc_matrices(A);
@@ -72,10 +77,10 @@ void test_max_adp_xor_is_max()
   adp_xor_normalize_matrices(A);
 
   uint64_t N = (1ULL << WORD_SIZE);
-  for(uint32_t da = 0; da < N; da++) {
-	 for(uint32_t db = 0; db < N; db++) {
-		uint32_t dc1 = 0;
-		uint32_t dc2 = 0;
+  for(WORD_T da = 0; da < N; da++) {
+	 for(WORD_T db = 0; db < N; db++) {
+		WORD_T dc1 = 0;
+		WORD_T dc2 = 0;
 		double p1 = max_adp_xor(A, da, db, &dc1);
 		assert((p1 >= 0.0) && (p1 <= 1.0));
 		double p2 = max_adp_xor_exper(A, da, db, &dc2);
@@ -90,13 +95,15 @@ void test_max_adp_xor_is_max()
   }
   adp_xor_free_matrices(A);
   printf("[%s:%d] WORD_SIZE = %d. Test %s() OK.\n", __FILE__, __LINE__, WORD_SIZE, __FUNCTION__);
+#endif // #if (WORD_SIZE <= 8)
 }
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
-  assert(WORD_SIZE <= 10);
+  srandom(time(NULL));
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  //  assert(WORD_SIZE <= 10);
   test_max_adp_xor();
-  test_max_adp_xor_is_max();
+  //  test_max_adp_xor_is_max();
   return 0;
 }

@@ -128,7 +128,7 @@ void threefish64(uint64_t nrounds, uint32_t rot_const[8][2], uint64_t X[4], uint
   for(uint64_t i = 0; i < nrounds; i++) {
 	 threefish64_mix(X, rot_const[i][0], rot_const[i][1]);
 	 if(i != (nrounds - 1)) {	  // not last round
-		std::swap(X[1], X[3]);
+		std::swap(X[1], X[3]); // word permutation
 	 } else {						  // last round
 		for(uint64_t j = 0; j < 4; j++) {
 		  Y[j] = X[j];

@@ -89,9 +89,28 @@ void test_adp_xor_fixed_input_all()
   printf("[%s:%d] WORD_SIZE = %d. Test %s() OK.\n", __FILE__, __LINE__, WORD_SIZE, __FUNCTION__);
 }
 
+void test_adp_xor_fixed_input_print_matrices_sage()
+{
+  gsl_matrix* A[2][2][2];
+  adp_xor_fixed_input_alloc_matrices(A);
+  adp_xor_fixed_input_sf(A);
+  //  adp_xor_fixed_input_normalize_matrices(A);
+  adp_xor_fixed_input_print_matrices_sage(A);
+  adp_xor_fixed_input_free_matrices(A);
+}
+
+// --- TESTS ---
+
+
 int main()
 {
+  printf("# [%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  srandom(time(NULL));
+
   test_adp_xor_fixed_input();
+#if 0
+  test_adp_xor_fixed_input_print_matrices_sage();
   test_adp_xor_fixed_input_all();
+#endif
   return 0;
 }

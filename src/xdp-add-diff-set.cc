@@ -56,7 +56,7 @@ uint32_t XDP_ADD_DSET_ISTATES[XDP_ADD_DSET_NISTATES] = {0,3,5,6};
 uint64_t xdp_add_dset_size(diff_set_t da_set)
 {
   //  uint32_t mask = (0xffffffff >> (32 - (WORD_SIZE - 1)));
-  return (1ULL << (hw32(da_set.fixed) & MASK));
+  return (1ULL << (hamming_weight(da_set.fixed) & MASK));
 }
 
 /**
@@ -84,26 +84,26 @@ bool is_dset_equal(const diff_set_t da_set, const diff_set_t db_set)
  * \param db input XOR difference.
  * \param dc_set set of output XOR differences.
  */
-void xdp_add_input_diff_to_output_dset(uint32_t da, uint32_t db, 
+void xdp_add_input_diff_to_output_dset(WORD_T da, WORD_T db, 
 													diff_set_t* dc_set)
 {
-  uint32_t n = WORD_SIZE;
-  uint32_t dc = 0;
+  WORD_T n = WORD_SIZE;
+  WORD_T dc = 0;
 
   // if fixed[i] = 1, dc[i] can be anything, if fixed[i] = 0, dc[i] is fixed
-  uint32_t fixed = 0;
+  WORD_T fixed = 0;
 
   dc |= (da & 1) ^ (db & 1);
 
-  for(uint32_t i = 1; i < n; i++) {
+  for(WORD_T i = 1; i < n; i++) {
 
-	 uint32_t da_prev = (da >> (i - 1)) & 1;
-	 uint32_t db_prev = (db >> (i - 1)) & 1;
-	 uint32_t dc_prev = (dc >> (i - 1)) & 1;
-	 uint32_t da_this = (da >> i) & 1;
-	 uint32_t db_this = (db >> i) & 1;
-	 uint32_t dc_this = 0;		  // to be determined
-	 uint32_t fixed_this = 0;		  // is this bit fixed or no
+	 WORD_T da_prev = (da >> (i - 1)) & 1;
+	 WORD_T db_prev = (db >> (i - 1)) & 1;
+	 WORD_T dc_prev = (dc >> (i - 1)) & 1;
+	 WORD_T da_this = (da >> i) & 1;
+	 WORD_T db_this = (db >> i) & 1;
+	 WORD_T dc_this = 0;		  // to be determined
+	 WORD_T fixed_this = 0;		  // is this bit fixed or no
 	 if(is_eq(da_prev, db_prev, dc_prev)) {
 		dc_this = (da_this ^ db_this ^ da_prev);
 		fixed_this = FIXED;				  // fixed
@@ -163,7 +163,7 @@ void xdp_add_input_dset_to_output_dset(gsl_matrix* AA[2][2][2],
 		  dc_set_i.fixed |= (STAR << i);
 		}
 		double p = xdp_add_dset(AA, word_size, da_set, db_set, dc_set_i);
-		uint32_t s = xdp_add_dset_size(dc_set_i);
+		uint64_t s = xdp_add_dset_size(dc_set_i);
 		double r = p / (double)s;
 		if(r > r_max) {
 		  r_max = r;
@@ -284,30 +284,31 @@ void xdp_add_input_dset_to_output_dset_rec(gsl_matrix* AA[2][2][2],
  * \param dc_set_all a vector of all XOR differences that compose \f$C\f$ in explicit form.
  */
 void xdp_add_dset_gen_diff_all(const diff_set_t dc_set, 
-										 std::vector<uint32_t>* dc_set_all)
+										 std::vector<WORD_T>* dc_set_all)
 {
-  uint32_t nfree = hw32(dc_set.fixed & MASK);	  // number of free (non-fixed) positions
-  uint32_t N = (1U << (nfree));
+  uint32_t nfree = hamming_weight(dc_set.fixed & MASK);	  // number of free (non-fixed) positions
+  WORD_MAX_T N = (1ULL << (nfree));
+  assert(nfree < 32);
   double logN = log2(N);
 
 #if 0  // DEBUG
   printf("[%s:%d] %8X %8X %d %d\n", __FILE__, __LINE__, dc_set.diff, dc_set.fixed, nfree, N);
 #endif // #if 1  // DEBUG
 
-  for(uint32_t i = 0; i < N; i++) { // all values of the free positions
+  for(WORD_MAX_T i = 0; i < N; i++) { // all values of the free positions
 
 #if 0  // DEBUG
 	 printf("[%s:%d] %d: ", __FILE__, __LINE__, i);
 #endif // #if 1  // DEBUG
 
-	 uint32_t dc_new = dc_set.diff;
-	 uint32_t i_pos = 0;				  // counting the bit position within the log2(N)-bit value i
+	 WORD_T dc_new = dc_set.diff;
+	 WORD_T i_pos = 0;				  // counting the bit position within the log2(N)-bit value i
 
-	 for(uint32_t j = 0; j < WORD_SIZE; j++) {
-		uint32_t is_fixed = (dc_set.fixed >> j) & 1;
+	 for(WORD_T j = 0; j < WORD_SIZE; j++) {
+		WORD_T is_fixed = (dc_set.fixed >> j) & 1;
 
 		if(is_fixed == STAR) {		  // the position is free
-		  uint32_t val = (i >> i_pos) & 1;
+		  WORD_T val = (i >> i_pos) & 1;
 		  //		  dc_new |= (val << j);
 		  dc_new ^= (val << j);	  // flip the bit at the free position
 		  assert((double)i_pos < logN);
@@ -330,6 +331,68 @@ void xdp_add_dset_gen_diff_all(const diff_set_t dc_set,
 }
 
 /**
+ * Generate all XOR differences that belong to a given input set
+ * \f$C\f$ and have Hamming weight less than or equal to a pre-defined
+ * limit.
+ *
+ * \param da_set set of input XOR differences in compact represenatation \ref diff_set_t .
+ * \param dc_set_all a vector of all XOR differences that compose \f$C\f$ in explicit form.
+ * \param hw_limit Hamming weight limit
+ *
+ * \see xdp_add_dset_gen_diff_all
+ */
+void xdp_add_dset_gen_diff_hamming_limit(const diff_set_t dc_set, const uint32_t hw_limit,
+													  std::vector<WORD_T>* dc_set_all)
+{
+  //  printf("[%s:%d] Enter %s()\n", __FILE__, __LINE__, __FUNCTION__);
+  uint32_t nfree = hamming_weight(dc_set.fixed & MASK);	  // number of free (non-fixed) positions
+  WORD_MAX_T N = (WORD_MAX_T)(1ULL << (nfree));
+  double logN = log2(N);
+
+#if 0  // DEBUG
+  printf("[%s:%d] %8X %8X %d %d\n", __FILE__, __LINE__, dc_set.diff, dc_set.fixed, nfree, N);
+#endif // #if 1  // DEBUG
+
+  for(WORD_MAX_T i = 0; i < N; i++) { // all values of the free positions
+
+#if 0  // DEBUG
+	 printf("[%s:%d] %d: ", __FILE__, __LINE__, i);
+#endif // #if 1  // DEBUG
+
+	 WORD_T dc_new = dc_set.diff;
+	 WORD_T i_pos = 0;				  // counting the bit position within the log2(N)-bit value i
+
+	 for(WORD_T j = 0; j < WORD_SIZE; j++) {
+		WORD_T is_fixed = (dc_set.fixed >> j) & 1;
+
+		if(is_fixed == STAR) {		  // the position is free
+		  WORD_T val = (i >> i_pos) & 1;
+		  //		  dc_new |= (val << j);
+		  dc_new ^= (val << j);	  // flip the bit at the free position
+		  assert((double)i_pos < logN);
+		  i_pos++;
+
+#if 0  // DEBUG
+		  printf("%d ", val);
+#endif // #if 1  // DEBUG
+
+		}
+	 }
+	 if(hamming_weight(dc_new & MASK) <= hw_limit) {
+		dc_set_all->push_back(dc_new);
+	 }
+#if 0  // DEBUG
+	 printf(" | %8X", dc_new);
+	 printf("\n");
+#endif // #if 1  // DEBUG
+	 assert(i_pos == log2(N));
+  }
+  //  assert(dc_set_all->size() == N);
+  //  printf("[%s:%d] Exit %s()\n", __FILE__, __LINE__, __FUNCTION__);
+}
+
+
+/**
  * From input sets \f$A\f$ and \f$B\f$ for \f$\mathrm{xdp}^{+}\f$,
  * generate two pairs of input differences: \f$(da^0 \in A, db^0 \in B)\f$
  * and \f$(da^1 \in A, db^1 \in B)\f$ such that 
@@ -343,7 +406,7 @@ void xdp_add_dset_gen_diff_all(const diff_set_t dc_set,
  */
 void xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set, 
 													 const diff_set_t db_set,
-													 uint32_t da[2], uint32_t db[2])
+													 WORD_T da[2], WORD_T db[2])
 {
 
   for(uint32_t j = 0; j <= 1; j++) {
@@ -354,11 +417,11 @@ void xdp_add_input_dsets_to_input_diffs(const diff_set_t da_set,
 
 	 for(uint32_t i = 0; i < WORD_SIZE; i++) {
 
-		uint32_t da_diff_i = (da_set.diff >> i) & 1; 
-		uint32_t da_fixed_i = (da_set.fixed >> i) & 1;
+		WORD_T da_diff_i = (da_set.diff >> i) & 1; 
+		WORD_T da_fixed_i = (da_set.fixed >> i) & 1;
 
-		uint32_t db_diff_i = (db_set.diff >> i) & 1; 
-		uint32_t db_fixed_i = (db_set.fixed >> i) & 1;
+		WORD_T db_diff_i = (db_set.diff >> i) & 1; 
+		WORD_T db_fixed_i = (db_set.fixed >> i) & 1;
 
 		if((da_fixed_i == STAR) && (db_fixed_i == STAR)) { // (*,*)
 		  // da[i] = db[i] = j
@@ -557,13 +620,13 @@ void xdp_add_dset_init_states(const uint32_t pos,
 										const diff_set_t db_set,
 										const diff_set_t dc_set)
 {
-  uint32_t nda = 0;				  // number of possibilities for da[0]
-  uint32_t ndb = 0;				  // number of possibilities for db[0]
-  uint32_t ndc = 0;				  // number of possibilities for dc[0]
+  WORD_T nda = 0;				  // number of possibilities for da[0]
+  WORD_T ndb = 0;				  // number of possibilities for db[0]
+  WORD_T ndc = 0;				  // number of possibilities for dc[0]
 
-  uint32_t da_0 = 0;
-  uint32_t db_0 = 0;
-  uint32_t dc_0 = 0;
+  WORD_T da_0 = 0;
+  WORD_T db_0 = 0;
+  WORD_T dc_0 = 0;
 
   bool b_da_is_fixed = (((da_set.fixed >> pos) & 1) == FIXED);
   bool b_db_is_fixed = (((db_set.fixed >> pos) & 1) == FIXED);
@@ -584,19 +647,19 @@ void xdp_add_dset_init_states(const uint32_t pos,
   } else {
 	 ndc = 2;
   }
-  for(uint32_t i = 0; i < nda; i++) {
+  for(WORD_T i = 0; i < nda; i++) {
 	 if(i == 0) {
 		da_0 = (da_set.diff >> pos) & 1;
 	 } else {
 		da_0 = (1 ^ da_0) & 1;	  // flip the bit
 	 }
-	 for(uint32_t j = 0; j < ndb; j++) {
+	 for(WORD_T j = 0; j < ndb; j++) {
 		if(j == 0) {
 		  db_0 = (db_set.diff >> pos) & 1;
 		} else {
 		  db_0 = (1 ^ db_0) & 1;	  // flip the bit
 		}
-		for(uint32_t k = 0; k < ndc; k++) {
+		for(WORD_T k = 0; k < ndc; k++) {
 		  if(k == 0) {
 			 dc_0 = (dc_set.diff >> pos) & 1;
 		  } else {
@@ -607,7 +670,7 @@ void xdp_add_dset_init_states(const uint32_t pos,
 			 b_is_valid = ((da_0 ^ db_0 ^ dc_0) == 0);
 		  } 
 		  if(b_is_valid) {
-			 uint32_t idx = (dc_0 << 2) | (db_0 << 1) | da_0;
+			 WORD_T idx = (dc_0 << 2) | (db_0 << 1) | da_0;
 			 double val = 1.0;
 			 gsl_vector_set(C, idx, val);
 			 if(pos == 0) {	
@@ -700,7 +763,7 @@ void xdp_add_dset_print_matrices_all(gsl_matrix* A[3][3][3])
  *        B \rightarrow C)\f$.
  */ 
 void xdp_add_dset_gen_matrices_all(gsl_matrix* AA[3][3][3],
-												gsl_matrix* A[2][2][2])
+											  gsl_matrix* A[2][2][2])
 
 {
   for(int i = 0; i < 3; i++) {
@@ -1184,7 +1247,7 @@ void rmax_xdp_add_dset_i(const uint32_t k_init, const uint32_t k, const uint32_t
   }
 
   // cycle over the possible values of the k-th bits of *dc
-  uint32_t nstar = hw32(dc_set->fixed);
+  uint32_t nstar = hamming_weight(dc_set->fixed);
   uint32_t nstar_max = WORD_SIZE;//5;//3;
   int hi = 1;
   int lo = 0;
@@ -1366,8 +1429,8 @@ double max_xdp_add_dset(const diff_set_t da_set,
   // lsb
   bool b_da_i_is_fixed = (((da_set.fixed >> i) & 1) == FIXED); 
   bool b_db_i_is_fixed = (((db_set.fixed >> i) & 1) == FIXED); 
-  uint32_t da_i = (da_set.diff >> i) & 1; // lsb
-  uint32_t db_i = (db_set.diff >> i) & 1; // lsb
+  WORD_T da_i = (da_set.diff >> i) & 1; // lsb
+  WORD_T db_i = (db_set.diff >> i) & 1; // lsb
 
   // at least one lsb is not fixed
   if(!b_da_i_is_fixed || !b_db_i_is_fixed) {
@@ -1381,7 +1444,7 @@ double max_xdp_add_dset(const diff_set_t da_set,
   b_da_i_is_fixed = (((da_set.fixed >> (i+1)) & 1) == FIXED); 
   b_db_i_is_fixed = (((db_set.fixed >> (i+1)) & 1) == FIXED); 
   while(is_eq(da_i, db_i, dc_i) && (i < WORD_SIZE) && (b_da_i_is_fixed) && (b_db_i_is_fixed)) {
-	 uint32_t da_prev = da_i;
+	 WORD_T da_prev = da_i;
 	 i++;
 	 da_i = (da_set.diff >> i) & 1;
 	 db_i = (db_set.diff >> i) & 1;
@@ -1412,25 +1475,25 @@ double xdp_add_dset_exper(gsl_matrix* A[2][2][2],
 {
   double p_tot = 0.0;
 
-  std::vector<uint32_t> da_set_all;
+  std::vector<WORD_T> da_set_all;
   xdp_add_dset_gen_diff_all(da_set, &da_set_all);
-  std::vector<uint32_t>::iterator da_iter = da_set_all.begin();
+  std::vector<WORD_T>::iterator da_iter = da_set_all.begin();
 
-  std::vector<uint32_t> db_set_all;
+  std::vector<WORD_T> db_set_all;
   xdp_add_dset_gen_diff_all(db_set, &db_set_all);
-  std::vector<uint32_t>::iterator db_iter = db_set_all.begin();
+  std::vector<WORD_T>::iterator db_iter = db_set_all.begin();
 
-  std::vector<uint32_t> dc_set_all;
+  std::vector<WORD_T> dc_set_all;
   xdp_add_dset_gen_diff_all(dc_set, &dc_set_all);
-  std::vector<uint32_t>::iterator dc_iter = dc_set_all.begin();
+  std::vector<WORD_T>::iterator dc_iter = dc_set_all.begin();
 
   for(da_iter = da_set_all.begin(); da_iter != da_set_all.end(); da_iter++) {
 	 for(db_iter = db_set_all.begin(); db_iter != db_set_all.end(); db_iter++) {
 		for(dc_iter = dc_set_all.begin(); dc_iter != dc_set_all.end(); dc_iter++) {
 
-		  uint32_t da_i = *da_iter;
-		  uint32_t db_i = *db_iter;
-		  uint32_t dc_i = *dc_iter;
+		  WORD_T da_i = *da_iter;
+		  WORD_T db_i = *db_iter;
+		  WORD_T dc_i = *dc_iter;
 		  double p = xdp_add(A, da_i, db_i, dc_i);
 		  p_tot += p;
 #if 0									  // DEBUG
@@ -1455,32 +1518,32 @@ double max_xdp_add_dset_exper(gsl_matrix* A[2][2][2],
 										diff_set_t* max_dc_set)
 {
   double p_max = 0.0;
-
-  std::vector<uint32_t> da_set_all;
+#if(WORD_SIZE <= 16)
+  std::vector<WORD_T> da_set_all;
   xdp_add_dset_gen_diff_all(da_set, &da_set_all);
-  std::vector<uint32_t>::iterator da_iter = da_set_all.begin();
+  std::vector<WORD_T>::iterator da_iter = da_set_all.begin();
 
-  std::vector<uint32_t> db_set_all;
+  std::vector<WORD_T> db_set_all;
   xdp_add_dset_gen_diff_all(db_set, &db_set_all);
-  std::vector<uint32_t>::iterator db_iter = db_set_all.begin();
+  std::vector<WORD_T>::iterator db_iter = db_set_all.begin();
 
-  for(uint32_t i_diff = 0; i_diff < ALL_WORDS; i_diff++) {
-	 for(uint32_t i_fixed = 0; i_fixed < ALL_WORDS; i_fixed++) {
+  for(WORD_T i_diff = 0; i_diff < ALL_WORDS; i_diff++) {
+	 for(WORD_T i_fixed = 0; i_fixed < ALL_WORDS; i_fixed++) {
 
 		double p_tot = 0.0;
 		diff_set_t dc_set = {i_diff, i_fixed};
 
-		std::vector<uint32_t> dc_set_all;
+		std::vector<WORD_T> dc_set_all;
 		xdp_add_dset_gen_diff_all(dc_set, &dc_set_all);
-		std::vector<uint32_t>::iterator dc_iter = dc_set_all.begin();
+		std::vector<WORD_T>::iterator dc_iter = dc_set_all.begin();
 
 		for(da_iter = da_set_all.begin(); da_iter != da_set_all.end(); da_iter++) {
 		  for(db_iter = db_set_all.begin(); db_iter != db_set_all.end(); db_iter++) {
 			 for(dc_iter = dc_set_all.begin(); dc_iter != dc_set_all.end(); dc_iter++) {
 
-				uint32_t da_i = *da_iter;
-				uint32_t db_i = *db_iter;
-				uint32_t dc_i = *dc_iter;
+				WORD_T da_i = *da_iter;
+				WORD_T db_i = *db_iter;
+				WORD_T dc_i = *dc_iter;
 				double p = xdp_add(A, da_i, db_i, dc_i);
 				p_tot += p;
 #if 0									  // DEBUG
@@ -1501,6 +1564,8 @@ double max_xdp_add_dset_exper(gsl_matrix* A[2][2][2],
 
 	 }
   }
+#endif // #if(WORD_SIZE <= 16)
+  assert(WORD_SIZE <= 16);
   return p_max;
 }
 

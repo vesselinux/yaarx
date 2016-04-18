@@ -27,22 +27,22 @@
 #ifndef MAX_ADP_XOR_H
 #define MAX_ADP_XOR_H
 
-void max_adp_xor_i(const int i, const uint32_t k, const uint32_t n, double* p, uint32_t* dd,
+void max_adp_xor_i(const WORD_T i, const WORD_T k, const WORD_T n, double* p, WORD_T* dd,
 						 gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1], gsl_vector* C,  
-						 const uint32_t da, const uint32_t db, uint32_t* dd_max, 
-						 double* p_max, uint32_t A_size);
+						 const WORD_T da, const WORD_T db, WORD_T* dd_max, 
+						 double* p_max, WORD_T A_size);
 
 void max_adp_xor_bounds(gsl_matrix* A[2][2][2], gsl_vector* B[WORD_SIZE + 1],
-								const uint32_t da, const uint32_t db, 
-								uint32_t* dd_max, uint32_t A_size);
+								const WORD_T da, const WORD_T db, 
+								WORD_T* dd_max, WORD_T A_size);
 
 double max_adp_xor(gsl_matrix* A[2][2][2],
-						 const uint32_t da, const uint32_t db,
-						 uint32_t* dd_max);
+						 const WORD_T da, const WORD_T db,
+						 WORD_T* dd_max);
 
 double max_adp_xor_exper(gsl_matrix* A[2][2][2], 
-								 const uint32_t da, const uint32_t db, 
-								 uint32_t* dc_max);
+								 const WORD_T da, const WORD_T db, 
+								 WORD_T* dc_max);
 
 #endif  // #ifndef MAX_ADP_XOR_H
 

@@ -421,8 +421,8 @@ int main()
 	 salsa_gen_rand_shift_const(E);
   }
   //  test_xdp_add_dset_salsa_arx();
-  //  test_salsa_bias();
-  test_xdp_add_dset_salsa20_all();
+  test_salsa_bias();
+  //  test_xdp_add_dset_salsa20_all();
   //  test_xdp_add_dset_salsa20();
   //  test_salsa_gen_word_deps();
   //  test_salsa();

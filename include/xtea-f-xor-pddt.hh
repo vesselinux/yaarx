@@ -38,9 +38,10 @@ void xtea_f_xor_pddt(uint32_t n, double p_thres, uint32_t lsh_const, uint32_t rs
 							std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy);
 
 uint32_t xtea_f_da_db_xor_pddt(uint32_t n, double p_thres, 
-									uint32_t lsh_const, uint32_t rsh_const, const uint32_t da_prev, const uint32_t da_in, 
-									std::set<differential_t, struct_comp_diff_dx_dy>* hways_diff_set_dx_dy,
-									std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy);
+										 uint32_t lsh_const, uint32_t rsh_const, const uint32_t da_prev, const uint32_t da_in, 
+										 std::set<differential_t, struct_comp_diff_dx_dy>* hways_diff_set_dx_dy,
+										 std::multiset<differential_t, struct_comp_diff_p>* hways_diff_mset_p,
+										 std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy);
 
 bool xtea_is_dx_in_set_dx_dy(uint32_t dy, uint32_t dx_prev, 
 									  std::set<differential_t, struct_comp_diff_dx_dy> diff_set_dx_dy);

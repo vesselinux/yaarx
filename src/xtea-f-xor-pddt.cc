@@ -89,8 +89,13 @@ void xtea_f_xor_pddt_i(const uint32_t k, const uint32_t n,
 	 assert(*p == p_the);
 	 assert(*p >= p_thres);
 
+
 	 // store the difference in the vector
+#if 1								 // !!!
 	 bool b_is_valid = (*db == ((LSH(*da, lsh_const)) ^ RSH(*da, rsh_const)));
+#else
+	 bool b_is_valid = true;//(*db == ((LSH(*da, lsh_const)) ^ RSH(*da, rsh_const)));
+#endif
 	 if((b_is_valid) && (p_the != 0.0)) {
 		differential_t diff;
 		diff.dx = *da;
@@ -101,7 +106,9 @@ void xtea_f_xor_pddt_i(const uint32_t k, const uint32_t n,
 #if 1									  // DEBUG
 		  bool b_found = (diff_set_dx_dy->find(diff) != diff_set_dx_dy->end());
 		  if(!b_found) {
-			 printf("[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d\n", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), diff_set_dx_dy->size());
+			 //			 printf("[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d\n", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), diff_set_dx_dy->size());
+			 printf("\r[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), diff_set_dx_dy->size());
+			 fflush(stdout);
 		  }
 #endif
 		  diff_set_dx_dy->insert(diff);
@@ -247,14 +254,19 @@ void xtea_f_da_db_xor_pddt_i(const uint32_t k, const uint32_t n,
 									  const uint32_t da_prev, const uint32_t da, const uint32_t db, uint32_t* dc,
 									  double* p, const double p_thres, 
 									  std::set<differential_t, struct_comp_diff_dx_dy>* hways_diff_set_dx_dy,
+										 std::multiset<differential_t, struct_comp_diff_p>* hways_diff_mset_p,
 									  std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy,
 									  uint32_t* cnt_new)
 {
+#define RESTRICT_CROADS 1
+
   if(k == n) {
 	 double p_the = xdp_add(A, da, db, *dc);
+#if !RESTRICT_CROADS
 	 if(p_thres != 0.0) {
 		assert(*p != 0.0);
 	 }
+#endif  // #if RESTRICT_CROADS
 	 assert(*p == p_the);
 	 assert(*p >= p_thres);
 
@@ -263,19 +275,31 @@ void xtea_f_da_db_xor_pddt_i(const uint32_t k, const uint32_t n,
 	 assert(b_is_valid);
 	 assert(p_the >= p_thres);
 
-	 //#define RESTRICT_CROADS
-#ifdef RESTRICT_CROADS
+#if RESTRICT_CROADS
 	 bool b_is_inset = xtea_is_dx_in_set_dx_dy(*dc, da_prev, *hways_diff_set_dx_dy);
 #else
 	 bool b_is_inset = true;
 #endif
 
-	 if((b_is_valid) && (p_the != 0.0) && (b_is_inset)) {
-		differential_t diff;
-		diff.dx = da;
-		diff.dy = *dc;
-		diff.p = p_the;
+	 differential_t diff;
+	 diff.dx = da;
+	 diff.dy = *dc;
+	 diff.p = p_the;
 
+	 // Update highway tables with missing entries
+	 if((b_is_valid) && (p_the >= XTEA_XOR_P_THRES)) {
+		bool b_found = (hways_diff_set_dx_dy->find(diff) != hways_diff_set_dx_dy->end());
+		if(!b_found) {
+		  uint32_t old_size = hways_diff_set_dx_dy->size();
+		  hways_diff_set_dx_dy->insert(diff);
+		  uint32_t new_size = hways_diff_set_dx_dy->size();
+		  if(old_size != new_size) {
+			 hways_diff_mset_p->insert(diff);
+		  }
+		}
+	 }
+
+	 if((b_is_valid) && (p_the != 0.0) && (b_is_inset)) {
 		if(diff_set_dx_dy->size() < XTEA_XOR_MAX_PDDT_SIZE) {
 #if 0									  // DEBUG
 		  bool b_found = (diff_set_dx_dy->find(diff) != diff_set_dx_dy->end());
@@ -283,6 +307,7 @@ void xtea_f_da_db_xor_pddt_i(const uint32_t k, const uint32_t n,
 			 printf("[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d\n", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), diff_set_dx_dy->size());
 		  }
 #endif
+		  //		  printf("[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d\n", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), diff_set_dx_dy->size());
 		  diff_set_dx_dy->insert(diff);
 		  (*cnt_new)++;
 		}
@@ -314,14 +339,18 @@ void xtea_f_da_db_xor_pddt_i(const uint32_t k, const uint32_t n,
 		uint32_t new_db = db;
 		uint32_t new_dc = *dc | (z << k);
 
-#ifdef RESTRICT_CROADS
+#if RESTRICT_CROADS
+#if 0				 // do not restrict before full word size
 		uint32_t mask_i = 0xffffffff >> (WORD_SIZE - k);
 		bool b_is_inset_mask = xtea_is_dx_in_set_dx_dy_mask_i(mask_i, new_dc, da_prev, *hways_diff_set_dx_dy);
+#else
+		bool b_is_inset_mask = true;
+#endif
 		if(b_is_inset_mask) {
-		  xtea_f_da_db_xor_pddt_i(k+1, n, lsh_const, rsh_const, A, R, da_prev, new_da, new_db, &new_dc, &new_p, p_thres, hways_diff_set_dx_dy, diff_set_dx_dy, cnt_new);
+		  xtea_f_da_db_xor_pddt_i(k+1, n, lsh_const, rsh_const, A, R, da_prev, new_da, new_db, &new_dc, &new_p, p_thres, hways_diff_set_dx_dy, hways_diff_mset_p, diff_set_dx_dy, cnt_new);
 		}
 #else
-		xtea_f_da_db_xor_pddt_i(k+1, n, lsh_const, rsh_const, A, R, da_prev, new_da, new_db, &new_dc, &new_p, p_thres, hways_diff_set_dx_dy, diff_set_dx_dy, cnt_new);
+		xtea_f_da_db_xor_pddt_i(k+1, n, lsh_const, rsh_const, A, R, da_prev, new_da, new_db, &new_dc, &new_p, p_thres, hways_diff_set_dx_dy, hways_diff_mset_p, diff_set_dx_dy, cnt_new);
 #endif		 
 	 }
 	 gsl_vector_free(R);
@@ -339,6 +368,7 @@ void xtea_f_da_db_xor_pddt_i(const uint32_t k, const uint32_t n,
 uint32_t xtea_f_da_db_xor_pddt(uint32_t n, double p_thres, 
 										 uint32_t lsh_const, uint32_t rsh_const, const uint32_t da_prev, const uint32_t da_in, 
 										 std::set<differential_t, struct_comp_diff_dx_dy>* hways_diff_set_dx_dy,
+										 std::multiset<differential_t, struct_comp_diff_p>* hways_diff_mset_p,
 										 std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy)
 {
   assert(n == WORD_SIZE);
@@ -362,7 +392,7 @@ uint32_t xtea_f_da_db_xor_pddt(uint32_t n, double p_thres,
   uint32_t dc = 0;
 
   // compute Dxy
-  xtea_f_da_db_xor_pddt_i(k, n, lsh_const, rsh_const, A, C, da_prev, da, db, &dc, &p, p_thres, hways_diff_set_dx_dy, diff_set_dx_dy, &cnt_new);
+  xtea_f_da_db_xor_pddt_i(k, n, lsh_const, rsh_const, A, C, da_prev, da, db, &dc, &p, p_thres, hways_diff_set_dx_dy, hways_diff_mset_p, diff_set_dx_dy, &cnt_new);
 
   gsl_vector_free(C);
   xdp_add_free_matrices(A);

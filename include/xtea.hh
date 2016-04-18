@@ -28,13 +28,13 @@
 #define XTEA_H
 
 #ifndef XTEA_XOR_P_THRES
-#define XTEA_XOR_P_THRES 0.08//0.120 /**< Probability threshold for XOR differences. */
+#define XTEA_XOR_P_THRES 0.05//0.05//0.05//0.08//0.120 /**< Probability threshold for XOR differences. */
 #endif
 #ifndef XTEA_ADD_P_THRES
 #define XTEA_ADD_P_THRES 0.05	/**< Probability threshold for ADD differences. */
 #endif
 #ifndef XTEA_XOR_MAX_PDDT_SIZE // 2^20 ~= 1,048,576
-#define XTEA_XOR_MAX_PDDT_SIZE (1U << 20) /**< Maximum size of the pDDT for XOR differences. */ 
+#define XTEA_XOR_MAX_PDDT_SIZE (1U << 30) /**< Maximum size of the pDDT for XOR differences. */ 
 #endif
 #ifndef XTEA_ADD_MAX_PDDT_SIZE
 #define XTEA_ADD_MAX_PDDT_SIZE (1U << 20) /**< Maximum size of the pDDT for ADD differences. */
