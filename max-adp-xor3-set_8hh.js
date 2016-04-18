@@ -1,4 +1,4 @@
-var max-adp-xor3-set_8hh =
+var max_adp_xor3_set_8hh =
 [
     [ "ADP_XOR3_SET_SIZE", "max-adp-xor3-set_8hh.html#a6b52658f2068b1daef8ed31dd70ead0c", null ],
     [ "max_adp_xor3_set", "max-adp-xor3-set_8hh.html#a64619e5349dd07dc017b0469b4066fce", null ],

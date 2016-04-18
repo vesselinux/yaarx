@@ -1,4 +1,4 @@
-var tea-f-add-pddt_8hh =
+var tea_f_add_pddt_8hh =
 [
     [ "is_dx_in_set_dx_dy", "tea-f-add-pddt_8hh.html#a82603f2a5c7ada2fad8d82f93287ff05", null ],
     [ "lsh_condition_is_sat", "tea-f-add-pddt_8hh.html#a55f531edb6fd0ce85c20b47e890475e3", null ],

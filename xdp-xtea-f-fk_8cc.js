@@ -1,4 +1,4 @@
-var xdp-xtea-f-fk_8cc =
+var xdp_xtea_f_fk_8cc =
 [
     [ "nz_xdp_xtea_f", "xdp-xtea-f-fk_8cc.html#abaad14648bcd64a8cfd25e444e73d27a", null ],
     [ "xdp_xtea_f2_assign_bit_x_xx", "xdp-xtea-f-fk_8cc.html#ae8fb7edb5c3d4ee3057e135328e2f91f", null ],

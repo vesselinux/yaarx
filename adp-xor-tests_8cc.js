@@ -1,4 +1,4 @@
-var adp-xor-tests_8cc =
+var adp_xor_tests_8cc =
 [
     [ "main", "adp-xor-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_adp_xor", "adp-xor-tests_8cc.html#adc05ac9f79ca62cf9877efd4bc7db63b", null ],

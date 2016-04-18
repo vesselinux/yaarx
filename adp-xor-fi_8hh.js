@@ -1,4 +1,4 @@
-var adp-xor-fi_8hh =
+var adp_xor_fi_8hh =
 [
     [ "ADP_XOR_FI_COLSUM", "adp-xor-fi_8hh.html#a029a46ca45daac1bf0c9c00e3d98c5d2", null ],
     [ "ADP_XOR_FI_ISTATE", "adp-xor-fi_8hh.html#a3da1861fee62725d5f9a6cb9fd0eb0b0", null ],
@@ -11,5 +11,6 @@ var adp-xor-fi_8hh =
     [ "adp_xor_fixed_input_exper", "adp-xor-fi_8hh.html#a3e8bb4c4a614a447a18d727c1adf219a", null ],
     [ "adp_xor_fixed_input_free_matrices", "adp-xor-fi_8hh.html#acb74304054bfcdeb6ab52fd2aeadc9fe", null ],
     [ "adp_xor_fixed_input_normalize_matrices", "adp-xor-fi_8hh.html#a2c0e217c519708b43b9b18866874f252", null ],
+    [ "adp_xor_fixed_input_print_matrices_sage", "adp-xor-fi_8hh.html#a26c44d1d1b43362107e62ad595b6505f", null ],
     [ "adp_xor_fixed_input_sf", "adp-xor-fi_8hh.html#a37c75fcba5d5904b75461ab35ff8d80d", null ]
 ];

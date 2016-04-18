@@ -1,8 +1,8 @@
-var max-xdp-add_8cc =
+var max_xdp_add_8cc =
 [
-    [ "max_xdp_add", "max-xdp-add_8cc.html#a19d57935afe7dabc0628a3ea44c1f135", null ],
-    [ "max_xdp_add_bounds", "max-xdp-add_8cc.html#a248a6a0d0f09adf7a773cd7f1fb1fbe8", null ],
-    [ "max_xdp_add_exper", "max-xdp-add_8cc.html#a54f1b6c27d0b3ef04dddcc1e190bc279", null ],
-    [ "max_xdp_add_i", "max-xdp-add_8cc.html#aa26173f5384a2a72da858e5c5c860275", null ],
-    [ "max_xdp_add_lm", "max-xdp-add_8cc.html#a1eda58229e5333a889252e475da39f67", null ]
+    [ "max_xdp_add", "max-xdp-add_8cc.html#a1e4adb4dab08f75eacf98cf197600304", null ],
+    [ "max_xdp_add_bounds", "max-xdp-add_8cc.html#a5d909c5a35de90f47bd17dc0482bdc04", null ],
+    [ "max_xdp_add_exper", "max-xdp-add_8cc.html#a8963b18a2368aa57b6b2d7c25809e079", null ],
+    [ "max_xdp_add_i", "max-xdp-add_8cc.html#ada74d93cdf23690e0ae1cc2d450143d2", null ],
+    [ "max_xdp_add_lm", "max-xdp-add_8cc.html#a39b12cacff8a8224b50196637eeaa1f5", null ]
 ];

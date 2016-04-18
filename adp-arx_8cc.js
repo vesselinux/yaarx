@@ -1,4 +1,4 @@
-var adp-arx_8cc =
+var adp_arx_8cc =
 [
     [ "adp_arx", "adp-arx_8cc.html#a9788b8bb5ea34b5d310b22e95ae80ab9", null ],
     [ "adp_arx_alloc_matrices", "adp-arx_8cc.html#a0e3aa2c19e8b7d5fcba1e89cf006db89", null ],

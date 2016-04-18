@@ -1,4 +1,4 @@
-var adp-xtea-f-fk_8hh =
+var adp_xtea_f_fk_8hh =
 [
     [ "adp_xtea_f", "adp-xtea-f-fk_8hh.html#af678f1852341d1a0f4111299fd24f5d8", null ],
     [ "adp_xtea_f_approx", "adp-xtea-f-fk_8hh.html#ae945b860edf247413923712da6049e24", null ],

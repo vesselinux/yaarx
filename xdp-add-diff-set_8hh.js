@@ -1,5 +1,6 @@
-var xdp-add-diff-set_8hh =
+var xdp_add_diff_set_8hh =
 [
+    [ "diff_set_t", "structdiff__set__t.html", "structdiff__set__t" ],
     [ "FIXED", "xdp-add-diff-set_8hh.html#a20207ffc8e6f0bdcefb5c42a5b5c3fb8", null ],
     [ "STAR", "xdp-add-diff-set_8hh.html#a94c3dc9846edbbb70f678768633a4796", null ],
     [ "STAR_VALUE", "xdp-add-diff-set_8hh.html#aa65554cf4a1efb73d7b8abc7628289ac", null ],
@@ -22,7 +23,8 @@ var xdp-add-diff-set_8hh =
     [ "xdp_add_dset_exper", "xdp-add-diff-set_8hh.html#a52f7ccb7ba4d5a4fbb5b6e6c40d3e467", null ],
     [ "xdp_add_dset_free_matrices", "xdp-add-diff-set_8hh.html#a9de10d748f2c35c47ec10e0f8aede4ce", null ],
     [ "xdp_add_dset_free_matrices_all", "xdp-add-diff-set_8hh.html#a71dd8f70100ab3eaaa2dbc2ff0394507", null ],
-    [ "xdp_add_dset_gen_diff_all", "xdp-add-diff-set_8hh.html#afb4ba884badd47b88a5f7cd9e68004e1", null ],
+    [ "xdp_add_dset_gen_diff_all", "xdp-add-diff-set_8hh.html#a97a9dab6963a345290e57ec14ad9b06f", null ],
+    [ "xdp_add_dset_gen_diff_hamming_limit", "xdp-add-diff-set_8hh.html#a68e8a8b151b09104d7201a6383355e09", null ],
     [ "xdp_add_dset_gen_matrices", "xdp-add-diff-set_8hh.html#a27a7143f33c69fc9fddb78e9677435ad", null ],
     [ "xdp_add_dset_gen_matrices_all", "xdp-add-diff-set_8hh.html#a4690a51a4f31ebebe2f3d96367a0f977", null ],
     [ "xdp_add_dset_gen_matrix", "xdp-add-diff-set_8hh.html#abd7268d57bd7172e01c396f999db8360", null ],
@@ -32,11 +34,11 @@ var xdp-add-diff-set_8hh =
     [ "xdp_add_dset_print_matrix", "xdp-add-diff-set_8hh.html#a9b7e890683b9052bfda8135b105c88b9", null ],
     [ "xdp_add_dset_print_set", "xdp-add-diff-set_8hh.html#af9045051618f2fe9d38e517be1a2601a", null ],
     [ "xdp_add_dset_size", "xdp-add-diff-set_8hh.html#a93cd4e95c6e49a2837bc72fa68ffa1e5", null ],
-    [ "xdp_add_input_diff_to_output_dset", "xdp-add-diff-set_8hh.html#ae8f201e16a902384df5e9cb6cda1a7ad", null ],
+    [ "xdp_add_input_diff_to_output_dset", "xdp-add-diff-set_8hh.html#a0b03d94bba1eba8034fed2bbc30ea764", null ],
     [ "xdp_add_input_dset_to_output_dset", "xdp-add-diff-set_8hh.html#a1d5e808d3045ecd90436865429a222f0", null ],
     [ "xdp_add_input_dset_to_output_dset_i", "xdp-add-diff-set_8hh.html#a8c216973d312f3bc4ebe2cc8ed0d3e8e", null ],
     [ "xdp_add_input_dset_to_output_dset_rec", "xdp-add-diff-set_8hh.html#a6ee970575419b828471a4590df91acf8", null ],
-    [ "xdp_add_input_dsets_to_input_diffs", "xdp-add-diff-set_8hh.html#a84427440715e6da72e843ff476f30c11", null ],
+    [ "xdp_add_input_dsets_to_input_diffs", "xdp-add-diff-set_8hh.html#a9d77672a83e064bf9125bcd193f576ad", null ],
     [ "xor_dset", "xdp-add-diff-set_8hh.html#ad3acfec7eb08dd0e2d461409fcafdcfd", null ],
     [ "XDP_ADD_DSET_ISTATES", "xdp-add-diff-set_8hh.html#ad4c6b8f71989229250c5721d60be9868", null ]
 ];

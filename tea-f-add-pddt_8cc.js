@@ -1,4 +1,4 @@
-var tea-f-add-pddt_8cc =
+var tea_f_add_pddt_8cc =
 [
     [ "RESTRICT_CROADS", "tea-f-add-pddt_8cc.html#a3188f7cecf0349ef4d48a48a4cbc8615", null ],
     [ "is_dx_in_set_dx_dy", "tea-f-add-pddt_8cc.html#a82603f2a5c7ada2fad8d82f93287ff05", null ],

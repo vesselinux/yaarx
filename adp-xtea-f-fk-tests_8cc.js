@@ -1,4 +1,4 @@
-var adp-xtea-f-fk-tests_8cc =
+var adp_xtea_f_fk_tests_8cc =
 [
     [ "main", "adp-xtea-f-fk-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_adp_xtea_f", "adp-xtea-f-fk-tests_8cc.html#a4d0897597d817de94806e89fa8bfdd3b", null ],

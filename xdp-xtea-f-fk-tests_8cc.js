@@ -1,4 +1,4 @@
-var xdp-xtea-f-fk-tests_8cc =
+var xdp_xtea_f_fk_tests_8cc =
 [
     [ "main", "xdp-xtea-f-fk-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_nz_xdp_xtea_f", "xdp-xtea-f-fk-tests_8cc.html#aa5555539222df831f02b38a989a08516", null ],

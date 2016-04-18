@@ -1,4 +1,4 @@
-var max-xdp-add-tests_8cc =
+var max_xdp_add_tests_8cc =
 [
     [ "main", "max-xdp-add-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_max_xdp_add", "max-xdp-add-tests_8cc.html#a8165b07cef49192542665a5e296d3175", null ],

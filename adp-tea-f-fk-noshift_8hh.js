@@ -1,4 +1,4 @@
-var adp-tea-f-fk-noshift_8hh =
+var adp_tea_f_fk_noshift_8hh =
 [
     [ "ADP_F_OP_NOSHIFT_COLSUM", "adp-tea-f-fk-noshift_8hh.html#af415797182c8628abe91c502d37a5658", null ],
     [ "ADP_F_OP_NOSHIFT_ISTATE", "adp-tea-f-fk-noshift_8hh.html#a299904aed650e7b3a81f84077b3c2162", null ],

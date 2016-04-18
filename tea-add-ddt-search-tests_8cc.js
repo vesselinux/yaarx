@@ -1,4 +1,4 @@
-var tea-add-ddt-search-tests_8cc =
+var tea_add_ddt_search_tests_8cc =
 [
     [ "main", "tea-add-ddt-search-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_tea_search_ddt", "tea-add-ddt-search-tests_8cc.html#ab4db2aa3a7918fc2da1be7aac0d622e4", null ],

@@ -1,4 +1,4 @@
-var xdp-add-diff-set-tests_8cc =
+var xdp_add_diff_set_tests_8cc =
 [
     [ "LIM", "xdp-add-diff-set-tests_8cc.html#ac3ddfb9af20a2dc934b0540be75f1241", null ],
     [ "main", "xdp-add-diff-set-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],

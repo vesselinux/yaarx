@@ -1,4 +1,4 @@
-var adp-rsh-xor_8hh =
+var adp_rsh_xor_8hh =
 [
     [ "ADP_RSH_XOR_COLSUM", "adp-rsh-xor_8hh.html#a9399cb0e1840f182084407e598d6acd1", null ],
     [ "ADP_RSH_XOR_MSIZE", "adp-rsh-xor_8hh.html#a7c15a8e63b05733ab27a1c20c0011238", null ],

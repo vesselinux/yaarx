@@ -1,4 +1,4 @@
-var adp-arx-tests_8cc =
+var adp_arx_tests_8cc =
 [
     [ "main", "adp-arx-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_adp_arx", "adp-arx-tests_8cc.html#aa67d082b3ff063f336c588e6c2ca0db1", null ],

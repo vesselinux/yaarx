@@ -1,4 +1,4 @@
-var max-adp-xor3_8hh =
+var max_adp_xor3_8hh =
 [
     [ "max_adp_xor3", "max-adp-xor3_8hh.html#aa606808c54de33ad16170106454312a7", null ],
     [ "max_adp_xor3_bounds", "max-adp-xor3_8hh.html#a7134183c8951be68d7e94f47793d2f0d", null ],

@@ -1,4 +1,4 @@
-var adp-arx_8hh =
+var adp_arx_8hh =
 [
     [ "ADP_ARX_COLSUM", "adp-arx_8hh.html#a116dbb7b7f9b74d35cb3552cd8b009b9", null ],
     [ "ADP_ARX_MSIZE", "adp-arx_8hh.html#af665f75e00f5755b68319f5907f75823", null ],

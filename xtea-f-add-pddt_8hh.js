@@ -1,4 +1,4 @@
-var xtea-f-add-pddt_8hh =
+var xtea_f_add_pddt_8hh =
 [
     [ "xtea_add_pddt_dxy_to_dp", "xtea-f-add-pddt_8hh.html#a84e14ae4c2be82a4895dfa91f012e9e3", null ],
     [ "xtea_f_add_pddt", "xtea-f-add-pddt_8hh.html#a98d696f2047ccb8b1a07f777a55a1168", null ],

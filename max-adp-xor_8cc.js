@@ -1,7 +1,7 @@
-var max-adp-xor_8cc =
+var max_adp_xor_8cc =
 [
-    [ "max_adp_xor", "max-adp-xor_8cc.html#aa66f59ae4d29988f90f525ce600d6045", null ],
-    [ "max_adp_xor_bounds", "max-adp-xor_8cc.html#ab44746fae93c11ea36bd24f4f874669d", null ],
-    [ "max_adp_xor_exper", "max-adp-xor_8cc.html#a7b91b512d304a58a701f631be1f863a1", null ],
-    [ "max_adp_xor_i", "max-adp-xor_8cc.html#a2c8bd5dba3223b07f3606c2240d0a4b2", null ]
+    [ "max_adp_xor", "max-adp-xor_8cc.html#aee122cc1d2c7c2c086db887d3bb5c6f1", null ],
+    [ "max_adp_xor_bounds", "max-adp-xor_8cc.html#a5ad6e8936d28cc2247187b940f642f7f", null ],
+    [ "max_adp_xor_exper", "max-adp-xor_8cc.html#a72f06d6a601459fef4ce4eb6eda878b4", null ],
+    [ "max_adp_xor_i", "max-adp-xor_8cc.html#a1ce59eb6a368d198b858799e81014a0e", null ]
 ];

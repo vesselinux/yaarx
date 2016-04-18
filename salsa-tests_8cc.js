@@ -1,4 +1,4 @@
-var salsa-tests_8cc =
+var salsa_tests_8cc =
 [
     [ "main", "salsa-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_salsa", "salsa-tests_8cc.html#a468c01c2bf1401f5a8132c8fef2f7fae", null ],

@@ -1,4 +1,4 @@
-var tea-add-ddt-search_8hh =
+var tea_add_ddt_search_8hh =
 [
     [ "round_ddt", "tea-add-ddt-search_8hh.html#a06a1cdac8a817642490ecdb7371de378", null ],
     [ "round_xddt", "tea-add-ddt-search_8hh.html#ae5a533dd8d6c3d5712343627e0156e6f", null ],

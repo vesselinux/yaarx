@@ -1,4 +1,4 @@
-var max-adp-arx_8cc =
+var max_adp_arx_8cc =
 [
     [ "max_adp_arx", "max-adp-arx_8cc.html#a661c329bf4379aac10838bd72310cebd", null ],
     [ "max_adp_arx_bounds", "max-adp-arx_8cc.html#a33419708a7aa0ca45657294dcfd98d86", null ],

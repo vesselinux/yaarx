@@ -1,4 +1,4 @@
-var adp-xor3_8cc =
+var adp_xor3_8cc =
 [
     [ "adp_xor3", "adp-xor3_8cc.html#a980a22f6faf155e031f0d9f7e8ca9361", null ],
     [ "adp_xor3_alloc_matrices", "adp-xor3_8cc.html#a74f6e7378f7e6c853acc038410039f4a", null ],

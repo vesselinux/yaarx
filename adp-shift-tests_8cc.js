@@ -1,4 +1,4 @@
-var adp-shift-tests_8cc =
+var adp_shift_tests_8cc =
 [
     [ "main", "adp-shift-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_adp_lsh", "adp-shift-tests_8cc.html#a8ae54784d040d1253b28ee002b44337b", null ],

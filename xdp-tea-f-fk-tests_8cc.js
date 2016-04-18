@@ -1,4 +1,4 @@
-var xdp-tea-f-fk-tests_8cc =
+var xdp_tea_f_fk_tests_8cc =
 [
     [ "main", "xdp-tea-f-fk-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_max_dx_xdp_f_fk", "xdp-tea-f-fk-tests_8cc.html#aff7575a84c4518280c8f4874d89fc8f8", null ],

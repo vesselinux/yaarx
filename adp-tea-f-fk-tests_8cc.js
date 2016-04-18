@@ -1,4 +1,4 @@
-var adp-tea-f-fk-tests_8cc =
+var adp_tea_f_fk_tests_8cc =
 [
     [ "main", "adp-tea-f-fk-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_adp_f_fk", "adp-tea-f-fk-tests_8cc.html#a0a56b744da10d4186367990528e8bd7b", null ],

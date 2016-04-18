@@ -1,4 +1,4 @@
-var tea-f-add-pddt-tests_8cc =
+var tea_f_add_pddt_tests_8cc =
 [
     [ "main", "tea-f-add-pddt-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "test_rsh_condition", "tea-f-add-pddt-tests_8cc.html#a104d13a8751bed75e29438538148a232", null ],

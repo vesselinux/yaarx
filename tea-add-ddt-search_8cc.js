@@ -1,4 +1,4 @@
-var tea-add-ddt-search_8cc =
+var tea_add_ddt_search_8cc =
 [
     [ "round_ddt", "tea-add-ddt-search_8cc.html#a06a1cdac8a817642490ecdb7371de378", null ],
     [ "round_xddt", "tea-add-ddt-search_8cc.html#a6421afe69f9ebf929f3f33acb75fd680", null ],

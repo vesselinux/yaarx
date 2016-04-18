@@ -1,4 +1,4 @@
-var adp-xor3_8hh =
+var adp_xor3_8hh =
 [
     [ "ADP_XOR3_COLSUM", "adp-xor3_8hh.html#a2733f830ea99b07e3aa5282aa377de3b", null ],
     [ "ADP_XOR3_ISTATE", "adp-xor3_8hh.html#af7604ba4f09378ef2f468d63d87dc4f9", null ],

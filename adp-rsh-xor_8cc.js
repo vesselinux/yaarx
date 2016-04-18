@@ -1,4 +1,4 @@
-var adp-rsh-xor_8cc =
+var adp_rsh_xor_8cc =
 [
     [ "adp_rsh_xor", "adp-rsh-xor_8cc.html#ab5601221902574eabd3ae7bc6c1dc470", null ],
     [ "adp_rsh_xor_alloc_matrices", "adp-rsh-xor_8cc.html#a75f7c2477e1ccb1ea0d903024fe26a4e", null ],

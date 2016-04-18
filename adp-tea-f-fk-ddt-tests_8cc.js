@@ -1,5 +1,6 @@
-var adp-tea-f-fk-ddt-tests_8cc =
+var adp_tea_f_fk_ddt_tests_8cc =
 [
+    [ "skey_t", "structskey__t.html", "structskey__t" ],
     [ "main", "adp-tea-f-fk-ddt-tests_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4", null ],
     [ "operator<", "adp-tea-f-fk-ddt-tests_8cc.html#a2cc7546dc1c4ffb5afb79bd2da4ebee6", null ],
     [ "test_adp_f_ddt", "adp-tea-f-fk-ddt-tests_8cc.html#ab7bac8c9f25651bc12609564b28610dd", null ],

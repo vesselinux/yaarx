@@ -1,4 +1,4 @@
-var xdp-tea-f-fk_8cc =
+var xdp_tea_f_fk_8cc =
 [
     [ "max_dx_xdp_f_fk", "xdp-tea-f-fk_8cc.html#af6dac18b8bf6b15b03e2210b186ed2a9", null ],
     [ "max_dy_xdp_f_fk", "xdp-tea-f-fk_8cc.html#a14a72673bfe0665f3584a45ed480ead0", null ],
