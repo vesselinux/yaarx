@@ -742,19 +742,19 @@ $(OBJ_PATH)max-adp-xor3-set.o:
 MAX_ADP_XOR3_OBJ = $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-program.o
 MAX_ADP_XOR3_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-tests.o
 
-max-adp-xor3: adp-xor3.o max-adp-xor3.o max-adp-xor3-program.o
+max-adp-xor3: $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-program.o
 	$(CC) $(LFLAGS) $(MAX_ADP_XOR3_OBJ) -o $(BIN_PATH)max-adp-xor3 $(LIBS)
 
-max-adp-xor3-program.o: 
+$(OBJ_PATH)max-adp-xor3-program.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-adp-xor3-program.cc -o $(OBJ_PATH)max-adp-xor3-program.o
 
-max-adp-xor3-tests: common.o adp-xor3.o max-adp-xor3.o max-adp-xor3-tests.o
+max-adp-xor3-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)max-adp-xor3.o $(OBJ_PATH)max-adp-xor3-tests.o
 	$(CC) $(LFLAGS) $(MAX_ADP_XOR3_TESTS_OBJ) -o $(BIN_PATH)max-adp-xor3-tests $(LIBS)
 
-max-adp-xor3-tests.o: 
+$(OBJ_PATH)max-adp-xor3-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)max-adp-xor3-tests.cc -o $(OBJ_PATH)max-adp-xor3-tests.o
 
-max-adp-xor3.o: 
+$(OBJ_PATH)max-adp-xor3.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-adp-xor3.cc -o $(OBJ_PATH)max-adp-xor3.o
 
 # --- ADP-XOR3 ---
@@ -762,19 +762,19 @@ max-adp-xor3.o:
 ADP_XOR3_OBJ = $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)adp-xor3-program.o
 ADP_XOR3_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)adp-xor3-tests.o
 
-adp-xor3: adp-xor3.o adp-xor3-program.o
+adp-xor3: $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)adp-xor3-program.o
 	$(CC) $(LFLAGS) $(ADP_XOR3_OBJ) -o $(BIN_PATH)adp-xor3 $(LIBS)
 
-adp-xor3-tests: common.o adp-xor3.o adp-xor3-tests.o
+adp-xor3-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor3.o $(OBJ_PATH)adp-xor3-tests.o
 	$(CC) $(LFLAGS) $(ADP_XOR3_TESTS_OBJ) -o $(BIN_PATH)adp-xor3-tests $(LIBS)
 
-adp-xor3.o: 
+$(OBJ_PATH)adp-xor3.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor3.cc -o $(OBJ_PATH)adp-xor3.o
 
-adp-xor3-program.o: 
+$(OBJ_PATH)adp-xor3-program.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor3-program.cc -o $(OBJ_PATH)adp-xor3-program.o
 
-adp-xor3-tests.o: 
+$(OBJ_PATH)adp-xor3-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-xor3-tests.cc -o $(OBJ_PATH)adp-xor3-tests.o
 
 # --- MAX-ADP-XOR ---

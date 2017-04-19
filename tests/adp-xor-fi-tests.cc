@@ -38,9 +38,9 @@ void test_adp_xor_fixed_input()
   adp_xor_fixed_input_alloc_matrices(A);
   adp_xor_fixed_input_sf(A);
   adp_xor_fixed_input_normalize_matrices(A);
-  uint32_t a = random32() & MASK;
-  uint32_t db = random32() & MASK;
-  uint32_t dc = random32() & MASK;
+  uint32_t a = xrandom() & MASK;
+  uint32_t db = xrandom() & MASK;
+  uint32_t dc = xrandom() & MASK;
   double p1 = adp_xor_fixed_input(A, a, db, dc);
   assert((p1 >= 0.0) && (p1 <= 1.0));
   double p2 = adp_xor_fixed_input_exper(a, db, dc);
@@ -104,7 +104,7 @@ void test_adp_xor_fixed_input_print_matrices_sage()
 
 int main()
 {
-  printf("# [%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("# [%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   srandom(time(NULL));
 
   test_adp_xor_fixed_input();

@@ -41,8 +41,8 @@ void test_max_adp_xor()
   adp_xor_alloc_matrices(A);
   adp_xor_sf(A);
   adp_xor_normalize_matrices(A);
-  WORD_T da = ~0ULL;//0xffffffff;//gen_sparse(8, WORD_SIZE);//0xffffffff;//random32() & MASK;
-  WORD_T db = ~0ULL;//0xffffffff;//gen_sparse(8, WORD_SIZE);//0xffffffff;//random32() & MASK;
+  WORD_T da = 0;//~0ULL;//0xffffffff;//gen_sparse(8, WORD_SIZE);//0xffffffff;//random32() & MASK;
+  WORD_T db = 0;//~0ULL;//0xffffffff;//gen_sparse(8, WORD_SIZE);//0xffffffff;//random32() & MASK;
   WORD_T dc = 0;
   double p0 = max_adp_xor(A, da, db, &dc);
   assert((p0 >= 0.0) && (p0 <= 1.0));
