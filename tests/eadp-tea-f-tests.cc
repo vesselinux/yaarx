@@ -120,8 +120,8 @@ void test_eadp_tea_f()
   adp_xor3_sf(A);
   adp_xor3_normalize_matrices(A);
 
-  uint32_t dx = random32() & MASK;
-  uint32_t dy = random32() & MASK;
+  uint32_t dx = xrandom() & MASK;
+  uint32_t dy = xrandom() & MASK;
 
   double p = eadp_tea_f(A, dx, dy, &p, lsh_const, rsh_const);
 #if DEBUG_EADP_TEA_F_TESTS
@@ -212,7 +212,7 @@ void test_max_eadp_tea_f_is_max()
  */
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   assert(WORD_SIZE <= 10);
   srandom(time(NULL));
 

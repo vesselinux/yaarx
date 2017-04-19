@@ -60,11 +60,11 @@ void test_adp_arx()
   adp_arx_sf(A);
   adp_arx_normalize_matrices(A);
 
-  uint32_t r = random32() % WORD_SIZE;
-  uint32_t da = random32() & MASK;
-  uint32_t db = random32() & MASK;
-  uint32_t dd = random32() & MASK;
-  uint32_t de = random32() & MASK;
+  uint32_t r = xrandom() % WORD_SIZE;
+  uint32_t da = xrandom() & MASK;
+  uint32_t db = xrandom() & MASK;
+  uint32_t dd = xrandom() & MASK;
+  uint32_t de = xrandom() & MASK;
 
   double p1 = adp_arx(A, r, da, db, dd, de);
   assert((p1 >= 0.0) && (p1 <= 1.0));
@@ -95,11 +95,11 @@ void test_adp_arx_rand(uint32_t N)
   adp_arx_normalize_matrices(A);
 
   for(uint32_t i = 0; i < N; i++) {
-	 uint32_t r = random32() % WORD_SIZE;
-	 uint32_t da = random32() & MASK;
-	 uint32_t db = random32() & MASK;
-	 uint32_t dd = random32() & MASK;
-	 uint32_t de = random32() & MASK;
+	 uint32_t r = xrandom() % WORD_SIZE;
+	 uint32_t da = xrandom() & MASK;
+	 uint32_t db = xrandom() & MASK;
+	 uint32_t dd = xrandom() & MASK;
+	 uint32_t de = xrandom() & MASK;
 
 	 double p1 = adp_arx(A, r, da, db, dd, de);
 	 double p2 = adp_arx_exper(r, da, db, dd, de);
@@ -178,10 +178,10 @@ void test_max_adp_arx_rand(uint32_t N)
   adp_arx_normalize_matrices(A);
 
   for(uint32_t i = 0; i < N; i++) {
-	 uint32_t r = random32() % WORD_SIZE;
-	 uint32_t da = random32() & MASK;
-	 uint32_t db = random32() & MASK;
-	 uint32_t dd = random32() & MASK;
+	 uint32_t r = xrandom() % WORD_SIZE;
+	 uint32_t da = xrandom() & MASK;
+	 uint32_t db = xrandom() & MASK;
+	 uint32_t dd = xrandom() & MASK;
 	 uint32_t de_max = 0;
 
 	 double p1 = max_adp_arx(A, r, da, db, dd, &de_max);
@@ -215,10 +215,10 @@ void test_max_adp_arx()
   adp_arx_sf(A);
   adp_arx_normalize_matrices(A);
 
-  uint32_t r = random32() % WORD_SIZE;
-  uint32_t da = random32() & MASK;
-  uint32_t db = random32() & MASK;
-  uint32_t dd = random32() & MASK;
+  uint32_t r = xrandom() % WORD_SIZE;
+  uint32_t da = xrandom() & MASK;
+  uint32_t db = xrandom() & MASK;
+  uint32_t dd = xrandom() & MASK;
   uint32_t de_max = 0;
 
   double p1 = max_adp_arx(A, r, da, db, dd, &de_max);
@@ -292,10 +292,10 @@ void test_max_adp_arx_is_max()
   adp_arx_sf(A);
   adp_arx_normalize_matrices(A);
 
-  uint32_t r = 1;//random32() % WORD_SIZE;
-  uint32_t da = 0;//random32() & MASK;
-  uint32_t db = 0;//random32() & MASK;
-  uint32_t dd = 0;//random32() & MASK;
+  uint32_t r = 1;//xrandom() % WORD_SIZE;
+  uint32_t da = 0;//xrandom() & MASK;
+  uint32_t db = 0;//xrandom() & MASK;
+  uint32_t dd = 0;//xrandom() & MASK;
   uint32_t de_max_th = 0;
   uint32_t de_max_ex = 0;
 
@@ -362,7 +362,7 @@ void test_max_adp_arx_is_max_all()
  */
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   srandom(time(NULL));
 
 #if 1									  // MAX-ADP-ARX

@@ -801,13 +801,13 @@ $(OBJ_PATH)max-adp-xor-tests.o: $(TESTS_PATH)max-adp-xor-tests.cc
 
 ADP_RSH_XOR_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-shift.o $(OBJ_PATH)adp-rsh-xor.o $(OBJ_PATH)adp-rsh-xor-tests.o
 
-adp-rsh-xor-tests: common.o adp-xor.o adp-shift.o adp-rsh-xor.o adp-rsh-xor-tests.o
+adp-rsh-xor-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-shift.o $(OBJ_PATH)adp-rsh-xor.o $(OBJ_PATH)adp-rsh-xor-tests.o
 	$(CC) $(LFLAGS) $(ADP_RSH_XOR_TESTS_OBJ) -o $(BIN_PATH)adp-rsh-xor-tests $(LIBS)
 
-adp-rsh-xor.o:
+$(OBJ_PATH)adp-rsh-xor.o:
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-rsh-xor.cc -o $(OBJ_PATH)adp-rsh-xor.o
 
-adp-rsh-xor-tests.o:
+$(OBJ_PATH)adp-rsh-xor-tests.o:
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-rsh-xor-tests.cc -o $(OBJ_PATH)adp-rsh-xor-tests.o
 
 # --- ADP-SHIFT ---
@@ -854,29 +854,29 @@ $(OBJ_PATH)xdp-add-pddt-tests.o: $(TESTS_PATH)xdp-add-pddt-tests.cc
 
 ADP_XOR_PDDT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-pddt.o $(OBJ_PATH)adp-xor-pddt-tests.o
 
-adp-xor-pddt-tests: common.o adp-xor.o adp-xor-pddt.o adp-xor-pddt-tests.o
+adp-xor-pddt-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-pddt.o $(OBJ_PATH)adp-xor-pddt-tests.o
 	$(CC) $(LFLAGS) $(ADP_XOR_PDDT_TESTS_OBJ) -o $(BIN_PATH)adp-xor-pddt-tests $(LIBS)
 
-adp-xor-pddt.o: 
+$(OBJ_PATH)adp-xor-pddt.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor-pddt.cc -o $(OBJ_PATH)adp-xor-pddt.o
 
-adp-xor-pddt-tests.o: 
+$(OBJ_PATH)adp-xor-pddt-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-xor-pddt-tests.cc -o $(OBJ_PATH)adp-xor-pddt-tests.o
 
 # --- ADP-ARX ---
 
 ADP_ARX_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-arx.o $(OBJ_PATH)max-adp-arx.o $(OBJ_PATH)adp-arx-tests.o
 
-adp-arx-tests: common.o adp-arx.o max-adp-arx.o adp-arx-tests.o
+adp-arx-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-arx.o $(OBJ_PATH)max-adp-arx.o $(OBJ_PATH)adp-arx-tests.o
 	$(CC) $(LFLAGS) $(ADP_ARX_TESTS_OBJ) -o $(BIN_PATH)adp-arx-tests $(LIBS)
 
-adp-arx.o:
+$(OBJ_PATH)adp-arx.o:
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-arx.cc -o $(OBJ_PATH)adp-arx.o
 
-max-adp-arx.o:
+$(OBJ_PATH)max-adp-arx.o:
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)max-adp-arx.cc -o $(OBJ_PATH)max-adp-arx.o
 
-adp-arx-tests.o: 
+$(OBJ_PATH)adp-arx-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-arx-tests.cc -o $(OBJ_PATH)adp-arx-tests.o
 
 # --- ADP-XOR ---

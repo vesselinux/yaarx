@@ -56,8 +56,8 @@ void test_adp_xtea_f_lxr()
   const uint32_t n = WORD_SIZE;
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
-  uint32_t dx = random32() & MASK;
-  uint32_t dy = random32() & MASK; 
+  uint32_t dx = xrandom() & MASK;
+  uint32_t dy = xrandom() & MASK; 
 
   double p_the = adp_xtea_f_lxr(n, dx, dy, lsh_const, rsh_const);
   double p_exp = adp_xtea_f_lxr_exper(dx, dy, lsh_const, rsh_const);
@@ -79,8 +79,8 @@ void test_adp_xtea_f_lxr_all()
 
   for(uint32_t i = 0; i < ALL_WORDS; i++) {
 	 for(uint32_t j = 0; j < ALL_WORDS; j++) {
-		uint32_t dx = random32() & MASK; // i
-		uint32_t dy = random32() & MASK; // j
+		uint32_t dx = xrandom() & MASK; // i
+		uint32_t dy = xrandom() & MASK; // j
 		double p_the = adp_xtea_f_lxr(n, dx, dy, lsh_const, rsh_const);
 #if 1
 		if(p_the) {
@@ -147,9 +147,9 @@ void test_adp_xtea_f_approx()
   const uint32_t n = WORD_SIZE;
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
-  uint32_t dx = random32() & MASK;
-  uint32_t dy = random32() & MASK; 
-  uint32_t k = random32() & MASK;
+  uint32_t dx = xrandom() & MASK;
+  uint32_t dy = xrandom() & MASK; 
+  uint32_t k = xrandom() & MASK;
   uint32_t delta = 0;
 
   double p_approx = adp_xtea_f_approx(n, A, dx, dy, k, delta, lsh_const, rsh_const);
@@ -219,10 +219,10 @@ void test_adp_xtea_f()
   const uint32_t n = WORD_SIZE;
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
-  uint32_t dx = random32() & MASK;
-  uint32_t dy = random32() & MASK; 
-  uint32_t k = random32() & MASK;
-  uint32_t delta = random32() & MASK;
+  uint32_t dx = xrandom() & MASK;
+  uint32_t dy = xrandom() & MASK; 
+  uint32_t k = xrandom() & MASK;
+  uint32_t delta = xrandom() & MASK;
 
   double p_the = adp_xtea_f(n, dx, dy, k, delta, lsh_const, rsh_const);
   double p_exp = adp_xtea_f_exper(dx, dy, k, delta, lsh_const, rsh_const);
@@ -287,10 +287,10 @@ void test_max_dy_adp_xtea_f()
   const uint32_t n = WORD_SIZE;
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
-  uint32_t dx = random32() & MASK;
+  uint32_t dx = xrandom() & MASK;
   uint32_t dy = 0;
-  uint32_t k = random32() & MASK;
-  uint32_t delta = random32() & MASK;
+  uint32_t k = xrandom() & MASK;
+  uint32_t delta = xrandom() & MASK;
 
   double p_the = max_dy_adp_xtea_f(n, dx, &dy, k, delta, lsh_const, rsh_const);
   double p_exp = adp_xtea_f_exper(dx, dy, k, delta, lsh_const, rsh_const);
@@ -311,9 +311,9 @@ void test_max_dx_adp_xtea_f()
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
   uint32_t dx = 0;
-  uint32_t dy = random32() & MASK;
-  uint32_t k = random32() & MASK;
-  uint32_t delta = random32() & MASK;
+  uint32_t dy = xrandom() & MASK;
+  uint32_t k = xrandom() & MASK;
+  uint32_t delta = xrandom() & MASK;
 
   double p_the = max_dx_adp_xtea_f(n, &dx, dy, k, delta, lsh_const, rsh_const);
   double p_exp = adp_xtea_f_exper(dx, dy, k, delta, lsh_const, rsh_const);
@@ -334,10 +334,10 @@ void test_max_dy_adp_xtea_f_is_max()
   const uint32_t n = WORD_SIZE;
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
-  uint32_t dx = random32() & MASK;
+  uint32_t dx = xrandom() & MASK;
   uint32_t dy = 0;
-  uint32_t k = random32() & MASK;
-  uint32_t delta = random32() & MASK;
+  uint32_t k = xrandom() & MASK;
+  uint32_t delta = xrandom() & MASK;
 
   uint32_t dyy = 0;
 
@@ -363,9 +363,9 @@ void test_max_dx_adp_xtea_f_is_max()
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
   uint32_t dx = 0;
-  uint32_t dy = random32() & MASK;
-  uint32_t k = random32() & MASK;
-  uint32_t delta = random32() & MASK;
+  uint32_t dy = xrandom() & MASK;
+  uint32_t k = xrandom() & MASK;
+  uint32_t delta = xrandom() & MASK;
 
   uint32_t dxx = 0;
   double p_the = max_dx_adp_xtea_f(n, &dx, dy, k, delta, lsh_const, rsh_const);
@@ -500,8 +500,8 @@ double test_first_nz_adp_xtea_f()
   gsl_vector_set(C, ADP_XOR_ISTATE, 1.0);
 
   uint32_t delta = 0;
-  uint32_t key = random32() & MASK;
-  uint32_t da = random32() & MASK;;
+  uint32_t key = xrandom() & MASK;
+  uint32_t da = xrandom() & MASK;;
   uint32_t dd = 0;
 
   //  uint32_t cnt = 0;
@@ -542,7 +542,7 @@ void test_first_nz_adp_xtea_f_all()
   gsl_vector_set(C, ADP_XOR_ISTATE, 1.0);
 
   uint32_t n = WORD_SIZE;
-  uint32_t delta = 0;//random32() & MASK;
+  uint32_t delta = 0;//xrandom() & MASK;
 
   for(uint32_t l = 0; l < WORD_SIZE; l++) {
 	 for(uint32_t r = 0; r < WORD_SIZE; r++) {
@@ -590,7 +590,7 @@ void test_first_nz_adp_xtea_f_random()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X ", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX ", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   printf("XTEA_LSH_CONST = %d, XTEA_RSH_CONST = %d\n", TEA_LSH_CONST, TEA_RSH_CONST);
   srandom(time(NULL));
 

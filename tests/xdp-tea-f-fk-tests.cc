@@ -43,11 +43,11 @@ void test_xdp_f_fk()
   uint32_t delta = DELTA_INIT & MASK; 
   const uint32_t n = WORD_SIZE;
 
-  uint32_t dx = random32() & MASK;
-  uint32_t dy = random32() & MASK;
+  uint32_t dx = xrandom() & MASK;
+  uint32_t dy = xrandom() & MASK;
 
-  uint32_t k0 = random32() & MASK;
-  uint32_t k1 = random32() & MASK;
+  uint32_t k0 = xrandom() & MASK;
+  uint32_t k1 = xrandom() & MASK;
 
   double p_the = xdp_f_fk(n, dx, dy, k0, k1, delta, lsh_const, rsh_const);
   double p_exp = xdp_f_fk_exper(dx, dy, k0, k1, delta, lsh_const, rsh_const);
@@ -110,8 +110,8 @@ void test_max_dx_xdp_f_fk()
   uint32_t rsh_const = TEA_RSH_CONST;
   uint32_t delta = DELTA_INIT & MASK; 
 
-  uint32_t k0 = random32() & MASK; 
-  uint32_t k1 = random32() & MASK; 
+  uint32_t k0 = xrandom() & MASK; 
+  uint32_t k1 = xrandom() & MASK; 
   uint32_t dx = 0;
   uint32_t dy = 0;
 
@@ -179,11 +179,11 @@ void test_max_dx_xdp_f_fk_vs_exper()
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
   assert(WORD_SIZE >= (rsh_const * 2));
-  uint32_t k0 = random32() & MASK;
-  uint32_t k1 = random32() & MASK;
-  uint32_t max_da = random32() & MASK;
-  uint32_t max_da_exper = random32() & MASK;
-  uint32_t dd = random32() & MASK;
+  uint32_t k0 = xrandom() & MASK;
+  uint32_t k1 = xrandom() & MASK;
+  uint32_t max_da = xrandom() & MASK;
+  uint32_t max_da_exper = xrandom() & MASK;
+  uint32_t dd = xrandom() & MASK;
   double p1 = max_dx_xdp_f_fk(WORD_SIZE, &max_da, dd, k0, k1, delta, lsh_const, rsh_const);
   double p2 = xdp_f_fk_exper(max_da, dd, k0, k1, delta, lsh_const, rsh_const);
   double p3 = max_xdp_f_fk_dx_exper(&max_da_exper, dd, k0, k1, delta, lsh_const, rsh_const);
@@ -208,9 +208,9 @@ void test_max_dy_xdp_f_fk()
   uint32_t rsh_const = TEA_RSH_CONST;
   uint32_t delta = DELTA_INIT & MASK; 
 
-  const uint32_t k0 = random32() & MASK; 
-  const uint32_t k1 = random32() & MASK; 
-  const uint32_t dx = random32() & MASK;
+  const uint32_t k0 = xrandom() & MASK; 
+  const uint32_t k1 = xrandom() & MASK; 
+  const uint32_t dx = xrandom() & MASK;
   uint32_t dy = 0;
 
   double p_the = max_dy_xdp_f_fk(WORD_SIZE, dx, &dy, k0, k1, delta, lsh_const, rsh_const);
@@ -279,7 +279,7 @@ void test_max_dy_xdp_f_fk_vs_exper_all()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X ", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX ", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   printf("TEA_LSH_CONST = %d, TEA_RSH_CONST = %d\n", TEA_LSH_CONST, TEA_RSH_CONST);
   srandom(time(NULL));
 
