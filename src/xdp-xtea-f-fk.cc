@@ -103,7 +103,7 @@ double xdp_xtea_f_fk_approx(const uint32_t ninputs,
 
   for(uint32_t i = 0; i < N; i++) {
 
-	 uint32_t a1 = random32() & MASK;
+	 uint32_t a1 = xrandom() & MASK;
 	 uint32_t a2 = XOR(a1, da);
 
 	 uint32_t b1 = xtea_f(a1, k, delta, lsh_const, rsh_const);
@@ -383,10 +383,10 @@ double xdp_xtea_f2_fk_approx(const uint32_t ninputs,
 
   for(uint32_t i = 0; i < N; i++) {
 
-	 uint32_t a1 = random32() & MASK;
+	 uint32_t a1 = xrandom() & MASK;
 	 uint32_t a2 = XOR(a1, da);
 
-	 uint32_t aa1 = random32() & MASK;
+	 uint32_t aa1 = xrandom() & MASK;
 	 uint32_t aa2 = XOR(aa1, daa);
 
 	 uint32_t b1 = xtea_f2(aa1, a1, k, delta, lsh_const, rsh_const);
