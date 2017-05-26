@@ -56,12 +56,12 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
   assert(word_size <= WORD_SIZE);
   assert(word_size > 0);
 
-#if 1 // DEBUG
+#if 0 // DEBUG
   printf("[%s:%d] Enter %s() %X %X %X %d\n", __FILE__, __LINE__, __FUNCTION__, 
 			ma, mb, mc, word_size);
 #endif // #if 1 // DEBUG
 
-#if 1 // DEBUG
+#if 0 // DEBUG
   printf("ma = ");
   print_binary(ma, word_size);
   printf("\nmb = ");
@@ -84,7 +84,7 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
 
 	 WORD_T S_index = get_masks_rev_ibit(ma, mb, mc, word_size, index);
 
-#if 1 // DEBUG
+#if 0 // DEBUG
 	 printf("[%s:%d] %2d S_index %2d\n", __FILE__, __LINE__, ibit, S_index);
 	 if(!(get_masks_rev_ibit(ma, mb, mc, word_size, index) == S_index)) {
 		WORD_T word = get_masks_rev_ibit(ma, mb, mc, word_size, index);
@@ -110,7 +110,7 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
 		  state = 1 - state; // switch state
 		  assert((state == 0) || (state == 1));
 		}
-		printf("[%s:%d] cnt_b7 = %d (cnt_b7 / 2) = %d state %d w %d\n", __FILE__, __LINE__, cnt_b7, cnt_b7 / 2, state, w);
+		//		printf("[%s:%d] cnt_b7 = %d (cnt_b7 / 2) = %d state %d w %d\n", __FILE__, __LINE__, cnt_b7, cnt_b7 / 2, state, w);
 	 }
 
 	 if(S_index == 0) {
@@ -155,7 +155,7 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
 	 corr_abs = (double) 1.0 / (double)(1ULL << w); // efficient pow(2, w)
   }
 
-#if 1 // DEBUG
+#if 0 // DEBUG
   printf("[%s:%d]  Exit %s() %X %X %X %d %4.2f w %2d\n", __FILE__, __LINE__, __FUNCTION__, 
 			ma, mb, mc, word_size, corr_abs, w);
 #endif // #if 1 // DEBUG

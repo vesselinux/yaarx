@@ -591,7 +591,7 @@ void speck_best_linear_search_i(const uint32_t iround, // current round
 #if 0
 		  speck_print_linear_trail(g_T);
 #endif
-#if 1
+#if 0
 		  speck_print_linear_hull(g_T);
 #endif
 		  speck_copy_linear_trail(g_T, g_best_T);
