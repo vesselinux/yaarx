@@ -35,7 +35,7 @@
 #define SPECK_RIGHT_ROT_CONST_16BITS 7
 #define SPECK_LEFT_ROT_CONST_16BITS 2
 //#define SPECK_P_THRES (1.0 / (double)(1UL << 3))// for WORD_SIZE 16
-#define SPECK_P_THRES (1.0 / (double)(1UL << 16))//(1.0 / (double)(1UL << 5)) // (1.0 / (double)(1UL << 7)) <------ Speck32
+//#define SPECK_P_THRES (1.0 / (double)(1UL << 16))//(1.0 / (double)(1UL << 5)) // (1.0 / (double)(1UL << 7)) <------ Speck32
 #define SPECK_MAX_DIFF_CNT (1ULL << 22) //(1ULL << 22)//(1ULL << 16)
 #define SPECK_NPAIRS (1ULL << 24)
 #define SPECK_BEST_TRAIL_LOG2P -58//-40//-58
