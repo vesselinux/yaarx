@@ -116,7 +116,7 @@
 // Macros
 #define NROUNDS_MAX 10 /**< Max. number of rounds */
 #ifndef WORD_SIZE
-#define WORD_SIZE 3 /**< Word size in  bits. */
+#define WORD_SIZE 32 /**< Word size in  bits. */
 #endif
 #ifndef NROUNDS
 #define NROUNDS 4 /**< Number of rounds in reduced-round versions of target ciphers. */
