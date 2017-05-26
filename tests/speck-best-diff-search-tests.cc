@@ -1068,10 +1068,10 @@ void speck_best_diff_search_log2()
   speck_best_diff_search_log2_i(r, i, alpha, beta, gamma);
 
   printf("[%s:%d] Best trail on %d rounds (WORD_SIZE %d bits):\n", __FILE__, __LINE__, NROUNDS, WORD_SIZE);
-#if 0
+#if 1
   speck_print_diff_trail_log2(g_best_T);
-  speck_print_diff_trail_cstyle_log2(g_best_T);
-  speck_print_diff_trail_latex_log2(g_best_T);
+  //  speck_print_diff_trail_cstyle_log2(g_best_T);
+  //  speck_print_diff_trail_latex_log2(g_best_T);
 #endif // #if 0
 #endif // #if (NROUNDS == 4)
 }
