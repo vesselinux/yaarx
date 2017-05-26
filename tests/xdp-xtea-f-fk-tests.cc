@@ -45,10 +45,10 @@ void test_xdp_xtea_f_fk()
   const uint32_t n = WORD_SIZE;
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
-  uint32_t dx = xrandom() & MASK;
-  uint32_t dy = xrandom() & MASK; 
-  uint32_t k = xrandom() & MASK;
-  uint32_t delta = xrandom() & MASK;
+  uint32_t dx = random32() & MASK;
+  uint32_t dy = random32() & MASK; 
+  uint32_t k = random32() & MASK;
+  uint32_t delta = random32() & MASK;
 
   double p_the = xdp_xtea_f_fk(n, dx, dy, k, delta, lsh_const, rsh_const);
   double p_exp = xdp_xtea_f_fk_exper(dx, dy, k, delta, lsh_const, rsh_const);
@@ -126,11 +126,11 @@ void test_xdp_xtea_f2_fk()
   const uint32_t n = WORD_SIZE;
   uint32_t lsh_const = TEA_LSH_CONST;
   uint32_t rsh_const = TEA_RSH_CONST;
-  uint32_t dxx = xrandom() & MASK;
-  uint32_t dx = xrandom() & MASK;
-  uint32_t dy = xrandom() & MASK; 
-  uint32_t k = xrandom() & MASK;
-  uint32_t delta = xrandom() & MASK;
+  uint32_t dxx = random32() & MASK;
+  uint32_t dx = random32() & MASK;
+  uint32_t dy = random32() & MASK; 
+  uint32_t k = random32() & MASK;
+  uint32_t delta = random32() & MASK;
 
   double p_the = xdp_xtea_f2_fk(n, dxx, dx, dy, k, delta, lsh_const, rsh_const);
   double p_exp = xdp_xtea_f2_fk_exper(dxx, dx, dy, k, delta, lsh_const, rsh_const);
@@ -197,11 +197,11 @@ void test_xdp_xtea_f2_fk_approx()
 	 uint32_t lsh_const = TEA_LSH_CONST;
 	 uint32_t rsh_const = TEA_RSH_CONST;
 	 uint32_t hong_diff = 0x80402010 & MASK;
-	 uint32_t dxx = 0;//hong_diff;//xrandom() & MASK;
-	 uint32_t dx = hong_diff;////xrandom() & MASK;
-	 uint32_t dy = hong_diff;//dx;//xrandom() & MASK; 
-	 uint32_t key = xrandom() & MASK;
-	 uint32_t delta = xrandom() & MASK;
+	 uint32_t dxx = 0;//hong_diff;//random32() & MASK;
+	 uint32_t dx = hong_diff;////random32() & MASK;
+	 uint32_t dy = hong_diff;//dx;//random32() & MASK; 
+	 uint32_t key = random32() & MASK;
+	 uint32_t delta = random32() & MASK;
 
 	 uint32_t ninputs = (1U << 15);
 	 double p_approx = xdp_xtea_f2_fk_approx(ninputs, dxx, dx, dy, key, delta, lsh_const, rsh_const);
@@ -222,10 +222,10 @@ void test_nz_xdp_xtea_f()
   xdp_add_alloc_matrices(A);
   xdp_add_sf(A);
   xdp_add_normalize_matrices(A);
-  uint32_t dx = gen_sparse(4, WORD_SIZE);//xrandom() & MASK;
+  uint32_t dx = gen_sparse(4, WORD_SIZE);//random32() & MASK;
   uint32_t dy = 0;
-  uint32_t key = xrandom() & MASK;
-  uint32_t delta = xrandom() & MASK;
+  uint32_t key = random32() & MASK;
+  uint32_t delta = random32() & MASK;
 
   double p = nz_xdp_xtea_f(A, dx, &dy, lsh_const, rsh_const);
   uint32_t ninputs = (1U << 15);
@@ -242,7 +242,7 @@ void test_nz_xdp_xtea_f()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX ", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X ", __FILE__, __LINE__, WORD_SIZE, MASK);
   printf("XTEA_LSH_CONST = %d, XTEA_RSH_CONST = %d\n", TEA_LSH_CONST, TEA_RSH_CONST);
   srandom(time(NULL));
 

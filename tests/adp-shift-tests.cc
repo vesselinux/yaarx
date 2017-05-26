@@ -36,9 +36,9 @@
 void test_adp_lsh()
 {
   printf("[%s:%d] Running test %s() ...\n", __FILE__, __LINE__, __FUNCTION__);
-  uint32_t da = xrandom() & MASK;
-  uint32_t db = xrandom() & MASK;
-  uint32_t l = xrandom() % WORD_SIZE;
+  uint32_t da = random32() & MASK;
+  uint32_t db = random32() & MASK;
+  uint32_t l = random32() % WORD_SIZE;
 
   double p = adp_lsh_exper(da, db, l);
   double pp = adp_lsh(da, db, l);
@@ -76,9 +76,9 @@ void test_adp_lsh_all()
 void test_adp_rsh()
 {
   printf("[%s:%d] Running test %s() ...\n", __FILE__, __LINE__, __FUNCTION__);
-  uint32_t da = xrandom() & MASK; // 9
-  uint32_t r  = xrandom() % WORD_SIZE; // 3
-  uint32_t db = xrandom() & MASK; // 15
+  uint32_t da = random32() & MASK; // 9
+  uint32_t r  = random32() % WORD_SIZE; // 3
+  uint32_t db = random32() & MASK; // 15
   double pp = adp_rsh(da, db, r);
   double p = adp_rsh_exper(da, db, r);
 #if DEBUG_ADP_SHIFT_TESTS

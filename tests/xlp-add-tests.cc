@@ -30,6 +30,9 @@
 #ifndef XLP_ADD_H
 #include "xlp-add.hh"
 #endif
+#ifndef XDP_ADD_H
+#include "xdp-add.hh" // eq()
+#endif
 
 // --- TESTS ---
 
@@ -46,10 +49,12 @@ void test_parity()
 
 void test_xlp_add_vs_exper()
 {
-  WORD_T word_size = WORD_SIZE;
-  const WORD_T ma = 0x61;//0x5;
-  const WORD_T mb = 0x41;//0x5;
-  const WORD_T mc = 0x41;//0x7;
+  // 10100 <- 01110, 01000
+  // 00101 <- 01110, 00010
+  WORD_T word_size = 5;//WORD_SIZE;
+  const WORD_T ma = 0x1;//0x5;//0x14;//0x5;//0x5;
+  const WORD_T mb = 0x1;//0x5;
+  const WORD_T mc = 0x1;//0x8;//0x2;//0x7;
 
   double prob_exper = xlp_add_exper(ma, mb, mc, word_size);
   double bias_exper = (prob_exper - 0.5);
@@ -311,6 +316,48 @@ void test_xlc_add_multi()
 }
 
 /**
+ * Test xlc_add(a, b , c) in reference to the number of bit positions
+ * i for which (a[i] = b[i] = c[i]) does NOT hold.
+ */
+void test_xlp_add_bound()
+{
+  assert(WORD_SIZE == 8);
+  WORD_T word_size = WORD_SIZE;
+  WORD_T all_words = (1U << word_size);
+  for(WORD_T ma = 0; ma < all_words; ma++) {
+	 for(WORD_T mb = 0; mb < all_words; mb++) {
+		for(WORD_T mc = 0; mc < all_words; mc++) {
+
+		  //		  double prob = xlp_add(ma, mb, mc, word_size);
+		  double bias = xlb_add(ma, mb, mc, word_size);
+		  double abs_corr = xlc_add(ma, mb, mc, word_size);// * xlc_add_sign(ma, mb, mc, word_size);
+		  uint32_t abs_corr_log2 = std::abs(log2(abs_corr));
+		  WORD_T eqword = eq(ma, mb, mc);
+		  uint32_t neq = (word_size - hamming_weight(eqword));
+#if 0
+		  printf("[%s:%d] --- %X %X %X neq %d ---\n", __FILE__, __LINE__, ma, mb, mc, neq);
+		  print_binary(ma);
+		  printf("\n");
+		  print_binary(mb);
+		  printf("\n");
+		  print_binary(mc);
+		  printf("\n");
+		  print_binary(eqword);
+		  printf("\n");
+#endif
+		  if(bias != 0.0) {
+			 //			 printf("[%s:%d] xlp_th(%X %X -> %X) = %f 2^%4.2f | bias %f 2^%4.2f | corr %f 2^%4.2f\n", __FILE__, __LINE__, 
+			 //					  ma, mb, mc, prob, log2(prob), bias, log2(bias), corr, log2(corr));
+			 printf("(%8X %8X %8X) %d %2d\n", ma, mb, mc, abs_corr_log2, neq);
+			 assert(abs_corr_log2 >= neq);
+		  }
+		}
+	 }
+  }
+  printf("[%s:%d] Test OK!\n", __FILE__, __LINE__);
+}
+
+/**
  * Main function of XLP-ADD tests.
  */
 int main()
@@ -320,10 +367,11 @@ int main()
   //  test_parity();
   //  test_xlp_add_vs_exper_all();
   //  test_xlp_add_vs_exper_all_word_sizes();
-  test_xlc_add_monotonous_decrease();
+  //  test_xlc_add_monotonous_decrease();
   //  test_xlc_add_monotonous_decrease_all();
-  //  test_xlp_add_vs_exper();
+  test_xlp_add_vs_exper();
   //  test_xlc_add_multi();
+  //  test_xlp_add_bound();
   return 0;
 }
 

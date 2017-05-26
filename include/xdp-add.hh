@@ -216,7 +216,7 @@ inline int xdp_add_lm_log2(WORD_T da, WORD_T db, WORD_T dc)
 	const WORD_T mask = (0xffffffffffffffffULL >> (64 - (WORD_SIZE - 1)));
 #endif // #if(WORD_SIZE <= 32)
 
-	WORD_T eq_d = eq (da, db, dc);
+	WORD_T eq_d = eq(da, db, dc);
 #if (WORD_SIZE <= 32)
 	WORD_T eq_d_sl_1 = ((eq_d << 1) | 0x00000001UL) & MASK;
 #else
@@ -253,6 +253,7 @@ inline int xdp_add_lm_log2(WORD_T da, WORD_T db, WORD_T dc)
  */
 inline int xdp_add_lm_log2(WORD_T da, WORD_T db, WORD_T dc, uint32_t word_size)
 {
+  //  printf("[%s:%d] Enter %s()\n", __FILE__, __LINE__, __FUNCTION__);
 	int p;
 	if (word_size > 1)
 	{
@@ -263,6 +264,7 @@ inline int xdp_add_lm_log2(WORD_T da, WORD_T db, WORD_T dc, uint32_t word_size)
 #endif
 
 		WORD_T eq_d = eq(da, db, dc);
+		//		printf("[%s:%d] CHECKPOINT!\n", __FILE__, __LINE__);
 		//		WORD_T eq_d_sl_1 = ((eq_d << 1) | 0x00000001) & mask;
 #if (WORD_SIZE <= 32)
 		WORD_T eq_d_sl_1 = ((eq_d << 1) | 0x00000001UL) & mask;
@@ -273,7 +275,7 @@ inline int xdp_add_lm_log2(WORD_T da, WORD_T db, WORD_T dc, uint32_t word_size)
 		if (b_is_possible)
 		{
 			WORD_T neq = ~eq_d & (mask >> 1);	// positions at which da,db and dc are not equal
-			//			uint32_t w = __builtin_popcount(neq); // <- not work for word_size > 32
+			// uint32_t w = __builtin_popcount(neq); // <- not work for word_size > 32
 			//		uint32_t w = __builtin_popcountll (neq & mask); // <- WORKS for word_size > 32
 			uint32_t w = hamming_weight(neq);
 			if (w == 64)
@@ -301,6 +303,8 @@ inline int xdp_add_lm_log2(WORD_T da, WORD_T db, WORD_T dc, uint32_t word_size)
 			p = LOG0; // prob = 0!
 		}
 	}
+	//	printf("[%s:%d] Return p %d\n", __FILE__, __LINE__, p);
+	//	printf("[%s:%d] Exit %s()\n", __FILE__, __LINE__, __FUNCTION__);
 	return p;
 }
 

@@ -203,7 +203,7 @@ double tea_add_diff_adjust_to_key(const uint64_t npairs, const int round_idx,
 #endif
   // Encrypt many chosen plaintext pairs {a1, a2}
   for(uint64_t j = 0; j < npairs; j++) {
-	 uint32_t a1 = xrandom() & MASK;
+	 uint32_t a1 = random32() & MASK;
 	 uint32_t a2 = ADD(a1, da);
 	 uint32_t v1, lv1, rv1, new_v0;
 
@@ -265,7 +265,7 @@ double tea_add_diff_adjust_to_key(const uint64_t npairs, const int round_idx,
 
   // Encrypt many chosen plaintext pairs {a1, a2}
   for(uint64_t j = 0; j < npairs; j++) {
-	 uint32_t a1 = xrandom() & MASK;
+	 uint32_t a1 = random32() & MASK;
 	 uint32_t a2 = ADD(a1, da);
 	 uint32_t v1, lv1, rv1, new_v0;
 
@@ -322,7 +322,7 @@ double tea_differential_thres_exper_fk(uint64_t npairs, int r, uint32_t key[4], 
   }
 
   for(uint64_t j = 0; j < npairs; j++) {
-	 uint32_t a1[2] = {xrandom() & MASK, xrandom() & MASK}; 
+	 uint32_t a1[2] = {random32() & MASK, random32() & MASK}; 
 	 uint32_t a2[2] = {ADD(a1[0], da[0]), ADD(a1[1], da[1])};
 
 	 // Encrypt the pair {a1, a2}

@@ -303,7 +303,7 @@ void test_adp_f_ddt()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
   assert(WORD_SIZE <= 10);
   test_ddt();
   test_adp_f_ddt();

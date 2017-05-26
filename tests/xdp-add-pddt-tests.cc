@@ -83,7 +83,7 @@ void test_xdp_add_pddt()
  */
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
   assert(WORD_SIZE <= 10);
   srandom(time(NULL));
   test_xdp_add_pddt();

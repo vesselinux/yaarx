@@ -119,9 +119,9 @@ void test_adp_f_op_noshift_exper()
   uint32_t lsh_const = 0;//TEA_LSH_CONST; 
   uint32_t rsh_const = 0;//TEA_RSH_CONST;
 
-  uint32_t k0 = xrandom() & MASK;
-  uint32_t k1 = xrandom() & MASK;
-  uint32_t delta = xrandom() & MASK;
+  uint32_t k0 = random32() & MASK;
+  uint32_t k1 = random32() & MASK;
+  uint32_t delta = random32() & MASK;
 
   for(uint32_t dx = 0; dx < ALL_WORDS; dx++) {
 		for(uint32_t dy = 0; dy < ALL_WORDS; dy++) {
@@ -148,7 +148,7 @@ void test_adp_f_op_noshift_exper()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX ", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X ", __FILE__, __LINE__, WORD_SIZE, MASK);
   printf("TEA_LSH_CONST = %d, TEA_RSH_CONST = %d\n", TEA_LSH_CONST, TEA_RSH_CONST);
   srandom(time(NULL));
 

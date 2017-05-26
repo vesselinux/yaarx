@@ -627,8 +627,11 @@ bool is_eq(WORD_T x, WORD_T y, WORD_T z)
  */
 WORD_T eq(const WORD_T x, const WORD_T y, const WORD_T z)
 {
+  //  printf("[%s:%d] Enter %s()\n", __FILE__, __LINE__, __FUNCTION__);
   //  WORD_T e = ~((x ^ y) | (x ^ z)) & MASK; // yann
   WORD_T e = ((x & y & z) | (~x & ~y & ~z)) & MASK;
+  //  printf("[%s:%d] return e %X\n", __FILE__, __LINE__, e);
+  //  printf("[%s:%d] Exit %s()\n", __FILE__, __LINE__, __FUNCTION__);
   return e;
 }
 

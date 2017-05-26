@@ -32,5 +32,7 @@ void xdp_and_bf(uint32_t A[2][2][2]);
 double xdp_and(uint32_t A[2][2][2], uint32_t da, uint32_t db, uint32_t dc);
 bool xdp_and_is_nonzero(uint32_t da, uint32_t db, uint32_t dc);
 double xdp_and_exper(uint32_t da, uint32_t db, uint32_t dc);
+int xdp_and_closed(uint32_t da, uint32_t db, uint32_t dc);
+bool xdp_and_is_zero(uint32_t da, uint32_t db, uint32_t dc);
 
 #endif  // #ifndef XDP_AND_H

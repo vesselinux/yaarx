@@ -1,4 +1,18449 @@
 
+/* --- */
+
+void test_h_is_group()
+{
+  assert(WORD_SIZE <= 5);
+#if(WORD_SIZE <= 5)
+  uint64_t N = ALL_WORDS;
+  std::vector<WORD_T> G(N);
+  std::iota (std::begin(G), std::end(G), 0);
+
+  for(WORD_T a = 0; a < N; a++) {
+	 for(WORD_T b = 0; b < N; b++) {
+		WORD_T c = a & b;//H(a, b);
+		// printf("%X %X %X\n", a, b, c);
+		// closed-ness
+		bool b_closed = (std::find(G.begin(), G.end(), c) != G.end());
+		assert(b_closed);
+		// associativity
+		WORD_T x = a & (b & c);  // H(a, H(b, c));
+		WORD_T y = (a & b) & c; // H(H(a, b), c);
+		bool b_assoc = (x == y);
+		assert(b_assoc);
+		// identity
+		WORD_T e = 0xffffffff & MASK;
+		bool b_id = ((c & e) == c);
+		assert(b_id);
+	 }
+  } 
+  // inverse
+  WORD_T e = 0xffffffff & MASK;
+  for(WORD_T a = 1; a < N; a++) {
+	 bool b_inverse = false;
+	 uint32_t i = 0;
+	 while((!b_inverse) && (i < N)) {
+		b_inverse = ((a & G[i]) == e);
+		printf("%2d: a %X %X %X\n", i, a, G[i], (a & G[i]));
+		i++;
+	 }
+	 //	 printf("[%s:%d] a %X %X %X\n", __FILE__, __LINE__, a, G[i-1], (a & G[i-1]));
+	 assert(b_inverse);
+  }
+#endif // #if(WORD_SIZE <= 5)
+}
+
+/* --- */
+
+void test_xdp_h_sort()
+{
+  assert(WORD_SIZE <= 10);
+#if(WORD_SIZE <= 10)
+  std::vector<differential_3d_t> diff_vec;
+  uint64_t N = ALL_WORDS;
+  for(WORD_T da = 0; da < N; da++) {
+	 for(WORD_T db = 0; db < N; db++) {
+		for(WORD_T dc = 0; dc < N; dc++) {
+#if 0 // XDP_H
+		  uint32_t w = xdp_h(da, db, dc, WORD_SIZE);
+		  double p = std::pow(2, -(int)w);
+#endif // #if 0 // XDP_H
+#if 0 // XDP_ADD
+		  double p = xdp_add_lm(da, db, dc);
+#endif // #if 0 // XDP_ADD
+#if 1 // ADP_H
+		  double p = adp_h_exper(da, db, dc, WORD_SIZE);
+#endif // #if 1 // ADP_H
+		  differential_3d_t diff;
+		  diff.dx = da;
+		  diff.dy = db;
+		  diff.dz = dc;
+		  diff.p = p;
+		  diff_vec.push_back(diff);
+		}
+	 }
+  }
+  uint32_t cnt_nz = 0;
+#if 0
+  WORD_T mask_nomsb = ~(1U << (WORD_SIZE - 1));
+#endif // #if 0
+  std::sort(diff_vec.begin(), diff_vec.end(), sort_comp_diff_3d_p);
+  for(std::vector<differential_3d_t>::iterator vec_iter = diff_vec.begin(); vec_iter != diff_vec.end(); vec_iter++) {
+	 differential_3d_t diff = *vec_iter;
+	 double p = diff.p;
+	 WORD_T da = diff.dx;
+	 WORD_T db = diff.dy;
+	 WORD_T dc = diff.dz;
+#if 0
+	 uint32_t hwa = hamming_weight(da & mask_nomsb);
+	 uint32_t hwb = hamming_weight(db & mask_nomsb);
+	 uint32_t hwc = hamming_weight(dc & mask_nomsb);
+#endif // #if 0
+	 if(p > 0.0) {
+		cnt_nz++;
+#if 0
+		printf("%10d HW %2d %2d %2d ", cnt_nz, hwa, hwb, hwc);
+		printf(" %2X %2X %2X | %2.0f %2d\n", da, db, dc, log2(p), hwa + hwb);
+#endif // #if 0
+		print_binary(da); printf(" ");
+		print_binary(db); printf(" ");
+		print_binary(dc); printf(" ");
+		printf(" %2X %2X %2X %2.0f\n", da, db, dc, log2(p));
+	 }
+  }
+  double ratio_nz = ((double)cnt_nz / (double)diff_vec.size()) * 100.0;
+  printf("[%s:%d] nonzero %7d 2^%4.2f zero %7d 2^%4.2f all %7d 2^%4.2f | nz/all %4.2f%%\n", __FILE__, __LINE__, 
+			cnt_nz, log2(cnt_nz), 
+			(uint32_t)diff_vec.size() - cnt_nz, log2(diff_vec.size() - cnt_nz), 
+			(uint32_t)diff_vec.size(), log2(diff_vec.size()), ratio_nz);
+  printf("[%s:%d] Test OK.\n", __FILE__, __LINE__);
+#endif // #if(WORD_SIZE <= X)
+}
+
+
+/* --- */
+
+/*
+[./tests/norx-lwc-search-tests.cc:470]  INPUT:
+8080808          0                0                0
+0                0                0                0
+0                0                0                0
+0                0                0                0
+[./tests/norx-lwc-search-tests.cc:472] OUTPUT:
+0                A0A0A0A          4E4E4E4E         4040404
+C0C0C0C          8080808          C4C4C4C4         8080808
+8A8A8A8A         4040404          8A8A8A8A         A0A0A0A
+7A7A7A7A         3E3E3E3E         90909090         3E3E3E3E
+[./tests/norx-lwc-search-tests.cc:475] b_symmetric_in 1 (1) b_symmetric_out 1 (15)
+[./tests/norx-lwc-search-tests.cc:483] log2p_trail 2^-1484 min_wt 4308
+
+*/
+/* --- */
+
+#if 1 // DEBUG
+				uint32_t w_max = 0;
+				for(uint32_t i = 0; i < 4; i++) { // rconst
+				  if(b_good) {
+					 uint32_t w[12] = {0};
+
+					 w[0] = xdp_quarter_round(rconst[i], da, db, dd, de, WORD_SIZE);
+					 w[1] = xdp_quarter_round(rconst[i], da, db, de, dd, WORD_SIZE);
+					 w[2] = xdp_quarter_round(rconst[i], da, dd, db, de, WORD_SIZE);
+					 w[3] = xdp_quarter_round(rconst[i], da, dd, de, db, WORD_SIZE);
+					 w[4] = xdp_quarter_round(rconst[i], da, de, db, dd, WORD_SIZE);
+					 w[5] = xdp_quarter_round(rconst[i], da, de, dd, db, WORD_SIZE);
+					 w[6] = xdp_quarter_round(rconst[i], db, dd, da, de, WORD_SIZE);
+					 w[7] = xdp_quarter_round(rconst[i], db, dd, de, da, WORD_SIZE);
+					 w[8] = xdp_quarter_round(rconst[i], db, de, da, dd, WORD_SIZE);
+					 w[9] = xdp_quarter_round(rconst[i], db, de, dd, da, WORD_SIZE);
+					 w[10] = xdp_quarter_round(rconst[i], dd, de, da, db, WORD_SIZE);
+					 w[11] = xdp_quarter_round(rconst[i], dd, de, db, da, WORD_SIZE);
+
+					 uint32_t j = 0;
+					 while(j < 12) {
+						w_max = std::max(w_max, w[j]);
+						assert(w[j] != INF);
+						j++;
+					 }
+				  }
+				}
+				//				if(w_max <= 3) {
+				  printf("%4d %X %X %X %X w_max %2d\n", ngood, da, db, dd, de, w_max);
+				  //				}
+#endif // #if 1 // DEBUG
+
+/* --- */
+
+				  w[ 0] = xdp_h(da, db, dx, WORD_SIZE);
+				  w[ 1] = xdp_h(da, dx, db, WORD_SIZE);
+				  w[ 2] = xdp_h(dx, db, da, WORD_SIZE);
+
+				  w[ 3] = xdp_h(da, db, dd, WORD_SIZE);
+				  w[ 4] = xdp_h(da, dd, db, WORD_SIZE);
+				  w[ 5] = xdp_h(dd, db, da, WORD_SIZE);
+
+				  w[ 6] = xdp_h(da, db, de, WORD_SIZE);
+				  w[ 7] = xdp_h(da, de, db, WORD_SIZE);
+				  w[ 8] = xdp_h(de, db, da, WORD_SIZE);
+
+				  w[ 9] = xdp_h(dd, dx, de, WORD_SIZE);
+				  w[10] = xdp_h(dd, de, dx, WORD_SIZE);
+				  w[11] = xdp_h(de, dx, dd, WORD_SIZE);
+
+
+
+/* --- */
+
+#if 1 // DEBUG
+				uint32_t w_max = 0;
+				for(uint32_t i = 0; i < 4; i++) { // rconst
+				  WORD_T dx = LROT(de, rconst[i]) ^ dd;
+				  uint32_t w1 = xdp_h(da, db, dx, WORD_SIZE);
+				  uint32_t w2 = xdp_h(da, dx, db, WORD_SIZE);
+				  uint32_t w3 = xdp_h(dx, db, da, WORD_SIZE);
+				  assert((w1 != INF) && (w2 != INF) && (w3 != INF));
+
+				  w_max = std::max(w1, w2);
+				  w_max = std::max(w_max, w3);
+
+				  // printf("R[%2d] %2d %X %X %X %X w %2d %2d %2d\n", i, rconst[i], da, db, dd, de, w1, w2, w3);
+
+				}
+				if(w_max <= 1) {
+				  printf("%11d 2^%f %X %X %X %X w_max %2d\n", ngood, log2(ngood), da, db, dd, de, w_max);
+				}
+#endif // #if 1 // DEBUG
+
+
+/* --- */
+
+void test_invariant_diffs()
+{
+  assert(WORD_SIZE <= 10);
+#if(WORD_SIZE <= 10)
+  uint32_t rconst[4] = {R0, R1, R2, R3};
+  WORD_T N = ALL_WORDS;
+  uint32_t ngood = 0;
+  for(WORD_T da = 0; da < N; da++) {
+	 for(WORD_T db = 0; db < N; db++) {
+		for(WORD_T de = 0; de < N; de++) {
+		  bool b_good = true;
+		  for(uint32_t i = 0; i < 4; i++) { // rconst
+			 if(b_good) {
+				WORD_T dx = LROT(de, rconst[i]);
+
+				uint32_t w1 = xdp_h(da, db, dx, WORD_SIZE);
+				uint32_t w2 = xdp_h(da, dx, db, WORD_SIZE);
+				uint32_t w3 = xdp_h(dx, db, da, WORD_SIZE);
+
+				if((w1 == INF) || (w2 == INF) || (w3 == INF)) {
+				  b_good = false;
+				}
+			 }
+		  }
+		  if(b_good) {
+			 ngood++;
+#if 1 // DEBUG
+			 uint32_t w_max = 0;
+			 for(uint32_t i = 0; i < 4; i++) { // rconst
+				WORD_T dx = LROT(de, rconst[i]);
+				uint32_t w1 = xdp_h(da, db, dx, WORD_SIZE);
+				uint32_t w2 = xdp_h(da, dx, db, WORD_SIZE);
+				uint32_t w3 = xdp_h(dx, db, da, WORD_SIZE);
+				assert((w1 != INF) && (w2 != INF) && (w3 != INF));
+
+				w_max = std::max(w1, w2);
+				w_max = std::max(w_max, w3);
+
+			 }
+			 if(w_max <= 1) {
+				printf("%4d %X %X %X w_max %2d\n", ngood, da, db, de, w_max);
+			 }
+#endif // #if 1 // DEBUG
+		  }
+		} 
+	 } 
+  } 
+#endif // #if(WORD_SIZE <= 5)
+}
+
+/* --- */
+
+void test_invariant_diffs()
+{
+  assert(WORD_SIZE <= 10);
+#if(WORD_SIZE <= 10)
+  uint32_t rconst = 1;
+  WORD_T N = ALL_WORDS;
+  for(WORD_T da = 0; da < N; da++) {
+	 for(WORD_T db = 0; db < N; db++) {
+		for(WORD_T i = 0; i < N; i++) {
+
+		  WORD_T dc = RROT(i, rconst);
+
+		  uint32_t w1 = xdp_h(da, db, dc, WORD_SIZE);
+		  uint32_t w2 = xdp_h(da, dc, db, WORD_SIZE);
+		  uint32_t w3 = xdp_h(db, dc, da, WORD_SIZE);
+
+		  uint32_t w_max = std::max(w1, w2);
+		  w_max = std::max(w_max, w3);
+
+		  if((w1 != INF) && (w2 != INF) && (w3 != INF)) {
+			 if(w_max <= 1) {
+				printf("%X %X %X %2d %2d %2d max %2d\n", da, db, dc, w1, w2, w3, w_max);
+			 }
+		  }
+
+		} 
+	 } 
+  } 
+#endif // #if(WORD_SIZE <= 5)
+}
+
+/* --- */
+
+void test_invariant_sets()
+{
+  assert(WORD_SIZE <= 16);
+#if(WORD_SIZE <= 16)
+  WORD_T N = ALL_WORDS;
+  std::set<WORD_T> U;
+  for(WORD_T x = 0; x < N; x++) {
+	 printf("[%s:%d] Process x = %X\n", __FILE__, __LINE__, x);
+	 bool b_found = (U.find(x) != U.end());
+	 if(!b_found) {
+		U.insert(x);
+		printf("[%s:%d] U insert %X\n", __FILE__, __LINE__, x);
+	 }
+	 std::set<WORD_T> V = U;
+	 while(!V.empty()) {
+		WORD_T y = *(V.begin());
+		V.erase(y);
+		printf("[%s:%d] V erase %X\n", __FILE__, __LINE__, y);
+		WORD_T z = x ^ RROT(y, 1);//H(x, y);
+		bool b_found = (U.find(z) != U.end());
+		printf("[%s:%d] Is %X in U? %d\n", __FILE__, __LINE__, z, b_found);
+		if(!b_found) {
+		  U.insert(z);
+		  V.insert(z);
+		  printf("[%s:%d] U insert %X\n", __FILE__, __LINE__, z);
+		  printf("[%s:%d] V insert %X\n", __FILE__, __LINE__, z);
+		}
+	 }
+	 //		WORD_T c = H(a, b);
+  } 
+  uint32_t i=0;
+  for (std::set<WORD_T>::iterator it = U.begin(); it != U.end(); it++, i++) {
+	 printf("U[%2d] %X\n", i, *it);
+  }
+#endif // #if(WORD_SIZE <= 5)
+}
+
+
+/* --- */
+/**
+ * Compare two implementations of norx_gfun_linear_encrypt
+ */
+void test_gfun_linear_encryp()
+{
+  // rows in the generator matrix bits
+#if ZERO_CAPACITY  // 0-capacity
+  int G_nrows = (NORX_LWCS_NWORDS * WORD_SIZE) - (4 * WORD_SIZE); 
+#else // normal
+  int G_nrows = (NORX_LWCS_NWORDS * WORD_SIZE);
+#endif
+  // create an empty generator matrix
+  CodeMatrix oGenerator;
+  // use the build function to create the generator matrix
+  oGenerator.Build(&norx_lwcs_build_function, G_nrows);
+  oGenerator.PrintMatrix("norx-lwcs-matrix.cm"); // save to file
+
+  // create an empty generator matrix
+  CodeMatrix oGenerator_compact;
+  // use the build function to create the generator matrix
+  oGenerator.Build(&norx_lwcs_build_function_compact, G_nrows);
+  oGenerator.PrintMatrix("norx-lwcs-matrix-compact.cm"); // save to file
+
+}
+
+
+/* --- */
+void norx_gfun_linear_encrypt(WORD_T * matrix, const uint32_t nsteps)
+{
+#if 1 // norx_gfun_linear_encrypt
+  assert(nsteps > 0);
+  //assert(nsteps <= 8);
+  WORD_T S[16] = {0};
+  // copy the input state
+  for(uint32_t j = 0; j < NORX_LWCS_NWORDS; j++) {
+	 S[j] = matrix[j];
+  }
+
+  // 'offset' is equal to number of 32-bit words from the beginning of the codeword 
+  // the first 2 32-bit words are the input to LEA
+  uint32_t offset = NORX_LWCS_NWORDS;
+
+  switch(nsteps) {
+  case 0:
+	 break;
+  case 1:
+#if 1 // step 1
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 1
+	 break;
+  case 2:
+#if 1 // step 2
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 2
+	 break;
+  case 3:
+#if 1 // step 3
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 3
+	 break;
+  case 4: // 0.5 round
+#if 1 // step 4
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 //	 norx_array_state_print(S);
+#endif // #if 1 // step 4
+	 break;
+  case 5:
+#if 1 // step 5
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 5
+	 break;
+  case 6:
+#if 1 // step 6
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 6
+	 break;
+  case 7:
+#if 1 // step 7
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 7
+	 break;
+  case 8: // 1 round
+#if 1 // step 8
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 8
+	 break;
+  case 9:
+#if 1 // step 9
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 9
+	 break;
+  case 10:
+#if 1 // step 10
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 10
+	 break;
+  case 11:
+#if 1 // step 11
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 11
+	 break;
+  case 12: // 1.5 round
+#if 1 // step 12
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 12
+	 break;
+  case 13:
+#if 1 // step 13
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 13
+	 break;
+  case 14:
+#if 1 // step 14
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 14
+	 break;
+  case 15:
+#if 1 // step 15
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 15
+	 break;
+  case 16: // 2 rounds
+#if 1 // step 16
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_col(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(0, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(1, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(2, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+	 offset += NORX_LWCS_NWORDS;
+
+	 G_lin_parallel_dia(3, S);
+	 norx_lwcs_copy_state_to_matrix(S, matrix, offset);
+#endif // #if 1 // step 16
+	 break;
+  default: /* Optional */
+	 printf("[%s:%d] Invalid number of G rounds %d. Terminating...\n", __FILE__, __LINE__, nsteps);
+  }
+#endif // #if 1 // norx_gfun_linear_encrypt
+}
+
+/**
+ * Construct generator matrix for the low-weight codeword search (LWCS)
+ *
+ * \see rc5_lwcs_build_function
+ */
+CodeWord norx_lwcs_build_function(uint64_t & i) 
+{
+  assert(WORD_SIZE == 32);
+#if 0									  // DEBUG
+  printf("[%s:%d]\n", __FUNCTION__, __LINE__);
+#endif
+  // first 2 words are the input X[0], X[1]
+  // the next 2*NORX_LWCS_NSTEPS words are the outputs of R rounds: 
+  // Y[0][0],Y[0][1], ..., Y[R-1][0],Y[R-1][1] of which
+  // The final four words Y[R-1][0],Y[R-1][1] are the output after R rounds
+  WORD_T m[NORX_LWCS_NWORDS + (NORX_LWCS_NWORDS * NORX_LWCS_NSTEPS)];
+  int r = NORX_LWCS_NSTEPS;
+
+  CodeWord oCodeWord;
+  uint32_t unitv = 1;
+
+  // 16 byte input block
+  for(uint32_t j = 0; j < NORX_LWCS_NWORDS; j++) {
+	 m[j] = 0;
+  }
+
+  // create i-th unit vector for the input
+  unitv = RROT(unitv , (i+1));
+
+  // set input to i-th unit vector
+  m[i/WORD_SIZE] = unitv;
+#if 0									  // DEBUG
+  printf("%3ld : x[%2ld] %08x\n", i+1, i/WORD_SIZE, unitv);
+#endif	
+
+  // call the linearized function
+  norx_gfun_linear_encrypt(m, r);
+
+  // add message to the code
+  for(uint32_t j = 0; j < (NORX_LWCS_NWORDS + (NORX_LWCS_NWORDS * NORX_LWCS_NSTEPS)); j++) {
+	 oCodeWord.Push32(m[j]);
+#if 0									  // DEBUG
+	 printf("[%2d]%08x", j, m[j]);
+#endif	
+  }
+#if 0									  // DEBUG
+  printf("\n");
+#endif	
+
+  return oCodeWord;
+}
+
+/* --- */
+for(WORD_T x = 0; x < 4; x++) {
+  WORD_T a = ((x << 6) | (x << 4) | (x << 2) | (x << 0));
+  for(WORD_T y = 0; y < 4; y++) {
+	 WORD_T b = ((y << 6) | (y << 4) | (y << 2) | (y << 0));
+	 WORD_T c = H(a, b);
+	 printf("%2X %2X %2X\n", a, b, c);
+  }
+ }
+
+
+/* --- */
+
+double norx_xdp_gfun_exper(const WORD_T da, const WORD_T db, const WORD_T dc, const WORD_T dd)
+{
+  double prob = 0.0;
+  uint32_t cnt = 0;
+  assert(WORD_SIZE <= 7);
+#if(WORD_SIZE <= 5)
+  uint64_t N = std::pow(ALL_WORDS, 8);
+  for(WORD_T i = 0; i < N; i++) {
+	 for(WORD_T j = 0; j < N; j++) {
+		for(WORD_T k = 0; k < N; k++) {
+		  for(WORD_T l = 0; l < N; l++) {
+			 WORD_T a = i;
+			 WORD_T b = j;
+			 WORD_T c = k;
+			 WORD_T d = l;
+			 WORD_T aa = a ^ da;
+			 WORD_T bb = b ^ db;
+			 WORD_T cc = c ^ dc;
+			 WORD_T dd = d ^ dd;
+			 gfun(a, b, c, d);
+			 gfun(aa, bb, cc, dd);
+		  }
+		}
+	 }
+  }
+#endif // #if(WORD_SIZE <= 5)
+  return prob;
+}
+
+/* --- */
+
+/**
+ * Return the i-th bit of the output from H
+ */
+uint32_t heuristic_set_bit(uint32_t a, uint32_t b)
+{
+  assert(a <= 1);
+  assert(b <= 1);
+  uint32_t ret = 0;
+#if (HEURISTIC_BIT_VAL_ZERO == false)
+  ret = (a ^ b);
+#endif // #if HEURISTIC_BIT_VAL_ZERO
+  return ret;
+}
+
+/* --- */
+
+/**
+ * In half cases return 0; in half cases return x ^ y
+ */
+uint32_t heuristic_set_bit(uint32_t x, uint32_t y)
+{
+  assert(x <= 1);
+  assert(y <= 1);
+  uint32_t ret = 0;
+#if (HEURISTIC_BIT_VAL_ZERO == false)
+  //  uint32_t r = 1 + (random() % 100);
+  //  if(r < 50) {
+  //  if((random() % 2) == 1) {
+  ret = (x ^ y);
+	 //  }
+#endif // #if HEURISTIC_BIT_VAL_ZERO
+  return ret;
+}
+
+/* --- */
+
+/* The quarter-round */
+#if 0
+#define G(A, B, C, D)                               \
+do                                                  \
+{                                                   \
+    (A) = H(A, B); (D) ^= (A); (D) = RROT((D), R0); \
+    (C) = H(C, D); (B) ^= (C); (B) = RROT((B), R1); \
+    (A) = H(A, B); (D) ^= (A); (D) = RROT((D), R2); \
+    (C) = H(C, D); (B) ^= (C); (B) = RROT((B), R3); \
+} while (0)
+#endif
+
+/* --- */
+
+/* 
+#if 0 // Siwei trail WORD_SIZE 32
+#define NORX_TRAIL_LEN 16
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0xA4480000, 0x04480900, 0xC0000604, 0xA0060D44, 0x0},
+{0x24080048, 0x04180340, 0x04000200, 0x20000308, 0x0},
+{0x40080010, 0x42080010, 0x86080008, 0x82000884, 0x0},
+{0xC0020001, 0x40020E01, 0xC008020A, 0x8A0209C0, 0x0},
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0xA0000900, 0x04480900, 0xC0000604, 0x44000604, 0x0},
+{0x20000308, 0x04180340, 0x04000200, 0x00000000, 0x0},
+{0x82000000, 0x42080010, 0x86080008, 0x84000008, 0x0},
+{0x80000200, 0x40020E01, 0xC008020A, 0xC00A020B, 0x0},
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0xA0000900, 0xA0000900, 0x04000C00, 0x44000604, 0x0},
+{0x20000308, 0x28000300, 0x04000200, 0x00000000, 0x0},
+{0x82000000, 0x02080000, 0x02080000, 0x84000008, 0x0},
+{0x80000200, 0x40080001, 0x00020401, 0xC00A020B, 0x0},
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x40000200, 0xA0000900, 0x04000C00, 0x04040400, 0x0},
+{0x08000408, 0x28000300, 0x04000200, 0x04080800, 0x0},
+{0x80080000, 0x02080000, 0x02080000, 0x00080408, 0x0},
+{0xC0080201, 0x40080001, 0x00020401, 0x000A0002, 0x0},
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x40000200, 0x40301A00, 0x06100C08, 0x000A0002, 0x0},
+{0x08000408, 0x08301810, 0x000C0401, 0x04040400, 0x0},
+{0x80080000, 0x80080800, 0x00041000, 0x04080800, 0x0},
+{0xC0080201, 0x40083201, 0x08180E00, 0x00080408, 0x0},
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00101800, 0x40301A00, 0x06100C08, 0x02001A18, 0x0},
+{0x00101408, 0x08301810, 0x000C0401, 0x08041410, 0x0},
+{0x00100800, 0x80080800, 0x00041000, 0x00041800, 0x0},
+{0x00101400, 0x40083201, 0x08180E00, 0x08001810, 0x0},
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00101800, 0x00080400, 0x00101A00, 0x02001A18, 0x0},
+{0x00101408, 0x00200400, 0x08101811, 0x08041410, 0x0},
+{0x00100800, 0x00100000, 0x00080800, 0x00041800, 0x0},
+{0x00101400, 0x02280404, 0x00281210, 0x08001810, 0x0},
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00081C00, 0x00080400, 0x00101A00, 0x06180208, 0x0},
+{0x00101818, 0x00200400, 0x08101811, 0x0C080814, 0x0},
+{0x00001800, 0x00100000, 0x00080800, 0x00000004, 0x0},
+{0x06081804, 0x02280404, 0x00281210, 0x00140E08, 0x0},
+}, // T.state[ 7].w =   1
+// T.w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00081C00, 0x04080818, 0x00080804, 0x0C080814, 0x0},
+{0x00101818, 0x04001010, 0x002C0008, 0x00000004, 0x0},
+{0x00001800, 0x0810080A, 0x02080C08, 0x00140E08, 0x0},
+{0x06081804, 0x00301008, 0x04280005, 0x06180208, 0x0},
+}, // T.state[ 4].w =   1
+{ // R[ 9] abcde
+{0x0C000418, 0x04080818, 0x00080804, 0x0C00080C, 0x0},
+{0x04100808, 0x04001010, 0x002C0008, 0x0C041008, 0x0},
+{0x0810000E, 0x0810080A, 0x02080C08, 0x0608040E, 0x0},
+{0x0E18080C, 0x00301008, 0x04280005, 0x0408000A, 0x0},
+}, // T.state[ 5].w =   0
+{ // R[10] abcde
+{0x0C000418, 0x00000001, 0x04080018, 0x0C00080C, 0x0},
+{0x04100808, 0x00010400, 0x0C201010, 0x0C041008, 0x0},
+{0x0810000E, 0x00000202, 0x0800180A, 0x0608040E, 0x0},
+{0x0E18080C, 0x01E00002, 0x00300007, 0x0408000A, 0x0},
+}, // T.state[ 6].w =   1
+{ // R[11] abcde
+{0x0C000C09, 0x00000001, 0x04080018, 0x04050000, 0x0},
+{0x04111C18, 0x00010400, 0x0C201010, 0x0C100815, 0x0},
+{0x08100214, 0x00000202, 0x0800180A, 0x061A0E18, 0x0},
+{0x04080812, 0x01E00002, 0x00300007, 0x08180000, 0x0},
+}, // T.state[ 7].w =   1
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x0C000C09, 0x1022180A, 0x063A0A02, 0x08180000, 0x0},
+{0x04111C18, 0x0C741000, 0x0868000B, 0x04050000, 0x0},
+{0x08100214, 0x13100012, 0x00050008, 0x0C100815, 0x0},
+{0x04080812, 0x000A0012, 0x08100805, 0x061A0E18, 0x0},
+}, // T.state[ 4].w =   1
+{ // R[13] abcde
+{0x1C220405, 0x1022180A, 0x063A0A02, 0x05143A04, 0x0},
+{0x18850C08, 0x0C741000, 0x0868000B, 0x081C800C, 0x0},
+{0x0F000206, 0x13100012, 0x00050008, 0x1303100A, 0x0},
+{0x0C120800, 0x000A0012, 0x08100805, 0x180A0806, 0x0},
+}, // T.state[ 5].w =   0
+{ // R[114] abcde
+{0x1C220405, 0x01022603, 0x01120002, 0x05143A04, 0x0},
+{0x18850C08, 0x00618C12, 0x00148003, 0x081C800C, 0x0},
+{0x0F000206, 0x02000202, 0x13001002, 0x1303100A, 0x0},
+{0x0C120800, 0x03200002, 0x000A100B, 0x180A0806, 0x0},
+}, // T.state[ 6].w =   1
+{ // R[15] abcde
+{0x05242A06, 0x01022603, 0x01120002, 0x10020030, 0x0},
+{0x082D800A, 0x00618C12, 0x00148003, 0x00060031, 0x0},
+{0x03000008, 0x02000202, 0x13001002, 0x10021003, 0x0},
+{0x09120806, 0x03200002, 0x000A100B, 0x00001118, 0x0},
+}, // T.state[ 7].w =   1
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+
+ */
+
+/* 
+
+Start time: 1471596959766774
+[./tests/norx-best-diff-search-tests.cc:3819] Tests, WORD_SIZE  = 8, MASK = FF
+[./tests/norx-best-diff-search-tests.cc:3820] Rotations: R0  1 R1  3 R2  5 R3  7
+[./tests/norx-best-diff-search-tests.cc:3821] Attack scenario: INIT_N 0 INIT_NK 0 RATE 0 FULL 1 NONE 0
+--- Heuristic search parameters:
+FIND_ALL_TRAILS 1
+SET_TIME_LIMIT 1
+TIME_LIMIT_SECONDS 600
+BRANCH_FACTOR_PERCENTAGE 75
+MAX_TRIES 64 = 0x40
+BOUND_DECREASE_STEP 100
+[./tests/norx-best-diff-search-tests.cc:3436] Enter test_norx_diff_trail_heuristic_search_time_limit()
+[./tests/norx-best-diff-search-tests.cc:2692] Update bound: 100 -> 1
+#if 1 // WORD_SIZE 8 nrounds 2 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 3
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   0
+// T.w =   1
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 2 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 2 rounds:
+B[ 0]  0
+B[ 1]  1
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 101 -> 4
+#if 1 // WORD_SIZE 8 nrounds 3 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 4
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+// T.w =   4
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 3 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 4 -> 2
+#if 1 // WORD_SIZE 8 nrounds 3 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 4
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+// T.w =   2
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 3 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 3 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 102 -> 9
+#if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000084, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000029, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000084, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   4
+// T.w =   9
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 9 -> 8
+#if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x0000000C}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000038, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000001, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000084, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   3
+// T.w =   8
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 8 -> 7
+#if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000020, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000001, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+// T.w =   7
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 7 -> 6
+#if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+// T.w =   6
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 6 -> 5
+#if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+// T.w =   5
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 5 -> 4
+#if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000084, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000009, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+// T.w =   4
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 4 -> 3
+#if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+// T.w =   3
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 4 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 103 -> 10
+#if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 6
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000084, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x0000002B}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x000000B0}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000042, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000084, 0x00000000, 0x00000000}, // L[1]
+{0x0000002B, 0x00000029, 0x00000000, 0x00000095, 0x00000000}, // L[2]
+{0x000000B0, 0x00000000, 0x00000000, 0x00000058, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   5
+// T.w =  10
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 10 -> 9
+#if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 6
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000021}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000021, 0x00000021, 0x00000000, 0x00000090, 0x00000000}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   4
+// T.w =   9
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 9 -> 8
+#if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 6
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000014, 0x000000A1, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000014, 0x00000090, 0x00000084}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000084, 0x00000090, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   3
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000084, 0x00000084, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000042, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+// T.w =   8
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 8 -> 7
+#if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 6
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000019, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000000}, // L[1]
+{0x00000009, 0x00000019, 0x00000000, 0x00000084, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   3
+// T.w =   7
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 7 -> 4
+#if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 6
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+// T.w =   4
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 5 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 5 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+B[ 4]  4
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 104 -> 28
+#if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 7
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x000000B0}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x000000B0, 0x00000010, 0x00000000, 0x00000085, 0x0000008F}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008F, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x0000003F, 0x00000000, 0x00000000, 0x00000049}, // L[2]
+{0x000000B0, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x000000C2, 0x00000042}, // L[0]
+{0x00000000, 0x00000000, 0x0000008F, 0x00000000, 0x00000085}, // L[1]
+{0x00000049, 0x0000003F, 0x00000000, 0x000000A4, 0x000000A4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000048}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000000}, // L[0]
+{0x00000000, 0x000000B0, 0x00000085, 0x00000000, 0x00000000}, // L[1]
+{0x00000049, 0x00000073, 0x000000A4, 0x000000A4, 0x00000000}, // L[2]
+{0x00000090, 0x00000009, 0x00000048, 0x00000048, 0x00000000}, // L[3]
+}, // T.state[ 6].w =  13
+// T.w =  28
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 28 -> 15
+#if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 7
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000021}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000021, 0x00000021, 0x00000000, 0x00000090, 0x000000B0}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000021, 0x00000032, 0x000000B0, 0x00000090, 0x00000000}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   6
+// T.w =  15
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 15 -> 14
+#if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 7
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000020, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000020, 0x00000020, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000001}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000001, 0x00000000, 0x00000003}, // L[2]
+{0x00000080, 0x00000002, 0x00000000, 0x00000000, 0x00000082}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000003, 0x00000001, 0x00000001, 0x00000081, 0x00000080}, // L[2]
+{0x00000082, 0x00000002, 0x00000000, 0x00000041, 0x00000041}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000003, 0x00000030, 0x00000080, 0x00000081, 0x00000000}, // L[2]
+{0x00000082, 0x00000068, 0x00000041, 0x00000041, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   5
+// T.w =  14
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 14 -> 11
+#if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 7
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000090, 0x000000A1, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000090, 0x00000090, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000090, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000048}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000000}, // L[2]
+{0x00000090, 0x00000009, 0x00000048, 0x00000048, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+// T.w =  11
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 11 -> 9
+#if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 7
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000010, 0x00000020, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000010, 0x00000010, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000010, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   2
+// T.w =   9
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 9 -> 8
+#if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 7
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000084, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000084, 0x00000080, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000004, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   2
+// T.w =   8
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 8 -> 5
+#if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 7
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+// T.w =   5
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 6 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 6 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+B[ 4]  4
+B[ 5]  5
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 105 -> 30
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000030}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000000, 0x00000081, 0x00000081}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000081, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000023, 0x00000000, 0x00000000, 0x00000061}, // L[1]
+{0x00000030, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000081, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000081, 0x00000000, 0x00000083}, // L[0]
+{0x00000061, 0x00000023, 0x00000000, 0x000000B0, 0x000000D0}, // L[1]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C0, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000070, 0x00000083, 0x00000000, 0x00000010}, // L[0]
+{0x00000061, 0x0000007E, 0x000000D0, 0x000000B0, 0x00000001}, // L[1]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000011}, // L[2]
+{0x00000000, 0x00000008, 0x00000040, 0x000000C0, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   8
+{ // R[ 7] abcde
+{0x00000010, 0x00000070, 0x00000083, 0x00000080, 0x00000000}, // L[0]
+{0x00000001, 0x0000007E, 0x000000D0, 0x0000008D, 0x00000000}, // L[1]
+{0x00000011, 0x00000001, 0x00000008, 0x000000C8, 0x00000000}, // L[2]
+{0x00000008, 0x00000008, 0x00000040, 0x00000046, 0x00000000}, // L[3]
+}, // T.state[ 7].w =  13
+// T.w =  30
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 30 -> 29
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000021, 0x00000004, 0x00000000, 0x00000023}, // L[1]
+{0x00000010, 0x00000008, 0x00000000, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000080, 0x00000002, 0x00000082}, // L[0]
+{0x00000023, 0x00000021, 0x00000004, 0x00000091, 0x00000095}, // L[1]
+{0x00000008, 0x00000008, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000050, 0x00000082, 0x00000002, 0x00000050}, // L[0]
+{0x00000023, 0x00000096, 0x00000095, 0x00000091, 0x00000091}, // L[1]
+{0x00000008, 0x00000081, 0x00000004, 0x00000004, 0x00000089}, // L[2]
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   8
+{ // R[ 7] abcde
+{0x00000050, 0x00000050, 0x00000082, 0x00000092, 0x00000000}, // L[0]
+{0x00000091, 0x00000096, 0x00000095, 0x00000000, 0x00000000}, // L[1]
+{0x00000089, 0x00000081, 0x00000004, 0x0000006C, 0x00000000}, // L[2]
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000000}, // L[3]
+}, // T.state[ 7].w =  12
+// T.w =  29
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 29 -> 28
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000021, 0x00000004, 0x00000000, 0x00000023}, // L[1]
+{0x00000010, 0x00000008, 0x00000000, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000080, 0x00000002, 0x00000082}, // L[0]
+{0x00000023, 0x00000021, 0x00000004, 0x00000091, 0x000000B5}, // L[1]
+{0x00000008, 0x00000008, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000050, 0x00000082, 0x00000002, 0x00000070}, // L[0]
+{0x00000023, 0x00000092, 0x000000B5, 0x00000091, 0x00000093}, // L[1]
+{0x00000008, 0x00000081, 0x00000004, 0x00000004, 0x0000008B}, // L[2]
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000018}, // L[3]
+}, // T.state[ 6].w =   8
+{ // R[ 7] abcde
+{0x00000070, 0x00000050, 0x00000082, 0x00000093, 0x00000000}, // L[0]
+{0x00000093, 0x00000092, 0x000000B5, 0x00000010, 0x00000000}, // L[1]
+{0x0000008B, 0x00000081, 0x00000004, 0x0000007C, 0x00000000}, // L[2]
+{0x00000018, 0x00000008, 0x00000040, 0x000000C2, 0x00000000}, // L[3]
+}, // T.state[ 7].w =  11
+// T.w =  28
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 28 -> 22
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000020, 0x00000080, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x00000001, 0x00000000, 0x00000000, 0x00000011}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000020, 0x00000020, 0x00000080, 0x00000010, 0x00000090}, // L[0]
+{0x00000011, 0x00000001, 0x00000000, 0x00000088, 0x00000088}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000020, 0x00000016, 0x00000090, 0x00000010, 0x0000001A}, // L[0]
+{0x00000011, 0x00000031, 0x00000088, 0x00000088, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x0000001A, 0x00000016, 0x00000090, 0x00000050, 0x00000000}, // L[0]
+{0x00000000, 0x00000031, 0x00000088, 0x00000044, 0x00000000}, // L[1]
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   8
+// T.w =  22
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 22 -> 21
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x00000040}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000018, 0x00000040, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000008, 0x00000018, 0x00000040, 0x00000040, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000030, 0x00000000, 0x00000000, 0x00000070}, // L[1]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000070, 0x00000030, 0x00000000, 0x00000038, 0x00000018}, // L[1]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000070, 0x00000005, 0x00000018, 0x00000038, 0x00000017}, // L[1]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[2]
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x00000004}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000017, 0x00000005, 0x00000018, 0x00000079, 0x00000000}, // L[1]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000000}, // L[2]
+{0x00000004, 0x00000004, 0x00000020, 0x00000021, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   8
+// T.w =  21
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 21 -> 20
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x00000040}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000018, 0x00000040, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000008, 0x00000018, 0x00000040, 0x00000040, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000030, 0x00000000, 0x00000000, 0x00000070}, // L[1]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000070, 0x00000030, 0x00000000, 0x00000038, 0x00000038}, // L[1]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000070, 0x00000001, 0x00000038, 0x00000038, 0x00000011}, // L[1]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[2]
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x0000000C}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000011, 0x00000001, 0x00000038, 0x00000049, 0x00000000}, // L[1]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000000}, // L[2]
+{0x0000000C, 0x00000004, 0x00000020, 0x00000061, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   7
+// T.w =  20
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 20 -> 16
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x000000C0, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000008, 0x00000008, 0x000000C0, 0x00000040, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[1]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000000, 0x00000008, 0x00000008}, // L[1]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000003, 0x00000008, 0x00000008, 0x00000035}, // L[1]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[2]
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x0000000C}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000035, 0x00000003, 0x00000008, 0x000000E9, 0x00000000}, // L[1]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000000}, // L[2]
+{0x0000000C, 0x00000004, 0x00000020, 0x00000061, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   6
+// T.w =  16
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 16 -> 15
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x000000C0, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000008, 0x00000008, 0x000000C0, 0x00000040, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[1]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000000, 0x00000008, 0x00000018}, // L[1]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000001, 0x00000018, 0x00000008, 0x00000011}, // L[1]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[2]
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x00000004}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000011, 0x00000001, 0x00000018, 0x000000C8, 0x00000000}, // L[1]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000000}, // L[2]
+{0x00000004, 0x00000004, 0x00000020, 0x00000021, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+// T.w =  15
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 15 -> 13
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000010, 0x00000020, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000010, 0x00000010, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[1]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000030}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000030}, // L[1]
+{0x00000030, 0x00000000, 0x00000000, 0x00000018, 0x00000008}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000020, 0x00000002, 0x00000030, 0x00000010, 0x00000022}, // L[1]
+{0x00000030, 0x00000001, 0x00000008, 0x00000018, 0x00000011}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000022, 0x00000002, 0x00000030, 0x00000091, 0x00000000}, // L[1]
+{0x00000011, 0x00000001, 0x00000008, 0x00000048, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+// T.w =  13
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 13 -> 8
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x000000B0, 0x00000020, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x000000B0, 0x00000010, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000010, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   3
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   2
+// T.w =   8
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 8 -> 7
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000060, 0x00000020, 0x00000024, 0x00000008, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000020, 0x00000024, 0x00000004, 0x00000020}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   2
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000020, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000020, 0x00000020, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000010, 0x00000010}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000002, 0x00000010, 0x00000010, 0x00000002}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000002, 0x00000002, 0x00000010, 0x00000090, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   1
+// T.w =   7
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 7 -> 6
+#if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000002, 0x00000002, 0x00000042, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000002, 0x00000042, 0x00000040, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000001}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000020, 0x00000001, 0x00000001, 0x00000020}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000020, 0x00000020, 0x00000001, 0x00000009, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   1
+// T.w =   6
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 7 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+B[ 4]  4
+B[ 5]  5
+B[ 6]  6
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 106 -> 23
+#if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 9
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000081}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000010, 0x00000081, 0x00000081, 0x00000031}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000031, 0x00000010, 0x00000081, 0x00000085, 0x00000004}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000004, 0x00000046, 0x00000000}, // L[0]
+{0x00000010, 0x00000028, 0x00000002, 0x00000000, 0x00000000}, // L[1]
+{0x00000031, 0x00000014, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000085, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   7
+// T.w =  23
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 23 -> 19
+#if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 9
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000010, 0x00000020, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000010, 0x00000010, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000010, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000060}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000020, 0x00000000, 0x00000030, 0x00000030}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000002, 0x00000030, 0x00000030, 0x00000022}, // L[2]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000011}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000022, 0x00000002, 0x00000030, 0x00000090, 0x000000A0}, // L[2]
+{0x00000011, 0x00000001, 0x00000008, 0x000000C8, 0x00000040}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x000000A0, 0x000000C8, 0x00000000}, // L[0]
+{0x00000000, 0x00000045, 0x00000040, 0x00000000, 0x00000000}, // L[1]
+{0x00000022, 0x00000082, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000011, 0x00000000, 0x00000000, 0x00000090, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+// T.w =  19
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 19 -> 17
+#if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 9
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000010, 0x000000A1, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000010, 0x00000090, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000090, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   2
+{ // R[ 7] abcde
+{0x00000018, 0x00000008, 0x00000040, 0x000000C2, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000018, 0x00000000, 0x00000000, 0x00000046, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000002, 0x000000C2, 0x00000000}, // L[1]
+{0x00000000, 0x00000014, 0x00000002, 0x00000000, 0x00000000}, // L[2]
+{0x00000088, 0x00000014, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+// T.w =  17
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 17 -> 9
+#if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 9
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000090, 0x00000020, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000090, 0x00000010, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000010, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000018, 0x00000008, 0x00000040, 0x000000C2, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   1
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000018, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C2, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000014, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   3
+// T.w =   9
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 9 -> 8
+#if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 9
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000020, 0x00000020, 0x00000024, 0x00000008, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000020, 0x00000024, 0x00000004, 0x00000020}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000020, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000020, 0x00000020, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000010, 0x00000010}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00000002, 0x00000010, 0x00000010, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000002, 0x00000002, 0x00000010, 0x00000090, 0x00000080}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   1
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000002, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000090, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000005, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   2
+// T.w =   8
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 8 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+B[ 4]  4
+B[ 5]  5
+B[ 6]  6
+B[ 7]  8
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 108 -> 81
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000007}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x0000002E, 0x0000008C, 0x00000000, 0x00000022}, // L[1]
+{0x00000030, 0x00000019, 0x00000000, 0x00000000, 0x00000029}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000085, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000002, 0x00000009}, // L[0]
+{0x00000022, 0x0000002E, 0x0000008C, 0x00000011, 0x00000097}, // L[1]
+{0x00000029, 0x00000019, 0x00000000, 0x00000094, 0x00000094}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000082, 0x00000082}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000021, 0x00000009, 0x00000002, 0x00000021}, // L[0]
+{0x00000022, 0x00000037, 0x00000097, 0x00000011, 0x00000019}, // L[1]
+{0x00000029, 0x000000B1, 0x00000094, 0x00000094, 0x00000088}, // L[2]
+{0x00000080, 0x00000050, 0x00000082, 0x00000082, 0x00000050}, // L[3]
+}, // T.state[ 6].w =  13
+{ // R[ 7] abcde
+{0x00000021, 0x00000021, 0x00000009, 0x00000019, 0x00000000}, // L[0]
+{0x00000019, 0x00000037, 0x00000097, 0x00000040, 0x00000071}, // L[1]
+{0x00000088, 0x000000B1, 0x00000094, 0x000000E0, 0x00000094}, // L[2]
+{0x00000050, 0x00000050, 0x00000082, 0x00000096, 0x00000018}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000021, 0x0000008C, 0x00000094, 0x00000096, 0x000000E5}, // L[0]
+{0x00000019, 0x0000004A, 0x00000018, 0x00000019, 0x00000051}, // L[1]
+{0x00000088, 0x00000090, 0x00000000, 0x00000040, 0x00000018}, // L[2]
+{0x00000050, 0x00000042, 0x00000071, 0x000000E0, 0x00000016}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x000000E5, 0x0000008C, 0x00000094, 0x000000B9, 0x00000000}, // L[0]
+{0x00000051, 0x0000004A, 0x00000018, 0x00000024, 0x00000000}, // L[1]
+{0x00000018, 0x00000090, 0x00000000, 0x0000002C, 0x00000000}, // L[2]
+{0x00000016, 0x00000042, 0x00000071, 0x0000007B, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  16
+// T.w =  81
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 81 -> 80
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000007}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x0000002E, 0x0000008C, 0x00000000, 0x00000022}, // L[1]
+{0x00000030, 0x00000019, 0x00000000, 0x00000000, 0x00000029}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000085, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000002, 0x00000009}, // L[0]
+{0x00000022, 0x0000002E, 0x0000008C, 0x00000011, 0x00000097}, // L[1]
+{0x00000029, 0x00000019, 0x00000000, 0x00000094, 0x00000094}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000082, 0x00000082}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000021, 0x00000009, 0x00000002, 0x00000021}, // L[0]
+{0x00000022, 0x00000037, 0x00000097, 0x00000011, 0x00000019}, // L[1]
+{0x00000029, 0x000000B1, 0x00000094, 0x00000094, 0x00000088}, // L[2]
+{0x00000080, 0x00000050, 0x00000082, 0x00000082, 0x00000050}, // L[3]
+}, // T.state[ 6].w =  13
+{ // R[ 7] abcde
+{0x00000021, 0x00000021, 0x00000009, 0x00000019, 0x00000000}, // L[0]
+{0x00000019, 0x00000037, 0x00000097, 0x00000040, 0x00000079}, // L[1]
+{0x00000088, 0x000000B1, 0x00000094, 0x000000E0, 0x000000B4}, // L[2]
+{0x00000050, 0x00000050, 0x00000082, 0x00000096, 0x00000010}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000021, 0x0000009C, 0x000000B4, 0x00000096, 0x00000085}, // L[0]
+{0x00000019, 0x0000000A, 0x00000010, 0x00000019, 0x00000001}, // L[1]
+{0x00000088, 0x00000080, 0x00000000, 0x00000040, 0x00000008}, // L[2]
+{0x00000050, 0x00000042, 0x00000079, 0x000000E0, 0x00000012}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x00000085, 0x0000009C, 0x000000B4, 0x00000089, 0x00000000}, // L[0]
+{0x00000001, 0x0000000A, 0x00000010, 0x0000000C, 0x00000000}, // L[1]
+{0x00000008, 0x00000080, 0x00000000, 0x00000024, 0x00000000}, // L[2]
+{0x00000012, 0x00000042, 0x00000079, 0x00000079, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  15
+// T.w =  80
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 80 -> 79
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000007}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x0000002E, 0x0000008C, 0x00000000, 0x00000022}, // L[1]
+{0x00000030, 0x00000019, 0x00000000, 0x00000000, 0x00000029}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000085, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000002, 0x00000009}, // L[0]
+{0x00000022, 0x0000002E, 0x0000008C, 0x00000011, 0x00000097}, // L[1]
+{0x00000029, 0x00000019, 0x00000000, 0x00000094, 0x00000094}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000082, 0x00000082}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000021, 0x00000009, 0x00000002, 0x00000021}, // L[0]
+{0x00000022, 0x00000037, 0x00000097, 0x00000011, 0x00000019}, // L[1]
+{0x00000029, 0x000000B1, 0x00000094, 0x00000094, 0x00000088}, // L[2]
+{0x00000080, 0x00000050, 0x00000082, 0x00000082, 0x00000050}, // L[3]
+}, // T.state[ 6].w =  13
+{ // R[ 7] abcde
+{0x00000021, 0x00000021, 0x00000009, 0x00000019, 0x00000000}, // L[0]
+{0x00000019, 0x00000037, 0x00000097, 0x00000040, 0x000000F5}, // L[1]
+{0x00000088, 0x000000B1, 0x00000094, 0x000000E0, 0x00000034}, // L[2]
+{0x00000050, 0x00000050, 0x00000082, 0x00000096, 0x00000018}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000021, 0x00000085, 0x00000034, 0x00000096, 0x000000A4}, // L[0]
+{0x00000019, 0x0000000B, 0x00000018, 0x00000019, 0x00000000}, // L[1]
+{0x00000088, 0x00000090, 0x00000000, 0x00000040, 0x00000018}, // L[2]
+{0x00000050, 0x00000042, 0x000000F5, 0x000000E0, 0x00000012}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x000000A4, 0x00000085, 0x00000034, 0x00000019, 0x00000000}, // L[0]
+{0x00000000, 0x0000000B, 0x00000018, 0x0000008C, 0x00000000}, // L[1]
+{0x00000018, 0x00000090, 0x00000000, 0x0000002C, 0x00000000}, // L[2]
+{0x00000012, 0x00000042, 0x000000F5, 0x00000079, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  14
+// T.w =  79
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 79 -> 78
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000007}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x0000002E, 0x0000008C, 0x00000000, 0x00000022}, // L[1]
+{0x00000030, 0x00000019, 0x00000000, 0x00000000, 0x00000029}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000085, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000002, 0x00000009}, // L[0]
+{0x00000022, 0x0000002E, 0x0000008C, 0x00000011, 0x00000097}, // L[1]
+{0x00000029, 0x00000019, 0x00000000, 0x00000094, 0x00000094}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000082, 0x00000082}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000021, 0x00000009, 0x00000002, 0x00000021}, // L[0]
+{0x00000022, 0x00000037, 0x00000097, 0x00000011, 0x00000015}, // L[1]
+{0x00000029, 0x000000B1, 0x00000094, 0x00000094, 0x00000088}, // L[2]
+{0x00000080, 0x00000050, 0x00000082, 0x00000082, 0x000000D0}, // L[3]
+}, // T.state[ 6].w =  13
+{ // R[ 7] abcde
+{0x00000021, 0x00000021, 0x00000009, 0x00000019, 0x00000000}, // L[0]
+{0x00000015, 0x00000037, 0x00000097, 0x00000020, 0x000000B5}, // L[1]
+{0x00000088, 0x000000B1, 0x00000094, 0x000000E0, 0x00000034}, // L[2]
+{0x000000D0, 0x00000050, 0x00000082, 0x00000092, 0x00000010}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000021, 0x00000005, 0x00000034, 0x00000092, 0x00000024}, // L[0]
+{0x00000015, 0x0000000B, 0x00000010, 0x00000019, 0x00000008}, // L[1]
+{0x00000088, 0x00000080, 0x00000000, 0x00000020, 0x00000008}, // L[2]
+{0x000000D0, 0x00000042, 0x000000B5, 0x000000E0, 0x00000016}, // L[3]
+}, // T.state[ 8].w =  17
+{ // R[ 9] abcde
+{0x00000024, 0x00000005, 0x00000034, 0x0000005B, 0x00000000}, // L[0]
+{0x00000008, 0x0000000B, 0x00000010, 0x00000088, 0x00000000}, // L[1]
+{0x00000008, 0x00000080, 0x00000000, 0x00000014, 0x00000000}, // L[2]
+{0x00000016, 0x00000042, 0x000000B5, 0x0000007B, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  14
+// T.w =  78
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 78 -> 77
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000007}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x0000002E, 0x0000008C, 0x00000000, 0x00000022}, // L[1]
+{0x00000030, 0x00000019, 0x00000000, 0x00000000, 0x00000029}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000085, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000002, 0x00000009}, // L[0]
+{0x00000022, 0x0000002E, 0x0000008C, 0x00000011, 0x00000097}, // L[1]
+{0x00000029, 0x00000019, 0x00000000, 0x00000094, 0x00000094}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000082, 0x00000082}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000021, 0x00000009, 0x00000002, 0x00000021}, // L[0]
+{0x00000022, 0x00000037, 0x00000097, 0x00000011, 0x00000053}, // L[1]
+{0x00000029, 0x000000B1, 0x00000094, 0x00000094, 0x00000088}, // L[2]
+{0x00000080, 0x00000050, 0x00000082, 0x00000082, 0x00000050}, // L[3]
+}, // T.state[ 6].w =  13
+{ // R[ 7] abcde
+{0x00000021, 0x00000021, 0x00000009, 0x00000019, 0x00000000}, // L[0]
+{0x00000053, 0x00000037, 0x00000097, 0x00000012, 0x000000A5}, // L[1]
+{0x00000088, 0x000000B1, 0x00000094, 0x000000E0, 0x0000001C}, // L[2]
+{0x00000050, 0x00000050, 0x00000082, 0x00000096, 0x00000010}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000021, 0x00000025, 0x0000001C, 0x00000096, 0x00000004}, // L[0]
+{0x00000053, 0x0000005B, 0x00000010, 0x00000019, 0x00000008}, // L[1]
+{0x00000088, 0x00000080, 0x00000000, 0x00000012, 0x00000008}, // L[2]
+{0x00000050, 0x00000042, 0x000000A5, 0x000000E0, 0x00000012}, // L[3]
+}, // T.state[ 8].w =  17
+{ // R[ 9] abcde
+{0x00000004, 0x00000025, 0x0000001C, 0x00000049, 0x00000000}, // L[0]
+{0x00000008, 0x0000005B, 0x00000010, 0x00000088, 0x00000000}, // L[1]
+{0x00000008, 0x00000080, 0x00000000, 0x0000000D, 0x00000000}, // L[2]
+{0x00000012, 0x00000042, 0x000000A5, 0x00000079, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  13
+// T.w =  77
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 77 -> 76
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000007}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x0000002E, 0x0000008C, 0x00000000, 0x00000022}, // L[1]
+{0x00000030, 0x00000019, 0x00000000, 0x00000000, 0x00000029}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000085, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000002, 0x00000009}, // L[0]
+{0x00000022, 0x0000002E, 0x0000008C, 0x00000011, 0x00000097}, // L[1]
+{0x00000029, 0x00000019, 0x00000000, 0x00000094, 0x00000094}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000082, 0x00000082}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000021, 0x00000009, 0x00000002, 0x00000021}, // L[0]
+{0x00000022, 0x00000037, 0x00000097, 0x00000011, 0x00000053}, // L[1]
+{0x00000029, 0x000000B1, 0x00000094, 0x00000094, 0x00000088}, // L[2]
+{0x00000080, 0x00000050, 0x00000082, 0x00000082, 0x00000050}, // L[3]
+}, // T.state[ 6].w =  13
+{ // R[ 7] abcde
+{0x00000021, 0x00000021, 0x00000009, 0x00000019, 0x00000000}, // L[0]
+{0x00000053, 0x00000037, 0x00000097, 0x00000012, 0x000000A7}, // L[1]
+{0x00000088, 0x000000B1, 0x00000094, 0x000000E0, 0x0000001C}, // L[2]
+{0x00000050, 0x00000050, 0x00000082, 0x00000096, 0x00000014}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000021, 0x00000021, 0x0000001C, 0x00000096, 0x00000000}, // L[0]
+{0x00000053, 0x0000005B, 0x00000014, 0x00000019, 0x0000000C}, // L[1]
+{0x00000088, 0x00000088, 0x00000000, 0x00000012, 0x00000000}, // L[2]
+{0x00000050, 0x00000042, 0x000000A7, 0x000000E0, 0x00000012}, // L[3]
+}, // T.state[ 8].w =  17
+{ // R[ 9] abcde
+{0x00000000, 0x00000021, 0x0000001C, 0x0000004B, 0x00000000}, // L[0]
+{0x0000000C, 0x0000005B, 0x00000014, 0x0000008A, 0x00000000}, // L[1]
+{0x00000000, 0x00000088, 0x00000000, 0x00000009, 0x00000000}, // L[2]
+{0x00000012, 0x00000042, 0x000000A7, 0x00000079, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  12
+// T.w =  76
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 76 -> 75
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000007}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x0000002E, 0x0000008C, 0x00000000, 0x00000022}, // L[1]
+{0x00000030, 0x00000019, 0x00000000, 0x00000000, 0x00000029}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000085, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000002, 0x00000001}, // L[0]
+{0x00000022, 0x0000002E, 0x0000008C, 0x00000011, 0x00000087}, // L[1]
+{0x00000029, 0x00000019, 0x00000000, 0x00000094, 0x00000094}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000082, 0x00000086}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000020, 0x00000001, 0x00000002, 0x00000020}, // L[0]
+{0x00000022, 0x00000035, 0x00000087, 0x00000011, 0x00000011}, // L[1]
+{0x00000029, 0x000000B1, 0x00000094, 0x00000094, 0x00000088}, // L[2]
+{0x00000080, 0x000000D0, 0x00000086, 0x00000082, 0x00000050}, // L[3]
+}, // T.state[ 6].w =  13
+{ // R[ 7] abcde
+{0x00000020, 0x00000020, 0x00000001, 0x00000011, 0x00000030}, // L[0]
+{0x00000011, 0x00000035, 0x00000087, 0x00000000, 0x00000085}, // L[1]
+{0x00000088, 0x000000B1, 0x00000094, 0x000000E0, 0x00000014}, // L[2]
+{0x00000050, 0x000000D0, 0x00000086, 0x00000096, 0x00000010}, // L[3]
+}, // T.state[ 7].w =  14
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000020, 0x00000061, 0x00000014, 0x00000096, 0x00000001}, // L[0]
+{0x00000011, 0x0000004B, 0x00000010, 0x00000011, 0x0000004C}, // L[1]
+{0x00000088, 0x00000081, 0x00000030, 0x00000000, 0x00000009}, // L[2]
+{0x00000050, 0x00000020, 0x00000085, 0x000000E0, 0x00000010}, // L[3]
+}, // T.state[ 8].w =  15
+{ // R[ 9] abcde
+{0x00000001, 0x00000061, 0x00000014, 0x000000CB, 0x00000000}, // L[0]
+{0x0000004C, 0x0000004B, 0x00000010, 0x000000AE, 0x00000000}, // L[1]
+{0x00000009, 0x00000081, 0x00000030, 0x00000084, 0x00000000}, // L[2]
+{0x00000010, 0x00000020, 0x00000085, 0x00000078, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  14
+// T.w =  75
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 75 -> 74
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000007}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x0000002E, 0x0000008C, 0x00000000, 0x00000022}, // L[1]
+{0x00000030, 0x00000019, 0x00000000, 0x00000000, 0x00000029}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000085, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000007, 0x00000002, 0x00000001}, // L[0]
+{0x00000022, 0x0000002E, 0x0000008C, 0x00000011, 0x00000087}, // L[1]
+{0x00000029, 0x00000019, 0x00000000, 0x00000094, 0x00000094}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000082, 0x00000086}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000020, 0x00000001, 0x00000002, 0x00000020}, // L[0]
+{0x00000022, 0x00000035, 0x00000087, 0x00000011, 0x00000011}, // L[1]
+{0x00000029, 0x000000B1, 0x00000094, 0x00000094, 0x00000088}, // L[2]
+{0x00000080, 0x000000D0, 0x00000086, 0x00000082, 0x00000050}, // L[3]
+}, // T.state[ 6].w =  13
+{ // R[ 7] abcde
+{0x00000020, 0x00000020, 0x00000001, 0x00000011, 0x00000010}, // L[0]
+{0x00000011, 0x00000035, 0x00000087, 0x00000000, 0x00000085}, // L[1]
+{0x00000088, 0x000000B1, 0x00000094, 0x000000E0, 0x0000003C}, // L[2]
+{0x00000050, 0x000000D0, 0x00000086, 0x00000096, 0x00000014}, // L[3]
+}, // T.state[ 7].w =  14
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000020, 0x00000061, 0x0000003C, 0x00000096, 0x00000001}, // L[0]
+{0x00000011, 0x0000001B, 0x00000014, 0x00000011, 0x00000008}, // L[1]
+{0x00000088, 0x00000089, 0x00000010, 0x00000000, 0x00000001}, // L[2]
+{0x00000050, 0x00000060, 0x00000085, 0x000000E0, 0x00000010}, // L[3]
+}, // T.state[ 8].w =  15
+{ // R[ 9] abcde
+{0x00000001, 0x00000061, 0x0000003C, 0x000000CB, 0x00000000}, // L[0]
+{0x00000008, 0x0000001B, 0x00000014, 0x0000008C, 0x00000000}, // L[1]
+{0x00000001, 0x00000089, 0x00000010, 0x00000080, 0x00000000}, // L[2]
+{0x00000010, 0x00000060, 0x00000085, 0x00000078, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  13
+// T.w =  74
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 74 -> 73
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000000, 0x00000040, 0x00000040}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x00000040, 0x00000040, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000088, 0x00000018, 0x00000040, 0x00000046, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000024, 0x00000000, 0x00000000, 0x0000006C}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000000, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000046, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x0000000A}, // L[0]
+{0x0000006C, 0x00000024, 0x00000000, 0x00000036, 0x00000012}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000044, 0x000000CC}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000023, 0x00000021}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000041, 0x0000000A, 0x00000000, 0x00000041}, // L[0]
+{0x0000006C, 0x000000C6, 0x00000012, 0x00000036, 0x00000022}, // L[1]
+{0x00000088, 0x00000099, 0x000000CC, 0x00000044, 0x00000011}, // L[2]
+{0x00000000, 0x00000024, 0x00000021, 0x00000023, 0x00000024}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000041, 0x00000041, 0x0000000A, 0x0000000A, 0x00000000}, // L[0]
+{0x00000022, 0x000000C6, 0x00000012, 0x000000A0, 0x000000D2}, // L[1]
+{0x00000011, 0x00000099, 0x000000CC, 0x000000AA, 0x000000A2}, // L[2]
+{0x00000024, 0x00000024, 0x00000021, 0x00000038, 0x00000059}, // L[3]
+}, // T.state[ 7].w =  14
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000041, 0x00000028, 0x000000A2, 0x00000038, 0x00000029}, // L[0]
+{0x00000022, 0x00000076, 0x00000059, 0x0000000A, 0x00000010}, // L[1]
+{0x00000011, 0x000000FA, 0x00000000, 0x000000A0, 0x0000000D}, // L[2]
+{0x00000024, 0x00000082, 0x000000D2, 0x000000AA, 0x000000A6}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000029, 0x00000028, 0x000000A2, 0x00000088, 0x00000000}, // L[0]
+{0x00000010, 0x00000076, 0x00000059, 0x0000000D, 0x00000000}, // L[1]
+{0x0000000D, 0x000000FA, 0x00000000, 0x000000D6, 0x00000000}, // L[2]
+{0x000000A6, 0x00000082, 0x000000D2, 0x00000006, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  20
+// T.w =  73
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 73 -> 72
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000000, 0x00000040, 0x00000040}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x00000040, 0x00000040, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000088, 0x00000018, 0x00000040, 0x00000046, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000024, 0x00000000, 0x00000000, 0x0000006C}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000000, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000046, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x0000000A}, // L[0]
+{0x0000006C, 0x00000024, 0x00000000, 0x00000036, 0x00000012}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000044, 0x000000CC}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000023, 0x00000021}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000041, 0x0000000A, 0x00000000, 0x00000041}, // L[0]
+{0x0000006C, 0x000000C6, 0x00000012, 0x00000036, 0x00000022}, // L[1]
+{0x00000088, 0x00000099, 0x000000CC, 0x00000044, 0x00000011}, // L[2]
+{0x00000000, 0x00000024, 0x00000021, 0x00000023, 0x00000024}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000041, 0x00000041, 0x0000000A, 0x0000000A, 0x00000000}, // L[0]
+{0x00000022, 0x000000C6, 0x00000012, 0x000000A0, 0x000000B2}, // L[1]
+{0x00000011, 0x00000099, 0x000000CC, 0x000000AA, 0x000000A2}, // L[2]
+{0x00000024, 0x00000024, 0x00000021, 0x00000038, 0x00000039}, // L[3]
+}, // T.state[ 7].w =  14
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000041, 0x000000E8, 0x000000A2, 0x00000038, 0x00000039}, // L[0]
+{0x00000022, 0x00000076, 0x00000039, 0x0000000A, 0x00000010}, // L[1]
+{0x00000011, 0x0000003A, 0x00000000, 0x000000A0, 0x0000000F}, // L[2]
+{0x00000024, 0x00000082, 0x000000B2, 0x000000AA, 0x000000A6}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000039, 0x000000E8, 0x000000A2, 0x00000080, 0x00000000}, // L[0]
+{0x00000010, 0x00000076, 0x00000039, 0x0000000D, 0x00000000}, // L[1]
+{0x0000000F, 0x0000003A, 0x00000000, 0x000000D7, 0x00000000}, // L[2]
+{0x000000A6, 0x00000082, 0x000000B2, 0x00000006, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  19
+// T.w =  72
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 72 -> 71
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000000, 0x00000040, 0x00000040}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x00000040, 0x00000040, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000088, 0x00000018, 0x00000040, 0x00000046, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000024, 0x00000000, 0x00000000, 0x0000006C}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000000, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000046, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x0000000A}, // L[0]
+{0x0000006C, 0x00000024, 0x00000000, 0x00000036, 0x00000012}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000044, 0x000000CC}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000023, 0x00000021}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000041, 0x0000000A, 0x00000000, 0x00000041}, // L[0]
+{0x0000006C, 0x000000C6, 0x00000012, 0x00000036, 0x00000022}, // L[1]
+{0x00000088, 0x00000099, 0x000000CC, 0x00000044, 0x00000011}, // L[2]
+{0x00000000, 0x00000024, 0x00000021, 0x00000023, 0x00000024}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000041, 0x00000041, 0x0000000A, 0x0000000A, 0x00000000}, // L[0]
+{0x00000022, 0x000000C6, 0x00000012, 0x000000A0, 0x000000D2}, // L[1]
+{0x00000011, 0x00000099, 0x000000CC, 0x000000AA, 0x00000032}, // L[2]
+{0x00000024, 0x00000024, 0x00000021, 0x00000038, 0x00000029}, // L[3]
+}, // T.state[ 7].w =  14
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000041, 0x00000028, 0x00000032, 0x00000038, 0x00000029}, // L[0]
+{0x00000022, 0x00000057, 0x00000029, 0x0000000A, 0x00000019}, // L[1]
+{0x00000011, 0x0000001A, 0x00000000, 0x000000A0, 0x00000009}, // L[2]
+{0x00000024, 0x00000082, 0x000000D2, 0x000000AA, 0x000000A2}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000029, 0x00000028, 0x00000032, 0x00000088, 0x00000000}, // L[0]
+{0x00000019, 0x00000057, 0x00000029, 0x00000089, 0x00000000}, // L[1]
+{0x00000009, 0x0000001A, 0x00000000, 0x000000D4, 0x00000000}, // L[2]
+{0x000000A2, 0x00000082, 0x000000D2, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  18
+// T.w =  71
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 71 -> 70
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000000, 0x00000040, 0x00000040}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x00000040, 0x00000040, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000088, 0x00000018, 0x00000040, 0x00000046, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000024, 0x00000000, 0x00000000, 0x0000006C}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000000, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000046, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x0000000A}, // L[0]
+{0x0000006C, 0x00000024, 0x00000000, 0x00000036, 0x00000012}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000044, 0x000000CC}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000023, 0x00000021}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000041, 0x0000000A, 0x00000000, 0x00000041}, // L[0]
+{0x0000006C, 0x000000C6, 0x00000012, 0x00000036, 0x00000022}, // L[1]
+{0x00000088, 0x00000099, 0x000000CC, 0x00000044, 0x00000011}, // L[2]
+{0x00000000, 0x00000024, 0x00000021, 0x00000023, 0x00000024}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000041, 0x00000041, 0x0000000A, 0x0000000A, 0x00000010}, // L[0]
+{0x00000022, 0x000000C6, 0x00000012, 0x000000A0, 0x000000D2}, // L[1]
+{0x00000011, 0x00000099, 0x000000CC, 0x000000AA, 0x000000B2}, // L[2]
+{0x00000024, 0x00000024, 0x00000021, 0x00000038, 0x00000029}, // L[3]
+}, // T.state[ 7].w =  14
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000041, 0x00000028, 0x000000B2, 0x00000038, 0x00000079}, // L[0]
+{0x00000022, 0x00000056, 0x00000029, 0x0000000A, 0x00000010}, // L[1]
+{0x00000011, 0x0000001A, 0x00000010, 0x000000A0, 0x00000019}, // L[2]
+{0x00000024, 0x000000A2, 0x000000D2, 0x000000AA, 0x000000CA}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000079, 0x00000028, 0x000000B2, 0x000000A0, 0x00000000}, // L[0]
+{0x00000010, 0x00000056, 0x00000029, 0x0000000D, 0x00000000}, // L[1]
+{0x00000019, 0x0000001A, 0x00000010, 0x000000DC, 0x00000000}, // L[2]
+{0x000000CA, 0x000000A2, 0x000000D2, 0x00000030, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  17
+// T.w =  70
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 70 -> 69
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000000, 0x00000040, 0x00000040}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x00000040, 0x00000040, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000088, 0x00000018, 0x00000040, 0x00000046, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000024, 0x00000000, 0x00000000, 0x0000006C}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000000, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000046, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x0000000A}, // L[0]
+{0x0000006C, 0x00000024, 0x00000000, 0x00000036, 0x00000012}, // L[1]
+{0x00000088, 0x00000000, 0x00000000, 0x00000044, 0x000000CC}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000023, 0x00000021}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000041, 0x0000000A, 0x00000000, 0x00000041}, // L[0]
+{0x0000006C, 0x000000C6, 0x00000012, 0x00000036, 0x00000022}, // L[1]
+{0x00000088, 0x00000099, 0x000000CC, 0x00000044, 0x00000011}, // L[2]
+{0x00000000, 0x00000024, 0x00000021, 0x00000023, 0x00000024}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000041, 0x00000041, 0x0000000A, 0x0000000A, 0x00000000}, // L[0]
+{0x00000022, 0x000000C6, 0x00000012, 0x000000A0, 0x000000F2}, // L[1]
+{0x00000011, 0x00000099, 0x000000CC, 0x000000AA, 0x000000BA}, // L[2]
+{0x00000024, 0x00000024, 0x00000021, 0x00000038, 0x00000029}, // L[3]
+}, // T.state[ 7].w =  14
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000041, 0x00000068, 0x000000BA, 0x00000038, 0x00000029}, // L[0]
+{0x00000022, 0x00000046, 0x00000029, 0x0000000A, 0x00000020}, // L[1]
+{0x00000011, 0x0000001A, 0x00000000, 0x000000A0, 0x00000019}, // L[2]
+{0x00000024, 0x00000082, 0x000000F2, 0x000000AA, 0x000000A6}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000029, 0x00000068, 0x000000BA, 0x00000088, 0x00000000}, // L[0]
+{0x00000020, 0x00000046, 0x00000029, 0x00000015, 0x00000000}, // L[1]
+{0x00000019, 0x0000001A, 0x00000000, 0x000000DC, 0x00000000}, // L[2]
+{0x000000A6, 0x00000082, 0x000000F2, 0x00000006, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  16
+// T.w =  69
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 69 -> 46
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000063}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000063, 0x00000021, 0x00000000, 0x000000B1, 0x000000D1}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000063, 0x0000001E, 0x000000D1, 0x000000B1, 0x00000001}, // L[2]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000011}, // L[3]
+}, // T.state[ 6].w =   7
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000001, 0x0000001E, 0x000000D1, 0x00000085, 0x0000005C}, // L[2]
+{0x00000011, 0x00000001, 0x00000008, 0x000000C8, 0x000000C0}, // L[3]
+}, // T.state[ 7].w =  11
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000020, 0x0000005C, 0x000000C8, 0x00000068}, // L[0]
+{0x00000010, 0x00000084, 0x000000C0, 0x00000042, 0x00000094}, // L[1]
+{0x00000001, 0x00000083, 0x00000002, 0x00000080, 0x00000080}, // L[2]
+{0x00000011, 0x00000014, 0x00000000, 0x00000085, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x00000068, 0x00000020, 0x0000005C, 0x00000050, 0x00000000}, // L[0]
+{0x00000094, 0x00000084, 0x000000C0, 0x0000006B, 0x00000000}, // L[1]
+{0x00000080, 0x00000083, 0x00000002, 0x00000000, 0x00000000}, // L[2]
+{0x00000005, 0x00000014, 0x00000000, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  11
+// T.w =  46
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 46 -> 45
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000019, 0x00000000, 0x00000000, 0x00000019}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000084}, // L[1]
+{0x00000019, 0x00000019, 0x00000000, 0x0000008C, 0x0000009C}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000090, 0x00000084, 0x00000000, 0x00000090}, // L[1]
+{0x00000019, 0x000000B0, 0x0000009C, 0x0000008C, 0x000000C9}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   7
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000090, 0x00000090, 0x00000084, 0x00000084, 0x00000000}, // L[1]
+{0x000000C9, 0x000000B0, 0x0000009C, 0x0000002A, 0x000000BE}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000021, 0x000000BE, 0x00000000, 0x00000021}, // L[0]
+{0x00000090, 0x0000001C, 0x00000000, 0x00000012, 0x00000094}, // L[1]
+{0x000000C9, 0x00000000, 0x00000010, 0x00000084, 0x00000049}, // L[2]
+{0x00000000, 0x000000A0, 0x00000000, 0x0000002A, 0x000000A0}, // L[3]
+}, // T.state[ 8].w =  10
+{ // R[ 9] abcde
+{0x00000021, 0x00000021, 0x000000BE, 0x00000090, 0x00000000}, // L[0]
+{0x00000094, 0x0000001C, 0x00000000, 0x00000043, 0x00000000}, // L[1]
+{0x00000049, 0x00000000, 0x00000010, 0x000000E6, 0x00000000}, // L[2]
+{0x000000A0, 0x000000A0, 0x00000000, 0x00000045, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  13
+// T.w =  45
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 45 -> 44
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x0000000C, 0x00000000, 0x00000001}, // L[2]
+{0x00000000, 0x00000018, 0x00000000, 0x00000000, 0x00000018}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000002, 0x00000082}, // L[1]
+{0x00000001, 0x00000001, 0x0000000C, 0x00000080, 0x00000084}, // L[2]
+{0x00000018, 0x00000018, 0x00000000, 0x0000000C, 0x0000001C}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000050, 0x00000082, 0x00000002, 0x00000050}, // L[1]
+{0x00000001, 0x000000B0, 0x00000084, 0x00000080, 0x00000091}, // L[2]
+{0x00000018, 0x00000080, 0x0000001C, 0x0000000C, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   7
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000050, 0x00000050, 0x00000082, 0x00000092, 0x00000010}, // L[1]
+{0x00000091, 0x000000B0, 0x00000084, 0x00000088, 0x0000001C}, // L[2]
+{0x00000088, 0x00000080, 0x0000001C, 0x00000024, 0x00000048}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000080, 0x0000001C, 0x00000024, 0x00000080}, // L[0]
+{0x00000050, 0x00000059, 0x00000048, 0x00000000, 0x00000009}, // L[1]
+{0x00000091, 0x00000091, 0x00000000, 0x00000092, 0x00000000}, // L[2]
+{0x00000088, 0x00000000, 0x00000010, 0x00000088, 0x00000088}, // L[3]
+}, // T.state[ 8].w =  10
+{ // R[ 9] abcde
+{0x00000080, 0x00000080, 0x0000001C, 0x00000052, 0x00000000}, // L[0]
+{0x00000009, 0x00000059, 0x00000048, 0x00000084, 0x00000000}, // L[1]
+{0x00000000, 0x00000091, 0x00000000, 0x00000049, 0x00000000}, // L[2]
+{0x00000088, 0x00000000, 0x00000010, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  10
+// T.w =  44
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 44 -> 43
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x00000040}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000018, 0x00000040, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000008, 0x00000018, 0x00000040, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000030, 0x00000000, 0x00000000, 0x00000010}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000030, 0x00000000, 0x00000008, 0x00000018}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x0000000C}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000005, 0x00000018, 0x00000008, 0x00000015}, // L[2]
+{0x00000008, 0x00000081, 0x0000000C, 0x00000004, 0x0000008B}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x0000000C, 0x00000004, 0x00000020, 0x00000061, 0x00000001}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000015, 0x00000005, 0x00000018, 0x000000E8, 0x00000000}, // L[2]
+{0x0000008B, 0x00000081, 0x0000000C, 0x0000007C, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   7
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x0000000C, 0x00000000, 0x00000000, 0x0000007C, 0x00000004}, // L[0]
+{0x00000000, 0x0000000A, 0x00000000, 0x00000061, 0x0000000A}, // L[1]
+{0x00000015, 0x00000003, 0x00000001, 0x00000000, 0x00000010}, // L[2]
+{0x0000008B, 0x0000000A, 0x00000000, 0x000000E8, 0x00000081}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000004, 0x00000000, 0x00000000, 0x0000003C, 0x00000000}, // L[0]
+{0x0000000A, 0x0000000A, 0x00000000, 0x000000B5, 0x00000000}, // L[1]
+{0x00000010, 0x00000003, 0x00000001, 0x00000008, 0x00000000}, // L[2]
+{0x00000081, 0x0000000A, 0x00000000, 0x000000B4, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  12
+// T.w =  43
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 43 -> 41
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x00000040}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000018, 0x00000040, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000008, 0x00000018, 0x00000040, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000030, 0x00000000, 0x00000000, 0x00000070}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000070, 0x00000030, 0x00000000, 0x00000038, 0x00000048}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x00000004}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000070, 0x0000000F, 0x00000048, 0x00000038, 0x00000001}, // L[2]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000004, 0x00000004, 0x00000020, 0x00000021, 0x00000041}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000001, 0x0000000F, 0x00000048, 0x000000C9, 0x00000001}, // L[2]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000020}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000004, 0x00000000, 0x00000001, 0x00000064, 0x00000004}, // L[0]
+{0x00000000, 0x0000001C, 0x00000020, 0x00000021, 0x00000004}, // L[1]
+{0x00000001, 0x00000041, 0x00000041, 0x00000000, 0x00000042}, // L[2]
+{0x00000088, 0x0000008A, 0x00000000, 0x000000C9, 0x00000002}, // L[3]
+}, // T.state[ 8].w =   9
+{ // R[ 9] abcde
+{0x00000004, 0x00000000, 0x00000001, 0x00000030, 0x00000000}, // L[0]
+{0x00000004, 0x0000001C, 0x00000020, 0x00000092, 0x00000000}, // L[1]
+{0x00000042, 0x00000041, 0x00000041, 0x00000021, 0x00000000}, // L[2]
+{0x00000002, 0x0000008A, 0x00000000, 0x000000E5, 0x00000000}, // L[3]
+}, // T.state[ 9].w =   9
+// T.w =  41
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 41 -> 40
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x00000040}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000018, 0x00000040, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000008, 0x00000018, 0x00000040, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000030, 0x00000000, 0x00000000, 0x00000070}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000070, 0x00000030, 0x00000000, 0x00000038, 0x00000048}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x00000004}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000070, 0x0000000F, 0x00000048, 0x00000038, 0x00000001}, // L[2]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000004, 0x00000004, 0x00000020, 0x00000021, 0x00000001}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000001, 0x0000000F, 0x00000048, 0x000000C9, 0x00000003}, // L[2]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000020}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000004, 0x00000000, 0x00000003, 0x00000064, 0x00000004}, // L[0]
+{0x00000000, 0x00000018, 0x00000020, 0x00000021, 0x00000028}, // L[1]
+{0x00000001, 0x00000041, 0x00000001, 0x00000000, 0x00000042}, // L[2]
+{0x00000088, 0x0000000A, 0x00000000, 0x000000C9, 0x00000082}, // L[3]
+}, // T.state[ 8].w =   9
+{ // R[ 9] abcde
+{0x00000004, 0x00000000, 0x00000003, 0x00000030, 0x00000000}, // L[0]
+{0x00000028, 0x00000018, 0x00000020, 0x00000084, 0x00000000}, // L[1]
+{0x00000042, 0x00000041, 0x00000001, 0x00000021, 0x00000000}, // L[2]
+{0x00000082, 0x0000000A, 0x00000000, 0x000000A5, 0x00000000}, // L[3]
+}, // T.state[ 9].w =   8
+// T.w =  40
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 40 -> 39
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x00000040}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000018, 0x00000040, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000008, 0x00000018, 0x00000040, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000030, 0x00000000, 0x00000000, 0x00000070}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000070, 0x00000030, 0x00000000, 0x00000038, 0x00000028}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x00000004}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000070, 0x00000003, 0x00000028, 0x00000038, 0x00000055}, // L[2]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000004, 0x00000004, 0x00000020, 0x00000021, 0x00000001}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000055, 0x00000003, 0x00000028, 0x0000006B, 0x00000003}, // L[2]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000020}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000004, 0x00000000, 0x00000003, 0x00000064, 0x00000004}, // L[0]
+{0x00000000, 0x00000000, 0x00000020, 0x00000021, 0x00000000}, // L[1]
+{0x00000055, 0x00000041, 0x00000001, 0x00000000, 0x00000034}, // L[2]
+{0x00000088, 0x0000000A, 0x00000000, 0x0000006B, 0x00000082}, // L[3]
+}, // T.state[ 8].w =  10
+{ // R[ 9] abcde
+{0x00000004, 0x00000000, 0x00000003, 0x00000030, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000020, 0x00000090, 0x00000000}, // L[1]
+{0x00000034, 0x00000041, 0x00000001, 0x0000001A, 0x00000000}, // L[2]
+{0x00000082, 0x0000000A, 0x00000000, 0x000000F4, 0x00000000}, // L[3]
+}, // T.state[ 9].w =   8
+// T.w =  39
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 39 -> 37
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x000000C0}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000008, 0x000000C0, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000008, 0x00000008, 0x000000C0, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000030}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000000, 0x00000018, 0x00000008}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x00000004}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000003, 0x00000008, 0x00000018, 0x00000031}, // L[2]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000004, 0x00000004, 0x00000020, 0x00000021, 0x00000001}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000031, 0x00000003, 0x00000008, 0x00000049, 0x000000C1}, // L[2]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000020}, // L[3]
+}, // T.state[ 7].w =   7
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000004, 0x00000000, 0x000000C1, 0x00000064, 0x00000004}, // L[0]
+{0x00000000, 0x00000085, 0x00000020, 0x00000021, 0x00000085}, // L[1]
+{0x00000031, 0x00000041, 0x00000001, 0x00000000, 0x00000010}, // L[2]
+{0x00000088, 0x0000000A, 0x00000000, 0x00000049, 0x00000082}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000004, 0x00000000, 0x000000C1, 0x00000030, 0x00000000}, // L[0]
+{0x00000085, 0x00000085, 0x00000020, 0x00000052, 0x00000000}, // L[1]
+{0x00000010, 0x00000041, 0x00000001, 0x00000008, 0x00000000}, // L[2]
+{0x00000082, 0x0000000A, 0x00000000, 0x000000E5, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  11
+// T.w =  37
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 37 -> 36
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000040, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000040, 0x00000000, 0x000000C0}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000008, 0x000000C0, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000008, 0x00000008, 0x000000C0, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000030}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000020, 0x00000020}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000010, 0x00000000, 0x00000018, 0x00000008}, // L[2]
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000004, 0x00000020, 0x00000020, 0x00000004}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000030, 0x00000003, 0x00000008, 0x00000018, 0x00000031}, // L[2]
+{0x00000008, 0x00000080, 0x00000004, 0x00000004, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000004, 0x00000004, 0x00000020, 0x00000021, 0x00000041}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000031, 0x00000003, 0x00000008, 0x00000049, 0x00000041}, // L[2]
+{0x00000088, 0x00000080, 0x00000004, 0x00000064, 0x00000020}, // L[3]
+}, // T.state[ 7].w =   7
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000004, 0x00000000, 0x00000041, 0x00000064, 0x00000004}, // L[0]
+{0x00000000, 0x00000084, 0x00000020, 0x00000021, 0x0000008C}, // L[1]
+{0x00000031, 0x00000041, 0x00000041, 0x00000000, 0x00000010}, // L[2]
+{0x00000088, 0x0000008A, 0x00000000, 0x00000049, 0x00000002}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000004, 0x00000000, 0x00000041, 0x00000030, 0x00000000}, // L[0]
+{0x0000008C, 0x00000084, 0x00000020, 0x000000D6, 0x00000000}, // L[1]
+{0x00000010, 0x00000041, 0x00000041, 0x00000008, 0x00000000}, // L[2]
+{0x00000002, 0x0000008A, 0x00000000, 0x000000A5, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  10
+// T.w =  36
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 36 -> 15
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000082}, // L[3]
+}, // T.state[ 7].w =   2
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000046, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000082, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000015, 0x00000000, 0x00000000, 0x00000015}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000000, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   3
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000023, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000082, 0x00000000, 0x00000000}, // L[1]
+{0x00000015, 0x00000015, 0x00000000, 0x0000008A, 0x00000000}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000044, 0x00000000}, // L[3]
+}, // T.state[ 9].w =   5
+// T.w =  15
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 15 -> 13
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000000A}, // L[3]
+}, // T.state[ 7].w =   2
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000046, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000004, 0x00000000, 0x00000000, 0x00000004}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000000, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   3
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000023, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000000A, 0x00000000, 0x00000000}, // L[1]
+{0x00000004, 0x00000004, 0x00000000, 0x00000002, 0x00000000}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000044, 0x00000000}, // L[3]
+}, // T.state[ 9].w =   3
+// T.w =  13
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 13 -> 12
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000070, 0x00000020, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000070, 0x00000010, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000010, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   3
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   1
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000042, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000014, 0x00000000, 0x00000000, 0x00000014}, // L[3]
+}, // T.state[ 8].w =   2
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000021, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[2]
+{0x00000014, 0x00000014, 0x00000000, 0x0000000A, 0x00000000}, // L[3]
+}, // T.state[ 9].w =   3
+// T.w =  12
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 12 -> 11
+#if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 10
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000090, 0x00000020, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000090, 0x00000010, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000010, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   1
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000042, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000014, 0x00000000, 0x00000000, 0x0000001C}, // L[3]
+}, // T.state[ 8].w =   2
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000021, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[2]
+{0x0000001C, 0x00000014, 0x00000000, 0x0000000E, 0x00000000}, // L[3]
+}, // T.state[ 9].w =   3
+// T.w =  11
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 9 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 9 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+B[ 4]  4
+B[ 5]  5
+B[ 6]  6
+B[ 7]  8
+B[ 8] 11
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 111 -> 87
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000020, 0x00000000, 0x00000000, 0x000000E0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x000000C4}, // L[0]
+{0x00000008, 0x00000018, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x000000E0, 0x00000020, 0x00000000, 0x00000070, 0x00000010}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000E}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000098, 0x000000C4, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000083, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x000000E0, 0x00000006, 0x00000010, 0x00000070, 0x00000062}, // L[2]
+{0x00000030, 0x000000C1, 0x0000000E, 0x0000001A, 0x00000013}, // L[3]
+}, // T.state[ 6].w =  10
+{ // R[ 7] abcde
+{0x00000088, 0x00000098, 0x000000C4, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000083, 0x00000004, 0x0000006C, 0x00000020}, // L[1]
+{0x00000062, 0x00000006, 0x00000010, 0x00000090, 0x00000080}, // L[2]
+{0x00000013, 0x000000C1, 0x0000000E, 0x00000048, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000047, 0x00000080, 0x00000048, 0x00000041}, // L[0]
+{0x00000089, 0x0000000D, 0x00000042, 0x00000046, 0x00000094}, // L[1]
+{0x00000062, 0x00000007, 0x00000002, 0x0000006C, 0x00000021}, // L[2]
+{0x00000013, 0x00000035, 0x00000020, 0x00000090, 0x00000002}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000041, 0x00000047, 0x00000080, 0x00000084, 0x00000004}, // L[0]
+{0x00000094, 0x0000000D, 0x00000042, 0x00000069, 0x0000007D}, // L[1]
+{0x00000021, 0x00000007, 0x00000002, 0x000000A6, 0x000000A0}, // L[2]
+{0x00000002, 0x00000035, 0x00000020, 0x00000049, 0x00000029}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x00000041, 0x00000068, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000094, 0x0000000E, 0x0000007D, 0x00000069, 0x00000000}, // L[1]
+{0x00000021, 0x000000F4, 0x000000A0, 0x000000A6, 0x00000000}, // L[2]
+{0x00000002, 0x00000083, 0x00000029, 0x00000049, 0x00000000}, // L[3]
+}, // T.state[10].w =  15
+// T.w =  87
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 87 -> 85
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000020, 0x00000000, 0x00000000, 0x000000E0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x000000C4}, // L[0]
+{0x00000008, 0x00000018, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x000000E0, 0x00000020, 0x00000000, 0x00000070, 0x00000010}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000E}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000098, 0x000000C4, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000083, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x000000E0, 0x00000006, 0x00000010, 0x00000070, 0x00000062}, // L[2]
+{0x00000030, 0x000000C1, 0x0000000E, 0x0000001A, 0x00000013}, // L[3]
+}, // T.state[ 6].w =  10
+{ // R[ 7] abcde
+{0x00000088, 0x00000098, 0x000000C4, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000083, 0x00000004, 0x0000006C, 0x00000020}, // L[1]
+{0x00000062, 0x00000006, 0x00000010, 0x00000090, 0x00000080}, // L[2]
+{0x00000013, 0x000000C1, 0x0000000E, 0x00000048, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000047, 0x00000080, 0x00000048, 0x00000041}, // L[0]
+{0x00000089, 0x0000000D, 0x00000042, 0x00000046, 0x00000094}, // L[1]
+{0x00000062, 0x00000007, 0x00000002, 0x0000006C, 0x00000069}, // L[2]
+{0x00000013, 0x00000035, 0x00000020, 0x00000090, 0x00000002}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000041, 0x00000047, 0x00000080, 0x00000084, 0x00000004}, // L[0]
+{0x00000094, 0x0000000D, 0x00000042, 0x00000069, 0x0000006F}, // L[1]
+{0x00000069, 0x00000007, 0x00000002, 0x00000082, 0x00000080}, // L[2]
+{0x00000002, 0x00000035, 0x00000020, 0x00000049, 0x00000029}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x00000041, 0x00000068, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000094, 0x0000004C, 0x0000006F, 0x00000069, 0x00000000}, // L[1]
+{0x00000069, 0x000000F0, 0x00000080, 0x00000082, 0x00000000}, // L[2]
+{0x00000002, 0x00000083, 0x00000029, 0x00000049, 0x00000000}, // L[3]
+}, // T.state[10].w =  13
+// T.w =  85
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 85 -> 84
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000020, 0x00000000, 0x00000000, 0x000000E0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x000000C4}, // L[0]
+{0x00000008, 0x00000018, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x000000E0, 0x00000020, 0x00000000, 0x00000070, 0x00000010}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000E}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000098, 0x000000C4, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000083, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x000000E0, 0x00000006, 0x00000010, 0x00000070, 0x00000062}, // L[2]
+{0x00000030, 0x000000C1, 0x0000000E, 0x0000001A, 0x00000013}, // L[3]
+}, // T.state[ 6].w =  10
+{ // R[ 7] abcde
+{0x00000088, 0x00000098, 0x000000C4, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000083, 0x00000004, 0x0000006C, 0x00000020}, // L[1]
+{0x00000062, 0x00000006, 0x00000010, 0x00000090, 0x00000080}, // L[2]
+{0x00000013, 0x000000C1, 0x0000000E, 0x00000048, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000047, 0x00000080, 0x00000048, 0x00000049}, // L[0]
+{0x00000089, 0x0000000D, 0x00000042, 0x00000046, 0x00000084}, // L[1]
+{0x00000062, 0x00000007, 0x00000002, 0x0000006C, 0x00000061}, // L[2]
+{0x00000013, 0x00000035, 0x00000020, 0x00000090, 0x00000042}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000049, 0x00000047, 0x00000080, 0x00000080, 0x00000000}, // L[0]
+{0x00000084, 0x0000000D, 0x00000042, 0x00000061, 0x00000021}, // L[1]
+{0x00000061, 0x00000007, 0x00000002, 0x00000086, 0x00000084}, // L[2]
+{0x00000042, 0x00000035, 0x00000020, 0x00000069, 0x00000009}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x00000049, 0x000000E8, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000084, 0x00000085, 0x00000021, 0x00000061, 0x00000000}, // L[1]
+{0x00000061, 0x00000070, 0x00000084, 0x00000086, 0x00000000}, // L[2]
+{0x00000042, 0x00000087, 0x00000009, 0x00000069, 0x00000000}, // L[3]
+}, // T.state[10].w =  12
+// T.w =  84
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 84 -> 83
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000020, 0x00000000, 0x00000000, 0x000000E0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x000000C4}, // L[0]
+{0x00000008, 0x00000018, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x000000E0, 0x00000020, 0x00000000, 0x00000070, 0x00000010}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000E}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000098, 0x000000C4, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000083, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x000000E0, 0x00000006, 0x00000010, 0x00000070, 0x00000062}, // L[2]
+{0x00000030, 0x000000C1, 0x0000000E, 0x0000001A, 0x00000013}, // L[3]
+}, // T.state[ 6].w =  10
+{ // R[ 7] abcde
+{0x00000088, 0x00000098, 0x000000C4, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000083, 0x00000004, 0x0000006C, 0x00000020}, // L[1]
+{0x00000062, 0x00000006, 0x00000010, 0x00000090, 0x00000080}, // L[2]
+{0x00000013, 0x000000C1, 0x0000000E, 0x00000048, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000047, 0x00000080, 0x00000048, 0x00000041}, // L[0]
+{0x00000089, 0x0000000D, 0x00000042, 0x00000046, 0x00000086}, // L[1]
+{0x00000062, 0x00000007, 0x00000002, 0x0000006C, 0x00000061}, // L[2]
+{0x00000013, 0x00000035, 0x00000020, 0x00000090, 0x00000000}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000041, 0x00000047, 0x00000080, 0x00000084, 0x00000004}, // L[0]
+{0x00000086, 0x0000000D, 0x00000042, 0x00000060, 0x00000022}, // L[1]
+{0x00000061, 0x00000007, 0x00000002, 0x00000086, 0x00000080}, // L[2]
+{0x00000000, 0x00000035, 0x00000020, 0x00000048, 0x00000028}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x00000041, 0x00000068, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000086, 0x000000E5, 0x00000022, 0x00000060, 0x00000000}, // L[1]
+{0x00000061, 0x000000F0, 0x00000080, 0x00000086, 0x00000000}, // L[2]
+{0x00000000, 0x000000A3, 0x00000028, 0x00000048, 0x00000000}, // L[3]
+}, // T.state[10].w =  11
+// T.w =  83
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 83 -> 82
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000020, 0x00000000, 0x00000000, 0x000000E0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x000000C4}, // L[0]
+{0x00000008, 0x00000018, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x000000E0, 0x00000020, 0x00000000, 0x00000070, 0x00000010}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000E}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000098, 0x000000C4, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000083, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x000000E0, 0x00000006, 0x00000010, 0x00000070, 0x00000062}, // L[2]
+{0x00000030, 0x000000C1, 0x0000000E, 0x0000001A, 0x00000013}, // L[3]
+}, // T.state[ 6].w =  10
+{ // R[ 7] abcde
+{0x00000088, 0x00000098, 0x000000C4, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000083, 0x00000004, 0x0000006C, 0x00000020}, // L[1]
+{0x00000062, 0x00000006, 0x00000010, 0x00000090, 0x00000080}, // L[2]
+{0x00000013, 0x000000C1, 0x0000000E, 0x00000048, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000047, 0x00000080, 0x00000048, 0x00000049}, // L[0]
+{0x00000089, 0x0000000D, 0x00000042, 0x00000046, 0x00000086}, // L[1]
+{0x00000062, 0x00000007, 0x00000002, 0x0000006C, 0x00000061}, // L[2]
+{0x00000013, 0x00000035, 0x00000020, 0x00000090, 0x00000000}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000049, 0x00000047, 0x00000080, 0x00000080, 0x00000000}, // L[0]
+{0x00000086, 0x0000000D, 0x00000042, 0x00000060, 0x00000022}, // L[1]
+{0x00000061, 0x00000007, 0x00000002, 0x00000086, 0x00000088}, // L[2]
+{0x00000000, 0x00000035, 0x00000020, 0x00000048, 0x00000078}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x00000049, 0x000000E8, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000086, 0x000000E5, 0x00000022, 0x00000060, 0x00000000}, // L[1]
+{0x00000061, 0x000000F1, 0x00000088, 0x00000086, 0x00000000}, // L[2]
+{0x00000000, 0x000000A9, 0x00000078, 0x00000048, 0x00000000}, // L[3]
+}, // T.state[10].w =  10
+// T.w =  82
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 82 -> 81
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000020, 0x00000000, 0x00000000, 0x000000E0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x000000C4}, // L[0]
+{0x00000008, 0x00000018, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x000000E0, 0x00000020, 0x00000000, 0x00000070, 0x00000010}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000E}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000098, 0x000000C4, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000083, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x000000E0, 0x00000006, 0x00000010, 0x00000070, 0x00000062}, // L[2]
+{0x00000030, 0x000000C1, 0x0000000E, 0x0000001A, 0x00000013}, // L[3]
+}, // T.state[ 6].w =  10
+{ // R[ 7] abcde
+{0x00000088, 0x00000098, 0x000000C4, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000083, 0x00000004, 0x0000006C, 0x00000020}, // L[1]
+{0x00000062, 0x00000006, 0x00000010, 0x00000090, 0x00000080}, // L[2]
+{0x00000013, 0x000000C1, 0x0000000E, 0x00000048, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000047, 0x00000080, 0x00000048, 0x00000049}, // L[0]
+{0x00000089, 0x0000000D, 0x00000042, 0x00000046, 0x00000086}, // L[1]
+{0x00000062, 0x00000007, 0x00000002, 0x0000006C, 0x00000069}, // L[2]
+{0x00000013, 0x00000035, 0x00000020, 0x00000090, 0x00000000}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000049, 0x00000047, 0x00000080, 0x00000080, 0x00000000}, // L[0]
+{0x00000086, 0x0000000D, 0x00000042, 0x00000060, 0x00000022}, // L[1]
+{0x00000069, 0x00000007, 0x00000002, 0x00000082, 0x00000084}, // L[2]
+{0x00000000, 0x00000035, 0x00000020, 0x00000048, 0x00000038}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x00000049, 0x000000E8, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000086, 0x000000E5, 0x00000022, 0x00000060, 0x00000000}, // L[1]
+{0x00000069, 0x00000070, 0x00000084, 0x00000082, 0x00000000}, // L[2]
+{0x00000000, 0x000000A1, 0x00000038, 0x00000048, 0x00000000}, // L[3]
+}, // T.state[10].w =   9
+// T.w =  81
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 81 -> 80
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000020, 0x00000000, 0x00000000, 0x000000E0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x000000C4}, // L[0]
+{0x00000008, 0x00000018, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x000000E0, 0x00000020, 0x00000000, 0x00000070, 0x00000010}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000E}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000098, 0x000000C4, 0x00000040, 0x00000098}, // L[0]
+{0x00000008, 0x00000083, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x000000E0, 0x00000006, 0x00000010, 0x00000070, 0x00000062}, // L[2]
+{0x00000030, 0x000000C1, 0x0000000E, 0x0000001A, 0x00000053}, // L[3]
+}, // T.state[ 6].w =  10
+{ // R[ 7] abcde
+{0x00000098, 0x00000098, 0x000000C4, 0x000000C6, 0x00000002}, // L[0]
+{0x00000089, 0x00000083, 0x00000004, 0x0000006C, 0x000000A0}, // L[1]
+{0x00000062, 0x00000006, 0x00000010, 0x00000090, 0x00000080}, // L[2]
+{0x00000053, 0x000000C1, 0x0000000E, 0x0000004A, 0x000000C0}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000098, 0x00000046, 0x00000080, 0x0000004A, 0x0000004A}, // L[0]
+{0x00000089, 0x0000000D, 0x000000C0, 0x000000C6, 0x00000086}, // L[1]
+{0x00000062, 0x00000002, 0x00000002, 0x0000006C, 0x00000064}, // L[2]
+{0x00000053, 0x00000035, 0x000000A0, 0x00000090, 0x00000080}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x0000004A, 0x00000046, 0x00000080, 0x00000000, 0x00000080}, // L[0]
+{0x00000086, 0x0000000D, 0x000000C0, 0x00000020, 0x00000020}, // L[1]
+{0x00000064, 0x00000002, 0x00000002, 0x00000004, 0x00000006}, // L[2]
+{0x00000080, 0x00000035, 0x000000A0, 0x00000008, 0x000000E8}, // L[3]
+}, // T.state[ 9].w =  19
+{ // R[10] abcde
+{0x0000004A, 0x000000D8, 0x00000080, 0x00000000, 0x00000000}, // L[0]
+{0x00000086, 0x000000A5, 0x00000020, 0x00000020, 0x00000000}, // L[1]
+{0x00000064, 0x00000080, 0x00000006, 0x00000004, 0x00000000}, // L[2]
+{0x00000080, 0x000000BB, 0x000000E8, 0x00000008, 0x00000000}, // L[3]
+}, // T.state[10].w =   9
+// T.w =  80
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 80 -> 65
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000021}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000021, 0x00000021, 0x00000000, 0x00000090, 0x000000B0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000021, 0x00000032, 0x000000B0, 0x00000090, 0x00000011}, // L[2]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000033}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000011, 0x00000032, 0x000000B0, 0x0000000C, 0x00000084}, // L[2]
+{0x00000033, 0x00000001, 0x00000008, 0x000000D9, 0x00000041}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000020, 0x00000084, 0x000000D9, 0x00000028}, // L[0]
+{0x00000010, 0x0000006D, 0x00000041, 0x00000042, 0x00000005}, // L[1]
+{0x00000011, 0x00000080, 0x00000002, 0x00000080, 0x00000091}, // L[2]
+{0x00000033, 0x00000014, 0x00000000, 0x0000000C, 0x00000001}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000028, 0x00000020, 0x00000084, 0x000000F8, 0x00000004}, // L[0]
+{0x00000005, 0x0000006D, 0x00000041, 0x000000A3, 0x00000020}, // L[1]
+{0x00000091, 0x00000080, 0x00000002, 0x00000088, 0x0000008A}, // L[2]
+{0x00000001, 0x00000014, 0x00000000, 0x00000086, 0x00000082}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000028, 0x00000084, 0x00000004, 0x000000F8, 0x00000000}, // L[0]
+{0x00000005, 0x000000A9, 0x00000020, 0x000000A3, 0x00000000}, // L[1]
+{0x00000091, 0x00000041, 0x0000008A, 0x00000088, 0x00000000}, // L[2]
+{0x00000001, 0x000000D2, 0x00000082, 0x00000086, 0x00000000}, // L[3]
+}, // T.state[10].w =  17
+// T.w =  65
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 65 -> 64
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000021}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000021, 0x00000021, 0x00000000, 0x00000090, 0x000000B0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000021, 0x00000032, 0x000000B0, 0x00000090, 0x00000011}, // L[2]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000033}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000011, 0x00000032, 0x000000B0, 0x0000000C, 0x00000084}, // L[2]
+{0x00000033, 0x00000001, 0x00000008, 0x000000D9, 0x00000041}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000020, 0x00000084, 0x000000D9, 0x00000068}, // L[0]
+{0x00000010, 0x0000006D, 0x00000041, 0x00000042, 0x000000C5}, // L[1]
+{0x00000011, 0x00000080, 0x00000002, 0x00000080, 0x00000091}, // L[2]
+{0x00000033, 0x00000014, 0x00000000, 0x0000000C, 0x00000021}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000068, 0x00000020, 0x00000084, 0x000000D8, 0x00000044}, // L[0]
+{0x000000C5, 0x0000006D, 0x00000041, 0x000000C3, 0x00000000}, // L[1]
+{0x00000091, 0x00000080, 0x00000002, 0x00000088, 0x0000008A}, // L[2]
+{0x00000021, 0x00000014, 0x00000000, 0x00000096, 0x00000092}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000068, 0x0000008C, 0x00000044, 0x000000D8, 0x00000000}, // L[0]
+{0x000000C5, 0x000000AD, 0x00000000, 0x000000C3, 0x00000000}, // L[1]
+{0x00000091, 0x00000041, 0x0000008A, 0x00000088, 0x00000000}, // L[2]
+{0x00000021, 0x000000D0, 0x00000092, 0x00000096, 0x00000000}, // L[3]
+}, // T.state[10].w =  16
+// T.w =  64
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 64 -> 62
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000021}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000021, 0x00000021, 0x00000000, 0x00000090, 0x000000B0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000021, 0x00000032, 0x000000B0, 0x00000090, 0x00000011}, // L[2]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000033}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000011, 0x00000032, 0x000000B0, 0x0000000C, 0x00000084}, // L[2]
+{0x00000033, 0x00000001, 0x00000008, 0x000000D9, 0x00000041}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000020, 0x00000084, 0x000000D9, 0x00000078}, // L[0]
+{0x00000010, 0x0000006D, 0x00000041, 0x00000042, 0x000000C5}, // L[1]
+{0x00000011, 0x00000080, 0x00000002, 0x00000080, 0x00000091}, // L[2]
+{0x00000033, 0x00000014, 0x00000000, 0x0000000C, 0x00000001}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000078, 0x00000020, 0x00000084, 0x000000D0, 0x00000054}, // L[0]
+{0x000000C5, 0x0000006D, 0x00000041, 0x000000C3, 0x00000000}, // L[1]
+{0x00000091, 0x00000080, 0x00000002, 0x00000088, 0x0000008A}, // L[2]
+{0x00000001, 0x00000014, 0x00000000, 0x00000086, 0x00000082}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000078, 0x0000008E, 0x00000054, 0x000000D0, 0x00000000}, // L[0]
+{0x000000C5, 0x000000AD, 0x00000000, 0x000000C3, 0x00000000}, // L[1]
+{0x00000091, 0x00000041, 0x0000008A, 0x00000088, 0x00000000}, // L[2]
+{0x00000001, 0x000000D2, 0x00000082, 0x00000086, 0x00000000}, // L[3]
+}, // T.state[10].w =  14
+// T.w =  62
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 62 -> 61
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000021}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000021, 0x00000021, 0x00000000, 0x00000090, 0x000000B0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000021, 0x00000032, 0x000000B0, 0x00000090, 0x00000011}, // L[2]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000033}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000011, 0x00000032, 0x000000B0, 0x0000000C, 0x00000084}, // L[2]
+{0x00000033, 0x00000001, 0x00000008, 0x000000D9, 0x000000C1}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000020, 0x00000084, 0x000000D9, 0x00000068}, // L[0]
+{0x00000010, 0x0000006D, 0x000000C1, 0x00000042, 0x00000045}, // L[1]
+{0x00000011, 0x00000081, 0x00000002, 0x00000080, 0x00000090}, // L[2]
+{0x00000033, 0x00000014, 0x00000000, 0x0000000C, 0x00000009}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000068, 0x00000020, 0x00000084, 0x000000D8, 0x0000006C}, // L[0]
+{0x00000045, 0x0000006D, 0x000000C1, 0x00000083, 0x00000040}, // L[1]
+{0x00000090, 0x00000081, 0x00000002, 0x00000008, 0x0000000A}, // L[2]
+{0x00000009, 0x00000014, 0x00000000, 0x00000082, 0x00000086}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000068, 0x00000089, 0x0000006C, 0x000000D8, 0x00000000}, // L[0]
+{0x00000045, 0x000000A5, 0x00000040, 0x00000083, 0x00000000}, // L[1]
+{0x00000090, 0x00000071, 0x0000000A, 0x00000008, 0x00000000}, // L[2]
+{0x00000009, 0x00000052, 0x00000086, 0x00000082, 0x00000000}, // L[3]
+}, // T.state[10].w =  13
+// T.w =  61
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 61 -> 60
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000021}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000021, 0x00000021, 0x00000000, 0x00000090, 0x000000B0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000021, 0x00000032, 0x000000B0, 0x00000090, 0x00000011}, // L[2]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000033}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000082}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000011, 0x00000032, 0x000000B0, 0x0000000C, 0x00000084}, // L[2]
+{0x00000033, 0x00000001, 0x00000008, 0x000000D9, 0x000000C1}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000020, 0x00000084, 0x000000D9, 0x00000068}, // L[0]
+{0x00000010, 0x0000006D, 0x000000C1, 0x00000042, 0x00000047}, // L[1]
+{0x00000011, 0x00000081, 0x00000082, 0x00000080, 0x00000090}, // L[2]
+{0x00000033, 0x00000015, 0x00000000, 0x0000000C, 0x0000000C}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000068, 0x00000020, 0x00000084, 0x000000D8, 0x00000064}, // L[0]
+{0x00000047, 0x0000006D, 0x000000C1, 0x00000082, 0x00000047}, // L[1]
+{0x00000090, 0x00000081, 0x00000082, 0x00000008, 0x0000009E}, // L[2]
+{0x0000000C, 0x00000015, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000068, 0x00000088, 0x00000064, 0x000000D8, 0x00000000}, // L[0]
+{0x00000047, 0x00000045, 0x00000047, 0x00000082, 0x00000000}, // L[1]
+{0x00000090, 0x000000E3, 0x0000009E, 0x00000008, 0x00000000}, // L[2]
+{0x0000000C, 0x000000A2, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[10].w =  12
+// T.w =  60
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 60 -> 59
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000021}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000021, 0x00000021, 0x00000000, 0x00000090, 0x000000B0}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000008, 0x00000008}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000021, 0x00000032, 0x000000B0, 0x00000090, 0x00000031}, // L[2]
+{0x00000010, 0x00000001, 0x00000008, 0x00000008, 0x00000013}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000031, 0x00000032, 0x000000B0, 0x0000000D, 0x000000B5}, // L[2]
+{0x00000013, 0x00000001, 0x00000008, 0x000000D8, 0x000000C0}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000020, 0x000000B5, 0x000000D8, 0x00000038}, // L[0]
+{0x00000010, 0x0000000F, 0x000000C0, 0x00000042, 0x00000003}, // L[1]
+{0x00000031, 0x00000083, 0x00000002, 0x00000080, 0x00000090}, // L[2]
+{0x00000013, 0x00000014, 0x00000000, 0x0000000D, 0x0000000D}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000038, 0x00000020, 0x000000B5, 0x00000070, 0x0000000D}, // L[0]
+{0x00000003, 0x0000000F, 0x000000C0, 0x000000A0, 0x00000020}, // L[1]
+{0x00000090, 0x00000083, 0x00000002, 0x00000008, 0x0000000E}, // L[2]
+{0x0000000D, 0x00000014, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000038, 0x000000A5, 0x0000000D, 0x00000070, 0x00000000}, // L[0]
+{0x00000003, 0x000000E5, 0x00000020, 0x000000A0, 0x00000000}, // L[1]
+{0x00000090, 0x000000B1, 0x0000000E, 0x00000008, 0x00000000}, // L[2]
+{0x0000000D, 0x00000082, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[10].w =  11
+// T.w =  59
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 59 -> 38
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000071}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000071, 0x00000050, 0x00000083, 0x00000087, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x0000000A, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000B4, 0x00000000, 0x00000000, 0x00000084}, // L[1]
+{0x00000071, 0x00000000, 0x00000000, 0x00000080, 0x00000011}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000087, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   5
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x0000000A, 0x00000010, 0x0000000A}, // L[0]
+{0x00000084, 0x000000B4, 0x00000000, 0x00000042, 0x00000042}, // L[1]
+{0x00000011, 0x00000000, 0x00000000, 0x000000C8, 0x00000048}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C3, 0x00000041}, // L[3]
+}, // T.state[ 9].w =   9
+{ // R[10] abcde
+{0x00000020, 0x00000045, 0x0000000A, 0x00000010, 0x00000000}, // L[0]
+{0x00000084, 0x000000DE, 0x00000042, 0x00000042, 0x00000000}, // L[1]
+{0x00000011, 0x00000009, 0x00000048, 0x000000C8, 0x00000000}, // L[2]
+{0x00000000, 0x00000028, 0x00000041, 0x000000C3, 0x00000000}, // L[3]
+}, // T.state[10].w =  12
+// T.w =  38
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 38 -> 37
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000071}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000071, 0x00000050, 0x00000083, 0x00000087, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x0000000A, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000B4, 0x00000000, 0x00000000, 0x00000084}, // L[1]
+{0x00000071, 0x00000000, 0x00000000, 0x00000080, 0x00000091}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000087, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   5
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x0000000A, 0x00000010, 0x0000002A}, // L[0]
+{0x00000084, 0x000000B4, 0x00000000, 0x00000042, 0x00000042}, // L[1]
+{0x00000091, 0x00000000, 0x00000000, 0x00000088, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C3, 0x00000041}, // L[3]
+}, // T.state[ 9].w =   9
+{ // R[10] abcde
+{0x00000020, 0x00000041, 0x0000002A, 0x00000010, 0x00000000}, // L[0]
+{0x00000084, 0x000000DE, 0x00000042, 0x00000042, 0x00000000}, // L[1]
+{0x00000091, 0x00000011, 0x00000088, 0x00000088, 0x00000000}, // L[2]
+{0x00000000, 0x00000028, 0x00000041, 0x000000C3, 0x00000000}, // L[3]
+}, // T.state[10].w =  11
+// T.w =  37
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 37 -> 26
+#if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 11
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000098}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000098, 0x00000008, 0x00000040, 0x000000C6, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   2
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000014, 0x00000000, 0x00000000, 0x00000034}, // L[2]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x00000021}, // L[0]
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[1]
+{0x00000034, 0x00000014, 0x00000000, 0x0000001A, 0x0000000A}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000044, 0x00000044}, // L[3]
+}, // T.state[ 9].w =   5
+{ // R[10] abcde
+{0x00000000, 0x00000024, 0x00000021, 0x00000063, 0x00000000}, // L[0]
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000000}, // L[1]
+{0x00000034, 0x000000C3, 0x0000000A, 0x0000001A, 0x00000000}, // L[2]
+{0x00000088, 0x00000088, 0x00000044, 0x00000044, 0x00000000}, // L[3]
+}, // T.state[10].w =  10
+// T.w =  26
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 10 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 10 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+B[ 4]  4
+B[ 5]  5
+B[ 6]  6
+B[ 7]  8
+B[ 8] 11
+B[ 9] 26
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 126 -> 98
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000012}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000002}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000040, 0x00000044}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000018, 0x00000043, 0x00000012, 0x0000000E, 0x000000EB}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000041, 0x00000002, 0x0000000E, 0x00000049}, // L[2]
+{0x00000080, 0x00000088, 0x00000044, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   9
+{ // R[ 7] abcde
+{0x000000EB, 0x00000043, 0x00000012, 0x0000002F, 0x00000001}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000049, 0x00000041, 0x00000002, 0x0000003A, 0x00000008}, // L[2]
+{0x00000008, 0x00000088, 0x00000044, 0x00000042, 0x00000082}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x000000EB, 0x00000001, 0x00000008, 0x00000042, 0x00000068}, // L[0]
+{0x00000080, 0x00000092, 0x00000082, 0x0000002F, 0x00000012}, // L[1]
+{0x00000049, 0x00000014, 0x00000001, 0x00000004, 0x00000047}, // L[2]
+{0x00000008, 0x00000084, 0x00000000, 0x0000003A, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000068, 0x00000001, 0x00000008, 0x00000015, 0x00000005}, // L[0]
+{0x00000012, 0x00000092, 0x00000082, 0x0000009E, 0x00000020}, // L[1]
+{0x00000047, 0x00000014, 0x00000001, 0x000000A1, 0x000000A0}, // L[2]
+{0x00000094, 0x00000084, 0x00000000, 0x00000057, 0x00000053}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000068, 0x00000080, 0x00000005, 0x00000015, 0x00000028}, // L[0]
+{0x00000012, 0x00000056, 0x00000020, 0x0000009E, 0x00000060}, // L[1]
+{0x00000047, 0x00000096, 0x000000A0, 0x000000A1, 0x00000051}, // L[2]
+{0x00000094, 0x000000FA, 0x00000053, 0x00000057, 0x00000006}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x00000028, 0x00000080, 0x00000005, 0x000000E9, 0x00000000}, // L[0]
+{0x00000060, 0x00000056, 0x00000020, 0x000000F7, 0x00000000}, // L[1]
+{0x00000051, 0x00000096, 0x000000A0, 0x00000087, 0x00000000}, // L[2]
+{0x00000006, 0x000000FA, 0x00000053, 0x0000008A, 0x00000000}, // L[3]
+}, // T.state[11].w =  21
+// T.w =  98
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 98 -> 97
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000012}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000002}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000040, 0x00000044}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000018, 0x00000043, 0x00000012, 0x0000000E, 0x000000EB}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000041, 0x00000002, 0x0000000E, 0x00000049}, // L[2]
+{0x00000080, 0x00000088, 0x00000044, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   9
+{ // R[ 7] abcde
+{0x000000EB, 0x00000043, 0x00000012, 0x0000002F, 0x00000001}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000049, 0x00000041, 0x00000002, 0x0000003A, 0x00000008}, // L[2]
+{0x00000008, 0x00000088, 0x00000044, 0x00000042, 0x00000082}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x000000EB, 0x00000001, 0x00000008, 0x00000042, 0x00000068}, // L[0]
+{0x00000080, 0x00000092, 0x00000082, 0x0000002F, 0x00000012}, // L[1]
+{0x00000049, 0x00000014, 0x00000001, 0x00000004, 0x00000047}, // L[2]
+{0x00000008, 0x00000084, 0x00000000, 0x0000003A, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000068, 0x00000001, 0x00000008, 0x00000015, 0x00000005}, // L[0]
+{0x00000012, 0x00000092, 0x00000082, 0x0000009E, 0x00000018}, // L[1]
+{0x00000047, 0x00000014, 0x00000001, 0x000000A1, 0x000000A2}, // L[2]
+{0x00000094, 0x00000084, 0x00000000, 0x00000057, 0x00000071}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000068, 0x00000080, 0x00000005, 0x00000015, 0x00000028}, // L[0]
+{0x00000012, 0x00000051, 0x00000018, 0x0000009E, 0x00000041}, // L[1]
+{0x00000047, 0x000000D6, 0x000000A2, 0x000000A1, 0x00000031}, // L[2]
+{0x00000094, 0x000000BE, 0x00000071, 0x00000057, 0x00000002}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x00000028, 0x00000080, 0x00000005, 0x000000E9, 0x00000000}, // L[0]
+{0x00000041, 0x00000051, 0x00000018, 0x000000FE, 0x00000000}, // L[1]
+{0x00000031, 0x000000D6, 0x000000A2, 0x00000084, 0x00000000}, // L[2]
+{0x00000002, 0x000000BE, 0x00000071, 0x000000AA, 0x00000000}, // L[3]
+}, // T.state[11].w =  20
+// T.w =  97
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 97 -> 96
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000012}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000002}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000040, 0x00000044}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000018, 0x00000043, 0x00000012, 0x0000000E, 0x000000EB}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000041, 0x00000002, 0x0000000E, 0x00000049}, // L[2]
+{0x00000080, 0x00000088, 0x00000044, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   9
+{ // R[ 7] abcde
+{0x000000EB, 0x00000043, 0x00000012, 0x0000002F, 0x00000001}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000049, 0x00000041, 0x00000002, 0x0000003A, 0x00000008}, // L[2]
+{0x00000008, 0x00000088, 0x00000044, 0x00000042, 0x00000082}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x000000EB, 0x00000001, 0x00000008, 0x00000042, 0x00000068}, // L[0]
+{0x00000080, 0x00000092, 0x00000082, 0x0000002F, 0x00000012}, // L[1]
+{0x00000049, 0x00000014, 0x00000001, 0x00000004, 0x00000047}, // L[2]
+{0x00000008, 0x00000084, 0x00000000, 0x0000003A, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000068, 0x00000001, 0x00000008, 0x00000015, 0x00000007}, // L[0]
+{0x00000012, 0x00000092, 0x00000082, 0x0000009E, 0x00000000}, // L[1]
+{0x00000047, 0x00000014, 0x00000001, 0x000000A1, 0x000000A0}, // L[2]
+{0x00000094, 0x00000084, 0x00000000, 0x00000057, 0x00000071}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000068, 0x000000C0, 0x00000007, 0x00000015, 0x00000028}, // L[0]
+{0x00000012, 0x00000052, 0x00000000, 0x0000009E, 0x00000040}, // L[1]
+{0x00000047, 0x00000096, 0x000000A0, 0x000000A1, 0x00000051}, // L[2]
+{0x00000094, 0x000000BE, 0x00000071, 0x00000057, 0x00000006}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x00000028, 0x000000C0, 0x00000007, 0x000000E9, 0x00000000}, // L[0]
+{0x00000040, 0x00000052, 0x00000000, 0x000000F6, 0x00000000}, // L[1]
+{0x00000051, 0x00000096, 0x000000A0, 0x00000087, 0x00000000}, // L[2]
+{0x00000006, 0x000000BE, 0x00000071, 0x0000008A, 0x00000000}, // L[3]
+}, // T.state[11].w =  19
+// T.w =  96
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 96 -> 95
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000012}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000002}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000040, 0x00000044}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000018, 0x00000043, 0x00000012, 0x0000000E, 0x000000EB}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000041, 0x00000002, 0x0000000E, 0x00000049}, // L[2]
+{0x00000080, 0x00000088, 0x00000044, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   9
+{ // R[ 7] abcde
+{0x000000EB, 0x00000043, 0x00000012, 0x0000002F, 0x00000001}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000049, 0x00000041, 0x00000002, 0x0000003A, 0x00000008}, // L[2]
+{0x00000008, 0x00000088, 0x00000044, 0x00000042, 0x00000082}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x000000EB, 0x00000001, 0x00000008, 0x00000042, 0x00000028}, // L[0]
+{0x00000080, 0x00000092, 0x00000082, 0x0000002F, 0x00000012}, // L[1]
+{0x00000049, 0x00000014, 0x00000001, 0x00000004, 0x000000C7}, // L[2]
+{0x00000008, 0x00000084, 0x00000000, 0x0000003A, 0x0000008C}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000028, 0x00000001, 0x00000008, 0x00000035, 0x00000005}, // L[0]
+{0x00000012, 0x00000092, 0x00000082, 0x0000009E, 0x00000000}, // L[1]
+{0x000000C7, 0x00000014, 0x00000001, 0x000000E1, 0x00000020}, // L[2]
+{0x0000008C, 0x00000084, 0x00000000, 0x0000005B, 0x000000C9}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000028, 0x00000080, 0x00000005, 0x00000035, 0x000000A8}, // L[0]
+{0x00000012, 0x00000052, 0x00000000, 0x0000009E, 0x00000040}, // L[1]
+{0x000000C7, 0x00000086, 0x00000020, 0x000000E1, 0x00000041}, // L[2]
+{0x0000008C, 0x000000A9, 0x000000C9, 0x0000005B, 0x00000035}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x000000A8, 0x00000080, 0x00000005, 0x000000EC, 0x00000000}, // L[0]
+{0x00000040, 0x00000052, 0x00000000, 0x000000F6, 0x00000000}, // L[1]
+{0x00000041, 0x00000086, 0x00000020, 0x00000005, 0x00000000}, // L[2]
+{0x00000035, 0x000000A9, 0x000000C9, 0x00000073, 0x00000000}, // L[3]
+}, // T.state[11].w =  16
+// T.w =  95
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 95 -> 92
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000012}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000002}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000040, 0x00000044}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000018, 0x00000043, 0x00000012, 0x0000000E, 0x000000EB}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000041, 0x00000002, 0x0000000E, 0x00000049}, // L[2]
+{0x00000080, 0x00000088, 0x00000044, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   9
+{ // R[ 7] abcde
+{0x000000EB, 0x00000043, 0x00000012, 0x0000002F, 0x00000041}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000049, 0x00000041, 0x00000002, 0x0000003A, 0x00000008}, // L[2]
+{0x00000008, 0x00000088, 0x00000044, 0x00000042, 0x00000002}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x000000EB, 0x00000001, 0x00000008, 0x00000042, 0x00000028}, // L[0]
+{0x00000080, 0x00000092, 0x00000002, 0x0000002F, 0x00000012}, // L[1]
+{0x00000049, 0x00000015, 0x00000041, 0x00000004, 0x000000CC}, // L[2]
+{0x00000008, 0x00000004, 0x00000000, 0x0000003A, 0x00000004}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000028, 0x00000001, 0x00000008, 0x00000035, 0x00000005}, // L[0]
+{0x00000012, 0x00000092, 0x00000002, 0x0000009E, 0x00000080}, // L[1]
+{0x000000CC, 0x00000015, 0x00000041, 0x00000064, 0x00000025}, // L[2]
+{0x00000004, 0x00000004, 0x00000000, 0x0000001F, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000028, 0x00000080, 0x00000005, 0x00000035, 0x000000E8}, // L[0]
+{0x00000012, 0x00000042, 0x00000080, 0x0000009E, 0x00000070}, // L[1]
+{0x000000CC, 0x00000006, 0x00000025, 0x00000064, 0x00000042}, // L[2]
+{0x00000004, 0x000000A0, 0x00000001, 0x0000001F, 0x000000A4}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x000000E8, 0x00000080, 0x00000005, 0x000000EE, 0x00000000}, // L[0]
+{0x00000070, 0x00000042, 0x00000080, 0x00000077, 0x00000000}, // L[1]
+{0x00000042, 0x00000006, 0x00000025, 0x00000031, 0x00000000}, // L[2]
+{0x000000A4, 0x000000A0, 0x00000001, 0x000000DD, 0x00000000}, // L[3]
+}, // T.state[11].w =  14
+// T.w =  92
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 92 -> 91
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000012}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000002}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000040, 0x00000044}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000018, 0x00000043, 0x00000012, 0x0000000E, 0x000000EB}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000041, 0x00000002, 0x0000000E, 0x00000049}, // L[2]
+{0x00000080, 0x00000088, 0x00000044, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   9
+{ // R[ 7] abcde
+{0x000000EB, 0x00000043, 0x00000012, 0x0000002F, 0x00000041}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000049, 0x00000041, 0x00000002, 0x0000003A, 0x00000008}, // L[2]
+{0x00000008, 0x00000088, 0x00000044, 0x00000042, 0x00000002}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x000000EB, 0x00000001, 0x00000008, 0x00000042, 0x000000A8}, // L[0]
+{0x00000080, 0x00000092, 0x00000002, 0x0000002F, 0x00000012}, // L[1]
+{0x00000049, 0x00000015, 0x00000041, 0x00000004, 0x0000004C}, // L[2]
+{0x00000008, 0x00000004, 0x00000000, 0x0000003A, 0x00000004}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x000000A8, 0x00000001, 0x00000008, 0x00000075, 0x00000005}, // L[0]
+{0x00000012, 0x00000092, 0x00000002, 0x0000009E, 0x00000080}, // L[1]
+{0x0000004C, 0x00000015, 0x00000041, 0x00000024, 0x00000067}, // L[2]
+{0x00000004, 0x00000004, 0x00000000, 0x0000001F, 0x00000025}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x000000A8, 0x00000080, 0x00000005, 0x00000075, 0x00000028}, // L[0]
+{0x00000012, 0x00000042, 0x00000080, 0x0000009E, 0x00000050}, // L[1]
+{0x0000004C, 0x0000004E, 0x00000067, 0x00000024, 0x0000000A}, // L[2]
+{0x00000004, 0x00000024, 0x00000025, 0x0000001F, 0x00000028}, // L[3]
+}, // T.state[10].w =  20
+{ // R[11] abcde
+{0x00000028, 0x00000080, 0x00000005, 0x000000EA, 0x00000000}, // L[0]
+{0x00000050, 0x00000042, 0x00000080, 0x00000076, 0x00000000}, // L[1]
+{0x0000000A, 0x0000004E, 0x00000067, 0x00000071, 0x00000000}, // L[2]
+{0x00000028, 0x00000024, 0x00000025, 0x000000B9, 0x00000000}, // L[3]
+}, // T.state[11].w =  12
+// T.w =  91
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 91 -> 90
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000012}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000002}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000040, 0x00000044}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000018, 0x00000043, 0x00000012, 0x0000000E, 0x000000EB}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000041, 0x00000002, 0x0000000E, 0x00000049}, // L[2]
+{0x00000080, 0x00000088, 0x00000044, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   9
+{ // R[ 7] abcde
+{0x000000EB, 0x00000043, 0x00000012, 0x0000002F, 0x00000041}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000049, 0x00000041, 0x00000002, 0x0000003A, 0x00000008}, // L[2]
+{0x00000008, 0x00000088, 0x00000044, 0x00000042, 0x00000002}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x000000EB, 0x00000001, 0x00000008, 0x00000042, 0x0000002A}, // L[0]
+{0x00000080, 0x00000092, 0x00000002, 0x0000002F, 0x00000016}, // L[1]
+{0x00000049, 0x00000015, 0x00000041, 0x00000004, 0x00000044}, // L[2]
+{0x00000008, 0x00000004, 0x00000000, 0x0000003A, 0x00000004}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x0000002A, 0x00000001, 0x00000008, 0x00000034, 0x00000004}, // L[0]
+{0x00000016, 0x00000092, 0x00000002, 0x0000009C, 0x00000082}, // L[1]
+{0x00000044, 0x00000015, 0x00000041, 0x00000020, 0x00000023}, // L[2]
+{0x00000004, 0x00000004, 0x00000000, 0x0000001F, 0x00000007}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x0000002A, 0x000000A0, 0x00000004, 0x00000034, 0x0000008A}, // L[0]
+{0x00000016, 0x00000002, 0x00000082, 0x0000009C, 0x00000010}, // L[1]
+{0x00000044, 0x000000C6, 0x00000023, 0x00000020, 0x0000000A}, // L[2]
+{0x00000004, 0x00000060, 0x00000007, 0x0000001F, 0x00000024}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x0000008A, 0x000000A0, 0x00000004, 0x000000F5, 0x00000000}, // L[0]
+{0x00000010, 0x00000002, 0x00000082, 0x00000064, 0x00000000}, // L[1]
+{0x0000000A, 0x000000C6, 0x00000023, 0x00000051, 0x00000000}, // L[2]
+{0x00000024, 0x00000060, 0x00000007, 0x000000D9, 0x00000000}, // L[3]
+}, // T.state[11].w =  14
+// T.w =  90
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 90 -> 89
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000004, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000012}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000E, 0x00000002}, // L[2]
+{0x00000080, 0x00000000, 0x00000004, 0x00000040, 0x00000044}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000018, 0x00000043, 0x00000012, 0x0000000E, 0x000000EB}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000041, 0x00000002, 0x0000000E, 0x00000049}, // L[2]
+{0x00000080, 0x00000088, 0x00000044, 0x00000040, 0x00000008}, // L[3]
+}, // T.state[ 6].w =   9
+{ // R[ 7] abcde
+{0x000000EB, 0x00000043, 0x00000012, 0x0000002F, 0x00000041}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000049, 0x00000041, 0x00000002, 0x0000003A, 0x00000008}, // L[2]
+{0x00000008, 0x00000088, 0x00000044, 0x00000042, 0x00000002}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x000000EB, 0x00000001, 0x00000008, 0x00000042, 0x0000002A}, // L[0]
+{0x00000080, 0x00000092, 0x00000002, 0x0000002F, 0x00000036}, // L[1]
+{0x00000049, 0x00000015, 0x00000041, 0x00000004, 0x00000044}, // L[2]
+{0x00000008, 0x00000004, 0x00000000, 0x0000003A, 0x00000004}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x0000002A, 0x00000001, 0x00000008, 0x00000034, 0x00000004}, // L[0]
+{0x00000036, 0x00000092, 0x00000002, 0x0000008C, 0x00000082}, // L[1]
+{0x00000044, 0x00000015, 0x00000041, 0x00000020, 0x00000021}, // L[2]
+{0x00000004, 0x00000004, 0x00000000, 0x0000001F, 0x00000005}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x0000002A, 0x000000A0, 0x00000004, 0x00000034, 0x0000008A}, // L[0]
+{0x00000036, 0x00000002, 0x00000082, 0x0000008C, 0x00000010}, // L[1]
+{0x00000044, 0x00000086, 0x00000021, 0x00000020, 0x00000042}, // L[2]
+{0x00000004, 0x00000020, 0x00000005, 0x0000001F, 0x0000002C}, // L[3]
+}, // T.state[10].w =  16
+{ // R[11] abcde
+{0x0000008A, 0x000000A0, 0x00000004, 0x000000F5, 0x00000000}, // L[0]
+{0x00000010, 0x00000002, 0x00000082, 0x000000E4, 0x00000000}, // L[1]
+{0x00000042, 0x00000086, 0x00000021, 0x00000013, 0x00000000}, // L[2]
+{0x0000002C, 0x00000020, 0x00000005, 0x00000099, 0x00000000}, // L[3]
+}, // T.state[11].w =  14
+// T.w =  89
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 89 -> 84
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000081}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x0000000F, 0x00000042, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x00000092, 0x00000082, 0x00000000, 0x00000014}, // L[2]
+{0x00000089, 0x00000035, 0x00000000, 0x000000B3, 0x00000084}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x0000000F, 0x00000042, 0x000000A1, 0x00000021}, // L[1]
+{0x00000014, 0x00000092, 0x00000082, 0x0000000A, 0x00000088}, // L[2]
+{0x00000084, 0x00000035, 0x00000000, 0x0000009B, 0x0000008D}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000028}, // L[0]
+{0x00000001, 0x000000C5, 0x00000021, 0x000000A1, 0x00000044}, // L[1]
+{0x00000014, 0x00000043, 0x00000088, 0x0000000A, 0x00000071}, // L[2]
+{0x00000084, 0x00000017, 0x0000008D, 0x0000009B, 0x0000009D}, // L[3]
+}, // T.state[10].w =  16
+{ // R[11] abcde
+{0x00000028, 0x00000010, 0x00000080, 0x00000059, 0x00000000}, // L[0]
+{0x00000044, 0x000000C5, 0x00000021, 0x0000002F, 0x00000000}, // L[1]
+{0x00000071, 0x00000043, 0x00000088, 0x000000DB, 0x00000000}, // L[2]
+{0x0000009D, 0x00000017, 0x0000008D, 0x00000030, 0x00000000}, // L[3]
+}, // T.state[11].w =  16
+// T.w =  84
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 84 -> 83
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000081}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x0000000F, 0x00000042, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x00000092, 0x00000082, 0x00000000, 0x00000014}, // L[2]
+{0x00000089, 0x00000035, 0x00000000, 0x000000B3, 0x00000084}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x0000000F, 0x00000042, 0x000000A1, 0x00000021}, // L[1]
+{0x00000014, 0x00000092, 0x00000082, 0x0000000A, 0x0000009C}, // L[2]
+{0x00000084, 0x00000035, 0x00000000, 0x0000009B, 0x00000099}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000008}, // L[0]
+{0x00000001, 0x000000C5, 0x00000021, 0x000000A1, 0x00000044}, // L[1]
+{0x00000014, 0x000000C1, 0x0000009C, 0x0000000A, 0x00000055}, // L[2]
+{0x00000084, 0x00000095, 0x00000099, 0x0000009B, 0x00000011}, // L[3]
+}, // T.state[10].w =  16
+{ // R[11] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000044, 0x000000C5, 0x00000021, 0x0000002F, 0x00000000}, // L[1]
+{0x00000055, 0x000000C1, 0x0000009C, 0x000000FA, 0x00000000}, // L[2]
+{0x00000011, 0x00000095, 0x00000099, 0x00000054, 0x00000000}, // L[3]
+}, // T.state[11].w =  15
+// T.w =  83
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 83 -> 82
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000081}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x0000000F, 0x00000042, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x00000092, 0x00000082, 0x00000000, 0x00000014}, // L[2]
+{0x00000089, 0x00000035, 0x00000000, 0x000000B3, 0x00000084}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x0000000F, 0x00000042, 0x000000A1, 0x00000023}, // L[1]
+{0x00000014, 0x00000092, 0x00000082, 0x0000000A, 0x00000098}, // L[2]
+{0x00000084, 0x00000035, 0x00000000, 0x0000009B, 0x000000A9}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000008}, // L[0]
+{0x00000001, 0x00000085, 0x00000023, 0x000000A1, 0x00000084}, // L[1]
+{0x00000014, 0x00000041, 0x00000098, 0x0000000A, 0x00000055}, // L[2]
+{0x00000084, 0x00000093, 0x000000A9, 0x0000009B, 0x00000013}, // L[3]
+}, // T.state[10].w =  16
+{ // R[11] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000084, 0x00000085, 0x00000023, 0x00000029, 0x00000000}, // L[1]
+{0x00000055, 0x00000041, 0x00000098, 0x000000FA, 0x00000000}, // L[2]
+{0x00000013, 0x00000093, 0x000000A9, 0x00000044, 0x00000000}, // L[3]
+}, // T.state[11].w =  14
+// T.w =  82
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 82 -> 81
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000081}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x0000000F, 0x00000042, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x00000092, 0x00000082, 0x00000000, 0x00000014}, // L[2]
+{0x00000089, 0x00000035, 0x00000000, 0x000000B3, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x0000000F, 0x00000042, 0x000000A1, 0x00000025}, // L[1]
+{0x00000014, 0x00000092, 0x00000082, 0x0000000A, 0x00000088}, // L[2]
+{0x00000094, 0x00000035, 0x00000000, 0x00000093, 0x00000093}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000008}, // L[0]
+{0x00000001, 0x00000045, 0x00000025, 0x000000A1, 0x00000044}, // L[1]
+{0x00000014, 0x00000043, 0x00000088, 0x0000000A, 0x00000071}, // L[2]
+{0x00000094, 0x000000D4, 0x00000093, 0x00000093, 0x00000040}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000044, 0x00000045, 0x00000025, 0x0000002F, 0x00000000}, // L[1]
+{0x00000071, 0x00000043, 0x00000088, 0x000000DB, 0x00000000}, // L[2]
+{0x00000040, 0x000000D4, 0x00000093, 0x0000009E, 0x00000000}, // L[3]
+}, // T.state[11].w =  14
+// T.w =  81
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 81 -> 80
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000081}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x0000000F, 0x00000042, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x00000092, 0x00000082, 0x00000000, 0x00000014}, // L[2]
+{0x00000089, 0x00000035, 0x00000000, 0x000000B3, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x0000000F, 0x00000042, 0x000000A1, 0x00000023}, // L[1]
+{0x00000014, 0x00000092, 0x00000082, 0x0000000A, 0x0000009C}, // L[2]
+{0x00000094, 0x00000035, 0x00000000, 0x00000093, 0x00000091}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000008}, // L[0]
+{0x00000001, 0x00000085, 0x00000023, 0x000000A1, 0x00000086}, // L[1]
+{0x00000014, 0x000000C1, 0x0000009C, 0x0000000A, 0x00000057}, // L[2]
+{0x00000094, 0x00000094, 0x00000091, 0x00000093, 0x00000000}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000086, 0x00000085, 0x00000023, 0x00000039, 0x00000000}, // L[1]
+{0x00000057, 0x000000C1, 0x0000009C, 0x000000EA, 0x00000000}, // L[2]
+{0x00000000, 0x00000094, 0x00000091, 0x0000009C, 0x00000000}, // L[3]
+}, // T.state[11].w =  13
+// T.w =  80
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 80 -> 79
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000081}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x0000000F, 0x00000042, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x00000092, 0x00000082, 0x00000000, 0x00000014}, // L[2]
+{0x00000089, 0x00000035, 0x00000000, 0x000000B3, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x0000000F, 0x00000042, 0x000000A1, 0x00000027}, // L[1]
+{0x00000014, 0x00000092, 0x00000082, 0x0000000A, 0x0000009C}, // L[2]
+{0x00000094, 0x00000035, 0x00000000, 0x00000093, 0x000000B1}, // L[3]
+}, // T.state[ 9].w =  17
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000008}, // L[0]
+{0x00000001, 0x00000005, 0x00000027, 0x000000A1, 0x00000004}, // L[1]
+{0x00000014, 0x000000C1, 0x0000009C, 0x0000000A, 0x00000057}, // L[2]
+{0x00000094, 0x00000090, 0x000000B1, 0x00000093, 0x00000004}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000004, 0x00000005, 0x00000027, 0x0000002D, 0x00000000}, // L[1]
+{0x00000057, 0x000000C1, 0x0000009C, 0x000000EA, 0x00000000}, // L[2]
+{0x00000004, 0x00000090, 0x000000B1, 0x000000BC, 0x00000000}, // L[3]
+}, // T.state[11].w =  12
+// T.w =  79
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 79 -> 78
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000081}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x0000006A}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x0000000F, 0x0000006A, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x000000C2, 0x00000002, 0x00000000, 0x00000020}, // L[2]
+{0x00000089, 0x00000034, 0x00000000, 0x000000B3, 0x00000085}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x0000000F, 0x0000006A, 0x000000A1, 0x0000000D}, // L[1]
+{0x00000020, 0x000000C2, 0x00000002, 0x00000010, 0x00000012}, // L[2]
+{0x00000085, 0x00000034, 0x00000000, 0x0000001B, 0x00000039}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000018}, // L[0]
+{0x00000001, 0x00000040, 0x0000000D, 0x000000A1, 0x00000043}, // L[1]
+{0x00000020, 0x0000001A, 0x00000012, 0x00000010, 0x0000000A}, // L[2]
+{0x00000085, 0x000000A1, 0x00000039, 0x0000001B, 0x00000024}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000018, 0x00000010, 0x00000080, 0x000000D8, 0x00000000}, // L[0]
+{0x00000043, 0x00000040, 0x0000000D, 0x00000017, 0x00000000}, // L[1]
+{0x0000000A, 0x0000001A, 0x00000012, 0x000000D0, 0x00000000}, // L[2]
+{0x00000024, 0x000000A1, 0x00000039, 0x000000F9, 0x00000000}, // L[3]
+}, // T.state[11].w =  12
+// T.w =  78
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 78 -> 77
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000081}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x0000006A}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x0000000F, 0x0000006A, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x000000C2, 0x00000002, 0x00000000, 0x00000020}, // L[2]
+{0x00000089, 0x00000034, 0x00000000, 0x000000B3, 0x00000085}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000081, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x0000000F, 0x0000006A, 0x000000A1, 0x0000000F}, // L[1]
+{0x00000020, 0x000000C2, 0x00000002, 0x00000010, 0x00000012}, // L[2]
+{0x00000085, 0x00000034, 0x00000000, 0x0000001B, 0x00000019}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000008}, // L[0]
+{0x00000001, 0x00000000, 0x0000000F, 0x000000A1, 0x00000001}, // L[1]
+{0x00000020, 0x0000001A, 0x00000012, 0x00000010, 0x0000000A}, // L[2]
+{0x00000085, 0x000000A5, 0x00000019, 0x0000001B, 0x00000022}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000001, 0x00000000, 0x0000000F, 0x00000005, 0x00000000}, // L[1]
+{0x0000000A, 0x0000001A, 0x00000012, 0x000000D0, 0x00000000}, // L[2]
+{0x00000022, 0x000000A5, 0x00000019, 0x000000C9, 0x00000000}, // L[3]
+}, // T.state[11].w =  11
+// T.w =  77
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 77 -> 76
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000058}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000018, 0x000000C0, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000066}, // L[2]
+{0x00000090, 0x0000000B, 0x00000058, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000008, 0x00000018, 0x000000C0, 0x00000042, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000066, 0x00000006, 0x00000010, 0x000000B3, 0x00000085}, // L[2]
+{0x00000089, 0x0000000B, 0x00000058, 0x0000000E, 0x00000062}, // L[3]
+}, // T.state[ 7].w =  10
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000085, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x00000007, 0x00000062, 0x00000042, 0x00000001}, // L[1]
+{0x00000066, 0x000000D2, 0x00000002, 0x00000000, 0x00000010}, // L[2]
+{0x00000089, 0x00000034, 0x00000000, 0x000000B3, 0x000000B7}, // L[3]
+}, // T.state[ 8].w =  13
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000085, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x00000007, 0x00000062, 0x000000A1, 0x00000007}, // L[1]
+{0x00000010, 0x000000D2, 0x00000002, 0x00000008, 0x0000001A}, // L[2]
+{0x000000B7, 0x00000034, 0x00000000, 0x00000002, 0x00000002}, // L[3]
+}, // T.state[ 9].w =  16
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000008}, // L[0]
+{0x00000001, 0x00000000, 0x00000007, 0x000000A1, 0x00000001}, // L[1]
+{0x00000010, 0x00000019, 0x0000001A, 0x00000008, 0x00000009}, // L[2]
+{0x000000B7, 0x000000C6, 0x00000002, 0x00000002, 0x00000019}, // L[3]
+}, // T.state[10].w =  12
+{ // R[11] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000001, 0x00000000, 0x00000007, 0x00000005, 0x00000000}, // L[1]
+{0x00000009, 0x00000019, 0x0000001A, 0x00000008, 0x00000000}, // L[2]
+{0x00000019, 0x000000C6, 0x00000002, 0x000000D8, 0x00000000}, // L[3]
+}, // T.state[11].w =  13
+// T.w =  76
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 76 -> 75
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x0000000C, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000018, 0x00000000, 0x00000000, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000002, 0x00000002}, // L[0]
+{0x00000008, 0x00000008, 0x0000000C, 0x00000004, 0x00000000}, // L[1]
+{0x00000088, 0x00000018, 0x00000000, 0x00000044, 0x0000004C}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000008, 0x00000001, 0x00000000, 0x00000004, 0x00000019}, // L[1]
+{0x00000088, 0x0000008A, 0x0000004C, 0x00000044, 0x00000002}, // L[2]
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[3]
+}, // T.state[ 6].w =   7
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000019, 0x00000001, 0x00000000, 0x000000E8, 0x00000028}, // L[1]
+{0x00000002, 0x0000008A, 0x0000004C, 0x00000032, 0x00000006}, // L[2]
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[3]
+}, // T.state[ 7].w =   7
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000052, 0x00000006, 0x00000012, 0x00000092}, // L[0]
+{0x00000019, 0x00000019, 0x00000010, 0x00000012, 0x00000000}, // L[1]
+{0x00000002, 0x000000A0, 0x00000010, 0x000000E8, 0x000000A2}, // L[2]
+{0x00000040, 0x000000A0, 0x00000028, 0x00000032, 0x00000020}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000092, 0x00000052, 0x00000006, 0x00000040, 0x0000004A}, // L[0]
+{0x00000000, 0x00000019, 0x00000010, 0x00000009, 0x00000009}, // L[1]
+{0x000000A2, 0x000000A0, 0x00000010, 0x00000025, 0x00000015}, // L[2]
+{0x00000020, 0x000000A0, 0x00000028, 0x00000009, 0x00000061}, // L[3]
+}, // T.state[ 9].w =  12
+{ // R[10] abcde
+{0x00000092, 0x00000003, 0x0000004A, 0x00000040, 0x00000091}, // L[0]
+{0x00000000, 0x00000002, 0x00000009, 0x00000009, 0x00000002}, // L[1]
+{0x000000A2, 0x000000B6, 0x00000015, 0x00000025, 0x00000014}, // L[2]
+{0x00000020, 0x00000038, 0x00000061, 0x00000009, 0x00000048}, // L[3]
+}, // T.state[10].w =  13
+{ // R[11] abcde
+{0x00000091, 0x00000003, 0x0000004A, 0x0000008E, 0x00000000}, // L[0]
+{0x00000002, 0x00000002, 0x00000009, 0x00000058, 0x00000000}, // L[1]
+{0x00000014, 0x000000B6, 0x00000015, 0x00000089, 0x00000000}, // L[2]
+{0x00000048, 0x00000038, 0x00000061, 0x0000000A, 0x00000000}, // L[3]
+}, // T.state[11].w =  13
+// T.w =  75
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 75 -> 73
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x0000000C, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000018, 0x00000000, 0x00000000, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000002, 0x00000002}, // L[0]
+{0x00000008, 0x00000008, 0x0000000C, 0x00000004, 0x00000000}, // L[1]
+{0x00000088, 0x00000018, 0x00000000, 0x00000044, 0x0000004C}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000008, 0x00000001, 0x00000000, 0x00000004, 0x00000019}, // L[1]
+{0x00000088, 0x0000008A, 0x0000004C, 0x00000044, 0x00000002}, // L[2]
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[3]
+}, // T.state[ 6].w =   7
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000019, 0x00000001, 0x00000000, 0x000000E8, 0x00000028}, // L[1]
+{0x00000002, 0x0000008A, 0x0000004C, 0x00000032, 0x00000006}, // L[2]
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[3]
+}, // T.state[ 7].w =   7
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000052, 0x00000006, 0x00000012, 0x00000092}, // L[0]
+{0x00000019, 0x00000019, 0x00000010, 0x00000012, 0x00000000}, // L[1]
+{0x00000002, 0x000000A0, 0x00000010, 0x000000E8, 0x000000A2}, // L[2]
+{0x00000040, 0x000000A0, 0x00000028, 0x00000032, 0x00000020}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000092, 0x00000052, 0x00000006, 0x00000040, 0x0000004A}, // L[0]
+{0x00000000, 0x00000019, 0x00000010, 0x00000009, 0x00000009}, // L[1]
+{0x000000A2, 0x000000A0, 0x00000010, 0x00000025, 0x00000035}, // L[2]
+{0x00000020, 0x000000A0, 0x00000028, 0x00000009, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  12
+{ // R[10] abcde
+{0x00000092, 0x00000003, 0x0000004A, 0x00000040, 0x00000091}, // L[0]
+{0x00000000, 0x00000002, 0x00000009, 0x00000009, 0x00000002}, // L[1]
+{0x000000A2, 0x000000B2, 0x00000035, 0x00000025, 0x00000010}, // L[2]
+{0x00000020, 0x00000030, 0x00000021, 0x00000009, 0x00000010}, // L[3]
+}, // T.state[10].w =  13
+{ // R[11] abcde
+{0x00000091, 0x00000003, 0x0000004A, 0x0000008E, 0x00000000}, // L[0]
+{0x00000002, 0x00000002, 0x00000009, 0x00000058, 0x00000000}, // L[1]
+{0x00000010, 0x000000B2, 0x00000035, 0x000000A9, 0x00000000}, // L[2]
+{0x00000010, 0x00000030, 0x00000021, 0x000000C8, 0x00000000}, // L[3]
+}, // T.state[11].w =  11
+// T.w =  73
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 73 -> 72
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x0000000C, 0x00000000, 0x00000008}, // L[1]
+{0x00000080, 0x00000018, 0x00000000, 0x00000000, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000002, 0x00000002}, // L[0]
+{0x00000008, 0x00000008, 0x0000000C, 0x00000004, 0x00000000}, // L[1]
+{0x00000088, 0x00000018, 0x00000000, 0x00000044, 0x0000004C}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[3]
+}, // T.state[ 5].w =   4
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000008, 0x00000001, 0x00000000, 0x00000004, 0x00000019}, // L[1]
+{0x00000088, 0x0000008A, 0x0000004C, 0x00000044, 0x00000002}, // L[2]
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[3]
+}, // T.state[ 6].w =   7
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000019, 0x00000001, 0x00000000, 0x000000E8, 0x00000028}, // L[1]
+{0x00000002, 0x0000008A, 0x0000004C, 0x00000032, 0x00000006}, // L[2]
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[3]
+}, // T.state[ 7].w =   7
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000052, 0x00000006, 0x00000012, 0x00000092}, // L[0]
+{0x00000019, 0x00000019, 0x00000010, 0x00000012, 0x00000000}, // L[1]
+{0x00000002, 0x000000A0, 0x00000010, 0x000000E8, 0x000000A2}, // L[2]
+{0x00000040, 0x000000A0, 0x00000028, 0x00000032, 0x00000020}, // L[3]
+}, // T.state[ 8].w =  14
+{ // R[ 9] abcde
+{0x00000092, 0x00000052, 0x00000006, 0x00000040, 0x000000CA}, // L[0]
+{0x00000000, 0x00000019, 0x00000010, 0x00000009, 0x00000019}, // L[1]
+{0x000000A2, 0x000000A0, 0x00000010, 0x00000025, 0x00000035}, // L[2]
+{0x00000020, 0x000000A0, 0x00000028, 0x00000009, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  12
+{ // R[10] abcde
+{0x00000092, 0x00000013, 0x000000CA, 0x00000040, 0x00000081}, // L[0]
+{0x00000000, 0x00000000, 0x00000019, 0x00000009, 0x00000000}, // L[1]
+{0x000000A2, 0x000000B2, 0x00000035, 0x00000025, 0x00000014}, // L[2]
+{0x00000020, 0x00000030, 0x00000021, 0x00000009, 0x00000010}, // L[3]
+}, // T.state[10].w =  13
+{ // R[11] abcde
+{0x00000081, 0x00000013, 0x000000CA, 0x0000000E, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000019, 0x00000048, 0x00000000}, // L[1]
+{0x00000014, 0x000000B2, 0x00000035, 0x00000089, 0x00000000}, // L[2]
+{0x00000010, 0x00000030, 0x00000021, 0x000000C8, 0x00000000}, // L[3]
+}, // T.state[11].w =  10
+// T.w =  72
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 72 -> 71
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000008}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000008, 0x00000008, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000008, 0x00000081, 0x00000004, 0x00000004, 0x00000099}, // L[2]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000EC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000018, 0x000000C0, 0x00000046, 0x0000000A}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x00000041}, // L[0]
+{0x00000080, 0x00000042, 0x0000000A, 0x00000012, 0x00000046}, // L[1]
+{0x00000099, 0x00000024, 0x00000010, 0x00000004, 0x000000C5}, // L[2]
+{0x00000088, 0x000000A0, 0x00000000, 0x000000EC, 0x00000028}, // L[3]
+}, // T.state[ 8].w =  12
+{ // R[ 9] abcde
+{0x00000041, 0x00000001, 0x000000A0, 0x00000083, 0x00000023}, // L[0]
+{0x00000046, 0x00000042, 0x0000000A, 0x0000002A, 0x00000070}, // L[1]
+{0x000000C5, 0x00000024, 0x00000010, 0x000000E0, 0x00000030}, // L[2]
+{0x00000028, 0x000000A0, 0x00000000, 0x00000062, 0x000000E2}, // L[3]
+}, // T.state[ 9].w =  14
+{ // R[10] abcde
+{0x00000041, 0x00000044, 0x00000023, 0x00000083, 0x00000005}, // L[0]
+{0x00000046, 0x00000046, 0x00000070, 0x0000002A, 0x00000000}, // L[1]
+{0x000000C5, 0x00000082, 0x00000030, 0x000000E0, 0x00000041}, // L[2]
+{0x00000028, 0x00000048, 0x000000E2, 0x00000062, 0x00000030}, // L[3]
+}, // T.state[10].w =  14
+{ // R[11] abcde
+{0x00000005, 0x00000044, 0x00000023, 0x00000034, 0x00000000}, // L[0]
+{0x00000000, 0x00000046, 0x00000070, 0x00000051, 0x00000000}, // L[1]
+{0x00000041, 0x00000082, 0x00000030, 0x0000000D, 0x00000000}, // L[2]
+{0x00000030, 0x00000048, 0x000000E2, 0x00000092, 0x00000000}, // L[3]
+}, // T.state[11].w =  14
+// T.w =  71
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 71 -> 70
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000020}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000020, 0x00000000, 0x00000010, 0x00000010}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000048, 0x00000048}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000018}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000020, 0x00000006, 0x00000010, 0x00000010, 0x00000062}, // L[2]
+{0x00000090, 0x00000009, 0x00000048, 0x00000048, 0x00000089}, // L[3]
+}, // T.state[ 6].w =   4
+{ // R[ 7] abcde
+{0x00000018, 0x00000008, 0x00000040, 0x000000C2, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000062, 0x00000006, 0x00000010, 0x00000093, 0x00000085}, // L[2]
+{0x00000089, 0x00000009, 0x00000048, 0x0000000E, 0x0000005A}, // L[3]
+}, // T.state[ 7].w =   8
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000018, 0x00000000, 0x00000085, 0x0000000E, 0x00000008}, // L[0]
+{0x00000000, 0x00000007, 0x0000005A, 0x000000C2, 0x00000001}, // L[1]
+{0x00000062, 0x000000A6, 0x00000082, 0x00000000, 0x00000000}, // L[2]
+{0x00000089, 0x00000015, 0x00000000, 0x00000093, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000085, 0x00000003, 0x00000080}, // L[0]
+{0x00000001, 0x00000007, 0x0000005A, 0x000000E1, 0x0000000F}, // L[1]
+{0x00000000, 0x000000A6, 0x00000082, 0x00000000, 0x00000086}, // L[2]
+{0x00000094, 0x00000015, 0x00000000, 0x00000083, 0x00000085}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000003, 0x00000008}, // L[0]
+{0x00000001, 0x00000001, 0x0000000F, 0x000000E1, 0x00000000}, // L[1]
+{0x00000000, 0x00000004, 0x00000086, 0x00000000, 0x00000004}, // L[2]
+{0x00000094, 0x00000012, 0x00000085, 0x00000083, 0x00000082}, // L[3]
+}, // T.state[10].w =  16
+{ // R[11] abcde
+{0x00000008, 0x00000010, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000000, 0x00000001, 0x0000000F, 0x0000000F, 0x00000000}, // L[1]
+{0x00000004, 0x00000004, 0x00000086, 0x00000020, 0x00000000}, // L[2]
+{0x00000082, 0x00000012, 0x00000085, 0x00000008, 0x00000000}, // L[3]
+}, // T.state[11].w =   8
+// T.w =  70
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 70 -> 53
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000013}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   2
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000013, 0x00000030, 0x00000080, 0x0000009C, 0x00000014}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   4
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000014, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x00000048, 0x00000000, 0x00000000, 0x000000F8}, // L[1]
+{0x00000013, 0x00000000, 0x00000000, 0x00000080, 0x00000015}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x0000009C, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   5
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000014, 0x00000010, 0x00000004}, // L[0]
+{0x000000F8, 0x00000048, 0x00000000, 0x0000007C, 0x00000004}, // L[1]
+{0x00000015, 0x00000000, 0x00000000, 0x000000CA, 0x0000004A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x0000004E, 0x00000042}, // L[3]
+}, // T.state[ 9].w =   7
+{ // R[10] abcde
+{0x00000020, 0x00000084, 0x00000004, 0x00000010, 0x000000A4}, // L[0]
+{0x000000F8, 0x00000089, 0x00000004, 0x0000007C, 0x00000001}, // L[1]
+{0x00000015, 0x00000049, 0x0000004A, 0x000000CA, 0x00000044}, // L[2]
+{0x00000000, 0x00000048, 0x00000042, 0x0000004E, 0x00000048}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x000000A4, 0x00000084, 0x00000004, 0x000000A5, 0x00000000}, // L[0]
+{0x00000001, 0x00000089, 0x00000004, 0x000000EB, 0x00000000}, // L[1]
+{0x00000044, 0x00000049, 0x0000004A, 0x00000074, 0x00000000}, // L[2]
+{0x00000048, 0x00000048, 0x00000042, 0x00000030, 0x00000000}, // L[3]
+}, // T.state[11].w =  16
+// T.w =  53
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 53 -> 52
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000013}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   2
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000013, 0x00000030, 0x00000080, 0x0000009C, 0x00000014}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   4
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000014, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x00000048, 0x00000000, 0x00000000, 0x000000F8}, // L[1]
+{0x00000013, 0x00000000, 0x00000000, 0x00000080, 0x00000015}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x0000009C, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   5
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000014, 0x00000010, 0x00000024}, // L[0]
+{0x000000F8, 0x00000048, 0x00000000, 0x0000007C, 0x00000004}, // L[1]
+{0x00000015, 0x00000000, 0x00000000, 0x000000CA, 0x0000004A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x0000004E, 0x00000042}, // L[3]
+}, // T.state[ 9].w =   7
+{ // R[10] abcde
+{0x00000020, 0x00000080, 0x00000024, 0x00000010, 0x000000A0}, // L[0]
+{0x000000F8, 0x00000089, 0x00000004, 0x0000007C, 0x00000003}, // L[1]
+{0x00000015, 0x00000049, 0x0000004A, 0x000000CA, 0x00000046}, // L[2]
+{0x00000000, 0x00000048, 0x00000042, 0x0000004E, 0x00000048}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x000000A0, 0x00000080, 0x00000024, 0x00000085, 0x00000000}, // L[0]
+{0x00000003, 0x00000089, 0x00000004, 0x000000FB, 0x00000000}, // L[1]
+{0x00000046, 0x00000049, 0x0000004A, 0x00000064, 0x00000000}, // L[2]
+{0x00000048, 0x00000048, 0x00000042, 0x00000030, 0x00000000}, // L[3]
+}, // T.state[11].w =  15
+// T.w =  52
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 52 -> 44
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000013}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   2
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000013, 0x00000030, 0x00000080, 0x0000009C, 0x00000034}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   4
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000034, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x00000008, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000013, 0x00000000, 0x00000000, 0x00000080, 0x00000011}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x0000009C, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   5
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000034, 0x00000010, 0x00000004}, // L[0]
+{0x00000008, 0x00000008, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000011, 0x00000000, 0x00000000, 0x000000C8, 0x00000048}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x0000004E, 0x000000C2}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000020, 0x00000084, 0x00000004, 0x00000010, 0x000000A4}, // L[0]
+{0x00000008, 0x00000081, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x00000011, 0x00000009, 0x00000048, 0x000000C8, 0x00000018}, // L[2]
+{0x00000000, 0x00000058, 0x000000C2, 0x0000004E, 0x00000068}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x000000A4, 0x00000084, 0x00000004, 0x000000A5, 0x00000000}, // L[0]
+{0x00000089, 0x00000081, 0x00000004, 0x0000006C, 0x00000000}, // L[1]
+{0x00000018, 0x00000009, 0x00000048, 0x00000086, 0x00000000}, // L[2]
+{0x00000068, 0x00000058, 0x000000C2, 0x00000031, 0x00000000}, // L[3]
+}, // T.state[11].w =  12
+// T.w =  44
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 44 -> 42
+#if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 12
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000013}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   2
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000013, 0x00000030, 0x00000080, 0x0000009C, 0x00000034}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   4
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000034, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x00000008, 0x00000000, 0x00000000, 0x00000008}, // L[1]
+{0x00000013, 0x00000000, 0x00000000, 0x00000080, 0x00000011}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x0000009C, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   5
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000034, 0x00000010, 0x00000024}, // L[0]
+{0x00000008, 0x00000008, 0x00000000, 0x00000004, 0x00000004}, // L[1]
+{0x00000011, 0x00000000, 0x00000000, 0x000000C8, 0x00000048}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x0000004E, 0x00000042}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000020, 0x00000080, 0x00000024, 0x00000010, 0x000000E0}, // L[0]
+{0x00000008, 0x00000081, 0x00000004, 0x00000004, 0x00000089}, // L[1]
+{0x00000011, 0x00000009, 0x00000048, 0x000000C8, 0x0000000A}, // L[2]
+{0x00000000, 0x00000048, 0x00000042, 0x0000004E, 0x00000058}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x000000E0, 0x00000080, 0x00000024, 0x00000087, 0x00000000}, // L[0]
+{0x00000089, 0x00000081, 0x00000004, 0x0000006C, 0x00000000}, // L[1]
+{0x0000000A, 0x00000009, 0x00000048, 0x00000016, 0x00000000}, // L[2]
+{0x00000058, 0x00000048, 0x00000042, 0x000000B0, 0x00000000}, // L[3]
+}, // T.state[11].w =  10
+// T.w =  42
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 11 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 11 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+B[ 4]  4
+B[ 5]  5
+B[ 6]  6
+B[ 7]  8
+B[ 8] 11
+B[ 9] 26
+B[10] 42
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 142 -> 141
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x00000092}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000018}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000042}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000081}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x0000005C, 0x00000092, 0x00000002, 0x00000044}, // L[0]
+{0x000000C1, 0x0000005A, 0x00000018, 0x000000CA, 0x000000A9}, // L[1]
+{0x00000011, 0x000000AA, 0x00000042, 0x000000D4, 0x000000C9}, // L[2]
+{0x00000005, 0x000000A6, 0x00000081, 0x00000088, 0x000000A3}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000044, 0x0000005C, 0x00000092, 0x00000032, 0x00000080}, // L[0]
+{0x000000A9, 0x0000005A, 0x00000018, 0x0000001B, 0x00000001}, // L[1]
+{0x000000C9, 0x000000AA, 0x00000042, 0x000000E8, 0x0000006A}, // L[2]
+{0x000000A3, 0x000000A6, 0x00000081, 0x00000059, 0x00000048}, // L[3]
+}, // T.state[11].w =  21
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000044, 0x000000B6, 0x0000006A, 0x00000059, 0x00000000}, // L[0]
+{0x000000A9, 0x00000081, 0x00000048, 0x00000032, 0x00000000}, // L[1]
+{0x000000C9, 0x000000DD, 0x00000080, 0x0000001B, 0x00000000}, // L[2]
+{0x000000A3, 0x000000B9, 0x00000001, 0x000000E8, 0x00000000}, // L[3]
+}, // T.state[12].w =  18
+// T.w = 141
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 141 -> 140
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x00000092}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000018}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000042}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000081}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x0000005C, 0x00000092, 0x00000002, 0x00000044}, // L[0]
+{0x000000C1, 0x0000005A, 0x00000018, 0x000000CA, 0x00000029}, // L[1]
+{0x00000011, 0x000000AA, 0x00000042, 0x000000D4, 0x000000D9}, // L[2]
+{0x00000005, 0x000000A6, 0x00000081, 0x00000088, 0x000000AB}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000044, 0x0000005C, 0x00000092, 0x00000032, 0x00000080}, // L[0]
+{0x00000029, 0x0000005A, 0x00000018, 0x0000001F, 0x00000001}, // L[1]
+{0x000000D9, 0x000000AA, 0x00000042, 0x00000068, 0x0000006A}, // L[2]
+{0x000000AB, 0x000000A6, 0x00000081, 0x00000019, 0x00000088}, // L[3]
+}, // T.state[11].w =  21
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000044, 0x000000B6, 0x0000006A, 0x00000019, 0x00000000}, // L[0]
+{0x00000029, 0x00000081, 0x00000088, 0x00000032, 0x00000000}, // L[1]
+{0x000000D9, 0x0000005C, 0x00000080, 0x0000001F, 0x00000000}, // L[2]
+{0x000000AB, 0x000000B9, 0x00000001, 0x00000068, 0x00000000}, // L[3]
+}, // T.state[12].w =  17
+// T.w = 140
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 140 -> 139
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x00000092}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000018}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000042}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000081}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x0000005C, 0x00000092, 0x00000002, 0x0000004C}, // L[0]
+{0x000000C1, 0x0000005A, 0x00000018, 0x000000CA, 0x00000089}, // L[1]
+{0x00000011, 0x000000AA, 0x00000042, 0x000000D4, 0x00000099}, // L[2]
+{0x00000005, 0x000000A6, 0x00000081, 0x00000088, 0x000000AB}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x0000004C, 0x0000005C, 0x00000092, 0x00000072, 0x00000000}, // L[0]
+{0x00000089, 0x0000005A, 0x00000018, 0x0000001A, 0x00000002}, // L[1]
+{0x00000099, 0x000000AA, 0x00000042, 0x0000006A, 0x00000028}, // L[2]
+{0x000000AB, 0x000000A6, 0x00000081, 0x00000019, 0x00000088}, // L[3]
+}, // T.state[11].w =  21
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x0000004C, 0x000000B0, 0x00000028, 0x00000019, 0x00000000}, // L[0]
+{0x00000089, 0x00000005, 0x00000088, 0x00000072, 0x00000000}, // L[1]
+{0x00000099, 0x0000005C, 0x00000000, 0x0000001A, 0x00000000}, // L[2]
+{0x000000AB, 0x000000B8, 0x00000002, 0x0000006A, 0x00000000}, // L[3]
+}, // T.state[12].w =  16
+// T.w = 139
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 139 -> 138
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x00000092}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000098}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000042}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000081}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x0000005C, 0x00000092, 0x00000002, 0x0000004C}, // L[0]
+{0x000000C1, 0x0000004A, 0x00000098, 0x000000CA, 0x00000089}, // L[1]
+{0x00000011, 0x000000AA, 0x00000042, 0x000000D4, 0x0000009F}, // L[2]
+{0x00000005, 0x000000A6, 0x00000081, 0x00000088, 0x000000A9}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x0000004C, 0x0000005C, 0x00000092, 0x00000072, 0x00000040}, // L[0]
+{0x00000089, 0x0000004A, 0x00000098, 0x0000001A, 0x00000082}, // L[1]
+{0x0000009F, 0x000000AA, 0x00000042, 0x0000005A, 0x0000000C}, // L[2]
+{0x000000A9, 0x000000A6, 0x00000081, 0x00000009, 0x00000088}, // L[3]
+}, // T.state[11].w =  20
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x0000004C, 0x00000091, 0x0000000C, 0x00000009, 0x00000000}, // L[0]
+{0x00000089, 0x0000004D, 0x00000088, 0x00000072, 0x00000000}, // L[1]
+{0x0000009F, 0x0000005C, 0x00000040, 0x0000001A, 0x00000000}, // L[2]
+{0x000000A9, 0x00000038, 0x00000082, 0x0000005A, 0x00000000}, // L[3]
+}, // T.state[12].w =  16
+// T.w = 138
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 138 -> 137
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x00000092}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000008}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000066}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000081}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x0000005C, 0x00000092, 0x00000002, 0x00000054}, // L[0]
+{0x000000C1, 0x00000058, 0x00000008, 0x000000CA, 0x0000008B}, // L[1]
+{0x00000011, 0x0000002E, 0x00000066, 0x000000D4, 0x00000015}, // L[2]
+{0x00000005, 0x000000A6, 0x00000081, 0x00000088, 0x000000A1}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000054, 0x0000005C, 0x00000092, 0x000000B2, 0x00000000}, // L[0]
+{0x0000008B, 0x00000058, 0x00000008, 0x0000000A, 0x00000002}, // L[1]
+{0x00000015, 0x0000002E, 0x00000066, 0x0000000E, 0x00000020}, // L[2]
+{0x000000A1, 0x000000A6, 0x00000081, 0x00000049, 0x00000048}, // L[3]
+}, // T.state[11].w =  20
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000054, 0x000000B4, 0x00000020, 0x00000049, 0x00000000}, // L[0]
+{0x0000008B, 0x0000001C, 0x00000048, 0x000000B2, 0x00000000}, // L[1]
+{0x00000015, 0x000000DD, 0x00000000, 0x0000000A, 0x00000000}, // L[2]
+{0x000000A1, 0x000000B8, 0x00000002, 0x0000000E, 0x00000000}, // L[3]
+}, // T.state[12].w =  15
+// T.w = 137
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 137 -> 136
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x000000B2}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000008}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000046}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000091}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x00000058, 0x000000B2, 0x00000002, 0x00000040}, // L[0]
+{0x000000C1, 0x00000058, 0x00000008, 0x000000CA, 0x00000009}, // L[1]
+{0x00000011, 0x0000002A, 0x00000046, 0x000000D4, 0x0000000D}, // L[2]
+{0x00000005, 0x000000A4, 0x00000091, 0x00000088, 0x000000A9}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000040, 0x00000058, 0x000000B2, 0x00000012, 0x00000080}, // L[0]
+{0x00000009, 0x00000058, 0x00000008, 0x0000001E, 0x00000002}, // L[1]
+{0x0000000D, 0x0000002A, 0x00000046, 0x000000CE, 0x00000000}, // L[2]
+{0x000000A9, 0x000000A4, 0x00000091, 0x00000009, 0x00000088}, // L[3]
+}, // T.state[11].w =  17
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x000000B4, 0x00000000, 0x00000009, 0x00000000}, // L[0]
+{0x00000009, 0x00000054, 0x00000088, 0x00000012, 0x00000000}, // L[1]
+{0x0000000D, 0x00000058, 0x00000080, 0x0000001E, 0x00000000}, // L[2]
+{0x000000A9, 0x000000B1, 0x00000002, 0x000000CE, 0x00000000}, // L[3]
+}, // T.state[12].w =  17
+// T.w = 136
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 136 -> 135
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x000000B2}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000008}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000046}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000091}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x00000058, 0x000000B2, 0x00000002, 0x00000040}, // L[0]
+{0x000000C1, 0x00000058, 0x00000008, 0x000000CA, 0x00000089}, // L[1]
+{0x00000011, 0x0000002A, 0x00000046, 0x000000D4, 0x0000004D}, // L[2]
+{0x00000005, 0x000000A4, 0x00000091, 0x00000088, 0x000000A9}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000040, 0x00000058, 0x000000B2, 0x00000012, 0x000000C0}, // L[0]
+{0x00000089, 0x00000058, 0x00000008, 0x0000001A, 0x00000002}, // L[1]
+{0x0000004D, 0x0000002A, 0x00000046, 0x000000CC, 0x00000002}, // L[2]
+{0x000000A9, 0x000000A4, 0x00000091, 0x00000009, 0x00000088}, // L[3]
+}, // T.state[11].w =  17
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x000000B4, 0x00000002, 0x00000009, 0x00000000}, // L[0]
+{0x00000089, 0x00000050, 0x00000088, 0x00000012, 0x00000000}, // L[1]
+{0x0000004D, 0x00000058, 0x000000C0, 0x0000001A, 0x00000000}, // L[2]
+{0x000000A9, 0x00000031, 0x00000002, 0x000000CC, 0x00000000}, // L[3]
+}, // T.state[12].w =  16
+// T.w = 135
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 135 -> 134
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x000000B2}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000008}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000046}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000091}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x00000058, 0x000000B2, 0x00000002, 0x00000040}, // L[0]
+{0x000000C1, 0x00000058, 0x00000008, 0x000000CA, 0x00000089}, // L[1]
+{0x00000011, 0x0000002A, 0x00000046, 0x000000D4, 0x0000001D}, // L[2]
+{0x00000005, 0x000000A4, 0x00000091, 0x00000088, 0x000000A9}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000040, 0x00000058, 0x000000B2, 0x00000012, 0x00000080}, // L[0]
+{0x00000089, 0x00000058, 0x00000008, 0x0000001A, 0x00000002}, // L[1]
+{0x0000001D, 0x0000002A, 0x00000046, 0x0000004E, 0x00000000}, // L[2]
+{0x000000A9, 0x000000A4, 0x00000091, 0x00000009, 0x00000088}, // L[3]
+}, // T.state[11].w =  17
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x000000B4, 0x00000000, 0x00000009, 0x00000000}, // L[0]
+{0x00000089, 0x00000054, 0x00000088, 0x00000012, 0x00000000}, // L[1]
+{0x0000001D, 0x00000058, 0x00000080, 0x0000001A, 0x00000000}, // L[2]
+{0x000000A9, 0x000000B1, 0x00000002, 0x0000004E, 0x00000000}, // L[3]
+}, // T.state[12].w =  15
+// T.w = 134
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 134 -> 133
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x000000C1}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x000000B2}, // L[0]
+{0x000000C1, 0x000000CA, 0x000000C2, 0x000000CA, 0x00000008}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000046}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000091}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x00000058, 0x000000B2, 0x00000002, 0x00000050}, // L[0]
+{0x000000C1, 0x00000058, 0x00000008, 0x000000CA, 0x0000008B}, // L[1]
+{0x00000011, 0x0000002A, 0x00000046, 0x000000D4, 0x0000001D}, // L[2]
+{0x00000005, 0x000000A4, 0x00000091, 0x00000088, 0x000000A9}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000050, 0x00000058, 0x000000B2, 0x00000092, 0x00000000}, // L[0]
+{0x0000008B, 0x00000058, 0x00000008, 0x0000000A, 0x00000002}, // L[1]
+{0x0000001D, 0x0000002A, 0x00000046, 0x0000004E, 0x00000000}, // L[2]
+{0x000000A9, 0x000000A4, 0x00000091, 0x00000009, 0x00000088}, // L[3]
+}, // T.state[11].w =  17
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000050, 0x000000B4, 0x00000000, 0x00000009, 0x00000000}, // L[0]
+{0x0000008B, 0x00000054, 0x00000088, 0x00000092, 0x00000000}, // L[1]
+{0x0000001D, 0x00000058, 0x00000000, 0x0000000A, 0x00000000}, // L[2]
+{0x000000A9, 0x000000B0, 0x00000002, 0x0000004E, 0x00000000}, // L[3]
+}, // T.state[12].w =  14
+// T.w = 133
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 133 -> 132
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000008}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x00000051}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000025}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000008, 0x00000070, 0x00000090, 0x00000002, 0x00000092}, // L[0]
+{0x00000051, 0x000000CA, 0x000000C2, 0x00000082, 0x00000040}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x00000042}, // L[2]
+{0x00000025, 0x000000B4, 0x00000009, 0x00000098, 0x00000081}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000008, 0x0000005C, 0x00000092, 0x00000002, 0x00000044}, // L[0]
+{0x00000051, 0x00000051, 0x00000040, 0x00000082, 0x00000082}, // L[1]
+{0x00000011, 0x000000AA, 0x00000042, 0x000000D4, 0x0000008D}, // L[2]
+{0x00000025, 0x000000A6, 0x00000081, 0x00000098, 0x00000089}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000044, 0x0000005C, 0x00000092, 0x00000032, 0x000000C0}, // L[0]
+{0x00000082, 0x00000051, 0x00000040, 0x00000000, 0x00000040}, // L[1]
+{0x0000008D, 0x000000AA, 0x00000042, 0x000000CA, 0x0000001C}, // L[2]
+{0x00000089, 0x000000A6, 0x00000081, 0x00000088, 0x00000019}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000044, 0x00000022, 0x0000001C, 0x00000088, 0x00000000}, // L[0]
+{0x00000082, 0x0000006D, 0x00000019, 0x00000032, 0x00000000}, // L[1]
+{0x0000008D, 0x0000007F, 0x000000C0, 0x00000000, 0x00000000}, // L[2]
+{0x00000089, 0x00000039, 0x00000040, 0x000000CA, 0x00000000}, // L[3]
+}, // T.state[12].w =  12
+// T.w = 132
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 132 -> 131
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000028}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x00000051}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000028, 0x00000070, 0x00000090, 0x00000012, 0x00000082}, // L[0]
+{0x00000051, 0x000000CA, 0x000000C2, 0x00000082, 0x00000040}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x0000004A}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000091}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000028, 0x0000005E, 0x00000082, 0x00000012, 0x00000042}, // L[0]
+{0x00000051, 0x00000051, 0x00000040, 0x00000082, 0x00000082}, // L[1]
+{0x00000011, 0x000000AB, 0x0000004A, 0x000000D4, 0x00000098}, // L[2]
+{0x00000005, 0x000000A4, 0x00000091, 0x00000088, 0x000000A9}, // L[3]
+}, // T.state[10].w =  14
+{ // R[11] abcde
+{0x00000042, 0x0000005E, 0x00000082, 0x00000082, 0x00000000}, // L[0]
+{0x00000082, 0x00000051, 0x00000040, 0x00000000, 0x00000040}, // L[1]
+{0x00000098, 0x000000AB, 0x0000004A, 0x00000062, 0x00000028}, // L[2]
+{0x000000A9, 0x000000A4, 0x00000091, 0x00000009, 0x000000A8}, // L[3]
+}, // T.state[11].w =  19
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000042, 0x00000022, 0x00000028, 0x00000009, 0x00000000}, // L[0]
+{0x00000082, 0x00000007, 0x000000A8, 0x00000082, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x000000A9, 0x000000BC, 0x00000040, 0x00000062, 0x00000000}, // L[3]
+}, // T.state[12].w =  11
+// T.w = 131
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 131 -> 130
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000010}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000080, 0x00000030}, // L[3]
+}, // T.state[ 2].w =   2
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000010, 0x00000010, 0x00000080, 0x00000084, 0x00000004}, // L[2]
+{0x00000030, 0x00000010, 0x00000000, 0x00000085, 0x00000085}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000085, 0x00000000}, // L[0]
+{0x00000000, 0x00000028, 0x00000085, 0x00000000, 0x00000038}, // L[1]
+{0x00000010, 0x0000002B, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x00000084, 0x00000010}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x000000C2, 0x00000042}, // L[0]
+{0x00000038, 0x00000028, 0x00000085, 0x0000001C, 0x000000A1}, // L[1]
+{0x00000009, 0x0000002B, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x0000004A, 0x0000004A}, // L[3]
+}, // T.state[ 5].w =   9
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x000000C2, 0x00000048}, // L[0]
+{0x00000038, 0x00000031, 0x000000A1, 0x0000001C, 0x0000000B}, // L[1]
+{0x00000009, 0x000000F5, 0x00000084, 0x00000084, 0x00000006}, // L[2]
+{0x00000010, 0x00000049, 0x0000004A, 0x0000004A, 0x000000CB}, // L[3]
+}, // T.state[ 6].w =  14
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000054, 0x00000012}, // L[0]
+{0x0000000B, 0x00000031, 0x000000A1, 0x000000B8, 0x00000009}, // L[1]
+{0x00000006, 0x000000F5, 0x00000084, 0x00000014, 0x00000090}, // L[2]
+{0x000000CB, 0x00000049, 0x0000004A, 0x0000000C, 0x000000C2}, // L[3]
+}, // T.state[ 7].w =  17
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000070, 0x00000090, 0x0000000C, 0x00000028}, // L[0]
+{0x0000000B, 0x000000CA, 0x000000C2, 0x00000054, 0x00000051}, // L[1]
+{0x00000006, 0x00000017, 0x00000012, 0x000000B8, 0x00000011}, // L[2]
+{0x000000CB, 0x000000B4, 0x00000009, 0x00000014, 0x00000005}, // L[3]
+}, // T.state[ 8].w =  16
+{ // R[ 9] abcde
+{0x00000028, 0x00000070, 0x00000090, 0x00000012, 0x00000082}, // L[0]
+{0x00000051, 0x000000CA, 0x000000C2, 0x00000082, 0x00000040}, // L[1]
+{0x00000011, 0x00000017, 0x00000012, 0x000000D4, 0x0000004A}, // L[2]
+{0x00000005, 0x000000B4, 0x00000009, 0x00000088, 0x00000091}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000028, 0x0000005E, 0x00000082, 0x00000012, 0x00000042}, // L[0]
+{0x00000051, 0x00000051, 0x00000040, 0x00000082, 0x00000082}, // L[1]
+{0x00000011, 0x000000AB, 0x0000004A, 0x000000D4, 0x000000DC}, // L[2]
+{0x00000005, 0x000000A4, 0x00000091, 0x00000088, 0x000000A9}, // L[3]
+}, // T.state[10].w =  14
+{ // R[11] abcde
+{0x00000042, 0x0000005E, 0x00000082, 0x00000082, 0x00000000}, // L[0]
+{0x00000082, 0x00000051, 0x00000040, 0x00000000, 0x00000040}, // L[1]
+{0x000000DC, 0x000000AB, 0x0000004A, 0x00000040, 0x0000000E}, // L[2]
+{0x000000A9, 0x000000A4, 0x00000091, 0x00000009, 0x00000088}, // L[3]
+}, // T.state[11].w =  19
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000042, 0x00000022, 0x0000000E, 0x00000009, 0x00000000}, // L[0]
+{0x00000082, 0x0000004B, 0x00000088, 0x00000082, 0x00000000}, // L[1]
+{0x000000DC, 0x00000058, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x000000A9, 0x000000BC, 0x00000040, 0x00000040, 0x00000000}, // L[3]
+}, // T.state[12].w =  10
+// T.w = 130
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 130 -> 108
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000025}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000A6}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000018}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x00000049}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000084, 0x00000025, 0x000000C3, 0x00000045}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000028, 0x00000042}, // L[1]
+{0x00000094, 0x000000A3, 0x00000018, 0x00000048, 0x00000031}, // L[2]
+{0x0000003B, 0x00000015, 0x00000049, 0x000000CB, 0x00000000}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x00000045, 0x00000084, 0x00000025, 0x00000034, 0x00000011}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000053, 0x00000011}, // L[1]
+{0x00000031, 0x000000A3, 0x00000018, 0x000000CB, 0x00000041}, // L[2]
+{0x00000000, 0x00000015, 0x00000049, 0x0000005E, 0x00000009}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000045, 0x0000001B, 0x00000041, 0x0000005E, 0x00000000}, // L[0]
+{0x00000042, 0x000000C5, 0x00000009, 0x00000034, 0x00000000}, // L[1]
+{0x00000031, 0x00000038, 0x00000011, 0x00000053, 0x00000000}, // L[2]
+{0x00000000, 0x0000002B, 0x00000011, 0x000000CB, 0x00000000}, // L[3]
+}, // T.state[12].w =  23
+// T.w = 108
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 108 -> 107
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000025}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000A6}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000018}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x00000049}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000084, 0x00000025, 0x000000C3, 0x00000045}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000028, 0x00000042}, // L[1]
+{0x00000094, 0x000000A3, 0x00000018, 0x00000048, 0x00000031}, // L[2]
+{0x0000003B, 0x00000015, 0x00000049, 0x000000CB, 0x00000060}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x00000045, 0x00000084, 0x00000025, 0x00000034, 0x00000011}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000053, 0x00000011}, // L[1]
+{0x00000031, 0x000000A3, 0x00000018, 0x000000CB, 0x00000045}, // L[2]
+{0x00000060, 0x00000015, 0x00000049, 0x0000005D, 0x0000000C}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000045, 0x0000001B, 0x00000045, 0x0000005D, 0x00000000}, // L[0]
+{0x00000042, 0x000000CD, 0x0000000C, 0x00000034, 0x00000000}, // L[1]
+{0x00000031, 0x00000032, 0x00000011, 0x00000053, 0x00000000}, // L[2]
+{0x00000060, 0x0000002B, 0x00000011, 0x000000CB, 0x00000000}, // L[3]
+}, // T.state[12].w =  22
+// T.w = 107
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 107 -> 106
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000025}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000A6}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000018}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x00000049}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000084, 0x00000025, 0x000000C3, 0x00000045}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000028, 0x000000E2}, // L[1]
+{0x00000094, 0x000000A3, 0x00000018, 0x00000048, 0x00000011}, // L[2]
+{0x0000003B, 0x00000015, 0x00000049, 0x000000CB, 0x00000000}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x00000045, 0x00000084, 0x00000025, 0x00000034, 0x00000011}, // L[0]
+{0x000000E2, 0x0000009C, 0x000000A6, 0x00000056, 0x00000010}, // L[1]
+{0x00000011, 0x000000A3, 0x00000018, 0x000000CA, 0x00000042}, // L[2]
+{0x00000000, 0x00000015, 0x00000049, 0x0000005E, 0x00000001}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000045, 0x00000019, 0x00000042, 0x0000005E, 0x00000000}, // L[0]
+{0x000000E2, 0x000000C3, 0x00000001, 0x00000034, 0x00000000}, // L[1]
+{0x00000011, 0x00000028, 0x00000011, 0x00000056, 0x00000000}, // L[2]
+{0x00000000, 0x0000002B, 0x00000010, 0x000000CA, 0x00000000}, // L[3]
+}, // T.state[12].w =  21
+// T.w = 106
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 106 -> 105
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000025}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000A6}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000018}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x00000049}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000084, 0x00000025, 0x000000C3, 0x00000045}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000028, 0x00000062}, // L[1]
+{0x00000094, 0x000000A3, 0x00000018, 0x00000048, 0x00000011}, // L[2]
+{0x0000003B, 0x00000015, 0x00000049, 0x000000CB, 0x00000060}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x00000045, 0x00000084, 0x00000025, 0x00000034, 0x00000031}, // L[0]
+{0x00000062, 0x0000009C, 0x000000A6, 0x00000052, 0x00000010}, // L[1]
+{0x00000011, 0x000000A3, 0x00000018, 0x000000CA, 0x00000042}, // L[2]
+{0x00000060, 0x00000015, 0x00000049, 0x0000005D, 0x0000000C}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000045, 0x00000019, 0x00000042, 0x0000005D, 0x00000000}, // L[0]
+{0x00000062, 0x000000C3, 0x0000000C, 0x00000034, 0x00000000}, // L[1]
+{0x00000011, 0x00000032, 0x00000031, 0x00000052, 0x00000000}, // L[2]
+{0x00000060, 0x0000006B, 0x00000010, 0x000000CA, 0x00000000}, // L[3]
+}, // T.state[12].w =  20
+// T.w = 105
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 105 -> 104
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000025}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000A6}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000018}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x00000049}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000084, 0x00000025, 0x000000C3, 0x000000C5}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000028, 0x00000062}, // L[1]
+{0x00000094, 0x000000A3, 0x00000018, 0x00000048, 0x00000051}, // L[2]
+{0x0000003B, 0x00000015, 0x00000049, 0x000000CB, 0x00000060}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x000000C5, 0x00000084, 0x00000025, 0x00000030, 0x00000015}, // L[0]
+{0x00000062, 0x0000009C, 0x000000A6, 0x00000052, 0x00000010}, // L[1]
+{0x00000051, 0x000000A3, 0x00000018, 0x000000C8, 0x00000040}, // L[2]
+{0x00000060, 0x00000015, 0x00000049, 0x0000005D, 0x00000004}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x000000C5, 0x00000019, 0x00000040, 0x0000005D, 0x00000000}, // L[0]
+{0x00000062, 0x000000C7, 0x00000004, 0x00000030, 0x00000000}, // L[1]
+{0x00000051, 0x00000022, 0x00000015, 0x00000052, 0x00000000}, // L[2]
+{0x00000060, 0x00000023, 0x00000010, 0x000000C8, 0x00000000}, // L[3]
+}, // T.state[12].w =  19
+// T.w = 104
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 104 -> 103
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000025}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000A6}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000018}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x00000049}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000084, 0x00000025, 0x000000C3, 0x00000045}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000028, 0x000000EA}, // L[1]
+{0x00000094, 0x000000A3, 0x00000018, 0x00000048, 0x00000059}, // L[2]
+{0x0000003B, 0x00000015, 0x00000049, 0x000000CB, 0x0000006C}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x00000045, 0x00000084, 0x00000025, 0x00000034, 0x00000011}, // L[0]
+{0x000000EA, 0x0000009C, 0x000000A6, 0x00000016, 0x00000090}, // L[1]
+{0x00000059, 0x000000A3, 0x00000018, 0x00000088, 0x00000080}, // L[2]
+{0x0000006C, 0x00000015, 0x00000049, 0x0000003D, 0x00000044}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000045, 0x00000018, 0x00000080, 0x0000003D, 0x00000000}, // L[0]
+{0x000000EA, 0x00000046, 0x00000044, 0x00000034, 0x00000000}, // L[1]
+{0x00000059, 0x000000A2, 0x00000011, 0x00000016, 0x00000000}, // L[2]
+{0x0000006C, 0x0000002B, 0x00000090, 0x00000088, 0x00000000}, // L[3]
+}, // T.state[12].w =  18
+// T.w = 103
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 103 -> 102
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000025}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000A6}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000018}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x00000049}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000084, 0x00000025, 0x000000C3, 0x00000047}, // L[0]
+{0x00000042, 0x0000009C, 0x000000A6, 0x00000028, 0x0000007A}, // L[1]
+{0x00000094, 0x000000A3, 0x00000018, 0x00000048, 0x00000051}, // L[2]
+{0x0000003B, 0x00000015, 0x00000049, 0x000000CB, 0x00000040}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x00000047, 0x00000084, 0x00000025, 0x00000024, 0x00000001}, // L[0]
+{0x0000007A, 0x0000009C, 0x000000A6, 0x00000092, 0x00000010}, // L[1]
+{0x00000051, 0x000000A3, 0x00000018, 0x000000C8, 0x00000040}, // L[2]
+{0x00000040, 0x00000015, 0x00000049, 0x0000005C, 0x00000005}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000047, 0x00000019, 0x00000040, 0x0000005C, 0x00000000}, // L[0]
+{0x0000007A, 0x000000C7, 0x00000005, 0x00000024, 0x00000000}, // L[1]
+{0x00000051, 0x00000020, 0x00000001, 0x00000092, 0x00000000}, // L[2]
+{0x00000040, 0x0000000B, 0x00000010, 0x000000C8, 0x00000000}, // L[3]
+}, // T.state[12].w =  17
+// T.w = 102
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 102 -> 101
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000021}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000E2}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000028}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x000000CB}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000004, 0x00000021, 0x000000C3, 0x000000C5}, // L[0]
+{0x00000042, 0x00000014, 0x000000E2, 0x00000028, 0x00000072}, // L[1]
+{0x00000094, 0x000000A5, 0x00000028, 0x00000048, 0x00000019}, // L[2]
+{0x0000003B, 0x00000045, 0x000000CB, 0x000000CB, 0x00000080}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x000000C5, 0x00000004, 0x00000021, 0x00000030, 0x00000011}, // L[0]
+{0x00000072, 0x00000014, 0x000000E2, 0x000000D2, 0x00000010}, // L[1]
+{0x00000019, 0x000000A5, 0x00000028, 0x0000008A, 0x000000A2}, // L[2]
+{0x00000080, 0x00000045, 0x000000CB, 0x0000005A, 0x00000011}, // L[3]
+}, // T.state[11].w =  20
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x000000C5, 0x00000008, 0x000000A2, 0x0000005A, 0x00000000}, // L[0]
+{0x00000072, 0x0000000E, 0x00000011, 0x00000030, 0x00000000}, // L[1]
+{0x00000019, 0x000000A8, 0x00000011, 0x000000D2, 0x00000000}, // L[2]
+{0x00000080, 0x0000002A, 0x00000010, 0x0000008A, 0x00000000}, // L[3]
+}, // T.state[12].w =  18
+// T.w = 101
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 101 -> 100
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000021}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000E2}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x00000028}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x000000CB}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000004, 0x00000021, 0x000000C3, 0x000000C5}, // L[0]
+{0x00000042, 0x00000014, 0x000000E2, 0x00000028, 0x00000072}, // L[1]
+{0x00000094, 0x000000A5, 0x00000028, 0x00000048, 0x00000059}, // L[2]
+{0x0000003B, 0x00000045, 0x000000CB, 0x000000CB, 0x00000080}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x000000C5, 0x00000004, 0x00000021, 0x00000030, 0x00000011}, // L[0]
+{0x00000072, 0x00000014, 0x000000E2, 0x000000D2, 0x00000014}, // L[1]
+{0x00000059, 0x000000A5, 0x00000028, 0x00000088, 0x000000A0}, // L[2]
+{0x00000080, 0x00000045, 0x000000CB, 0x0000005A, 0x00000001}, // L[3]
+}, // T.state[11].w =  20
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x000000C5, 0x00000000, 0x000000A0, 0x0000005A, 0x00000000}, // L[0]
+{0x00000072, 0x0000000A, 0x00000001, 0x00000030, 0x00000000}, // L[1]
+{0x00000059, 0x00000088, 0x00000011, 0x000000D2, 0x00000000}, // L[2]
+{0x00000080, 0x0000002A, 0x00000014, 0x00000088, 0x00000000}, // L[3]
+}, // T.state[12].w =  17
+// T.w = 100
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 100 -> 99
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000021}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000E2}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x000000A8}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x0000004B}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000004, 0x00000021, 0x000000C3, 0x000000C7}, // L[0]
+{0x00000042, 0x00000014, 0x000000E2, 0x00000028, 0x00000072}, // L[1]
+{0x00000094, 0x000000B5, 0x000000A8, 0x00000048, 0x0000004B}, // L[2]
+{0x0000003B, 0x00000055, 0x0000004B, 0x000000CB, 0x000000C0}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x000000C7, 0x00000004, 0x00000021, 0x00000020, 0x00000001}, // L[0]
+{0x00000072, 0x00000014, 0x000000E2, 0x000000D2, 0x00000010}, // L[1]
+{0x0000004B, 0x000000B5, 0x000000A8, 0x00000018, 0x00000080}, // L[2]
+{0x000000C0, 0x00000055, 0x0000004B, 0x00000058, 0x00000001}, // L[3]
+}, // T.state[11].w =  20
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x000000C7, 0x00000008, 0x00000080, 0x00000058, 0x00000000}, // L[0]
+{0x00000072, 0x0000006A, 0x00000001, 0x00000020, 0x00000000}, // L[1]
+{0x0000004B, 0x000000A8, 0x00000001, 0x000000D2, 0x00000000}, // L[2]
+{0x000000C0, 0x0000000A, 0x00000010, 0x00000018, 0x00000000}, // L[3]
+}, // T.state[12].w =  16
+// T.w =  99
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 99 -> 98
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   0
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000000, 0x00000018}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000006}, // L[0]
+{0x00000000, 0x00000000, 0x00000004, 0x00000000, 0x00000004}, // L[1]
+{0x00000018, 0x00000008, 0x00000000, 0x0000000C, 0x00000004}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x000000C0, 0x00000006, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000080, 0x00000004, 0x00000000, 0x00000080}, // L[1]
+{0x00000018, 0x00000081, 0x00000004, 0x0000000C, 0x00000099}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   5
+{ // R[ 7] abcde
+{0x00000040, 0x000000C0, 0x00000006, 0x00000012, 0x00000030}, // L[0]
+{0x00000080, 0x00000080, 0x00000004, 0x00000004, 0x00000000}, // L[1]
+{0x00000099, 0x00000081, 0x00000004, 0x000000AC, 0x000000A0}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x0000008A}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000001, 0x000000A0, 0x00000046, 0x000000C1}, // L[0]
+{0x00000080, 0x00000042, 0x0000008A, 0x00000012, 0x00000042}, // L[1]
+{0x00000099, 0x00000005, 0x00000030, 0x00000004, 0x00000094}, // L[2]
+{0x00000088, 0x000000E1, 0x00000000, 0x000000AC, 0x0000003B}, // L[3]
+}, // T.state[ 8].w =  11
+{ // R[ 9] abcde
+{0x000000C1, 0x00000001, 0x000000A0, 0x000000C3, 0x00000021}, // L[0]
+{0x00000042, 0x00000042, 0x0000008A, 0x00000028, 0x000000E2}, // L[1]
+{0x00000094, 0x00000005, 0x00000030, 0x00000048, 0x000000A8}, // L[2]
+{0x0000003B, 0x000000E1, 0x00000000, 0x000000CB, 0x000000CB}, // L[3]
+}, // T.state[ 9].w =  15
+{ // R[10] abcde
+{0x000000C1, 0x00000004, 0x00000021, 0x000000C3, 0x000000C7}, // L[0]
+{0x00000042, 0x00000014, 0x000000E2, 0x00000028, 0x00000076}, // L[1]
+{0x00000094, 0x000000B5, 0x000000A8, 0x00000048, 0x00000049}, // L[2]
+{0x0000003B, 0x00000045, 0x000000CB, 0x000000CB, 0x00000082}, // L[3]
+}, // T.state[10].w =  18
+{ // R[11] abcde
+{0x000000C7, 0x00000004, 0x00000021, 0x00000020, 0x00000001}, // L[0]
+{0x00000076, 0x00000014, 0x000000E2, 0x000000F2, 0x00000010}, // L[1]
+{0x00000049, 0x000000B5, 0x000000A8, 0x00000008, 0x000000A0}, // L[2]
+{0x00000082, 0x00000045, 0x000000CB, 0x0000004A, 0x00000001}, // L[3]
+}, // T.state[11].w =  20
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x000000C7, 0x00000008, 0x000000A0, 0x0000004A, 0x00000000}, // L[0]
+{0x00000076, 0x0000002A, 0x00000001, 0x00000020, 0x00000000}, // L[1]
+{0x00000049, 0x00000088, 0x00000001, 0x000000F2, 0x00000000}, // L[2]
+{0x00000082, 0x0000000A, 0x00000010, 0x00000008, 0x00000000}, // L[3]
+}, // T.state[12].w =  15
+// T.w =  98
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 98 -> 96
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000060}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x000000B0}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000020, 0x00000000, 0x00000030, 0x00000010}, // L[2]
+{0x000000B0, 0x00000000, 0x00000000, 0x00000058, 0x00000078}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000006, 0x00000010, 0x00000030, 0x000000A2}, // L[2]
+{0x000000B0, 0x0000000F, 0x00000078, 0x00000058, 0x00000081}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x000000A2, 0x00000006, 0x00000010, 0x00000094, 0x00000084}, // L[2]
+{0x00000081, 0x0000000F, 0x00000078, 0x000000CE, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x000000CE, 0x00000008}, // L[0]
+{0x00000000, 0x00000005, 0x00000042, 0x00000042, 0x00000005}, // L[1]
+{0x000000A2, 0x0000009A, 0x00000002, 0x00000000, 0x0000002C}, // L[2]
+{0x00000081, 0x00000014, 0x00000000, 0x00000094, 0x00000097}, // L[3]
+}, // T.state[ 8].w =  12
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x00000063, 0x00000021}, // L[0]
+{0x00000005, 0x00000005, 0x00000042, 0x000000A3, 0x00000021}, // L[1]
+{0x0000002C, 0x0000009A, 0x00000002, 0x00000016, 0x00000010}, // L[2]
+{0x00000097, 0x00000014, 0x00000000, 0x00000081, 0x00000081}, // L[3]
+}, // T.state[ 9].w =  12
+{ // R[10] abcde
+{0x00000008, 0x00000024, 0x00000021, 0x00000063, 0x00000064}, // L[0]
+{0x00000005, 0x00000084, 0x00000021, 0x000000A3, 0x00000081}, // L[1]
+{0x0000002C, 0x00000051, 0x00000010, 0x00000016, 0x00000015}, // L[2]
+{0x00000097, 0x000000B2, 0x00000081, 0x00000081, 0x00000001}, // L[3]
+}, // T.state[10].w =  16
+{ // R[11] abcde
+{0x00000064, 0x00000024, 0x00000021, 0x00000038, 0x00000009}, // L[0]
+{0x00000081, 0x00000084, 0x00000021, 0x00000011, 0x00000010}, // L[1]
+{0x00000015, 0x00000051, 0x00000010, 0x00000018, 0x00000008}, // L[2]
+{0x00000001, 0x000000B2, 0x00000081, 0x00000004, 0x0000008F}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000064, 0x00000029, 0x00000008, 0x00000004, 0x00000000}, // L[0]
+{0x00000081, 0x000000B2, 0x0000008F, 0x00000038, 0x00000000}, // L[1]
+{0x00000015, 0x0000007A, 0x00000009, 0x00000011, 0x00000000}, // L[2]
+{0x00000001, 0x0000005A, 0x00000010, 0x00000018, 0x00000000}, // L[3]
+}, // T.state[12].w =  12
+// T.w =  96
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 96 -> 95
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000060}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x000000B0}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000020, 0x00000000, 0x00000030, 0x00000010}, // L[2]
+{0x000000B0, 0x00000000, 0x00000000, 0x00000058, 0x00000078}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000006, 0x00000010, 0x00000030, 0x000000A2}, // L[2]
+{0x000000B0, 0x0000000F, 0x00000078, 0x00000058, 0x00000081}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x000000A2, 0x00000006, 0x00000010, 0x00000094, 0x00000084}, // L[2]
+{0x00000081, 0x0000000F, 0x00000078, 0x000000CE, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x000000CE, 0x00000008}, // L[0]
+{0x00000000, 0x00000005, 0x00000042, 0x00000042, 0x00000005}, // L[1]
+{0x000000A2, 0x0000009A, 0x00000002, 0x00000000, 0x0000002C}, // L[2]
+{0x00000081, 0x00000014, 0x00000000, 0x00000094, 0x00000097}, // L[3]
+}, // T.state[ 8].w =  12
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x00000063, 0x00000061}, // L[0]
+{0x00000005, 0x00000005, 0x00000042, 0x000000A3, 0x00000021}, // L[1]
+{0x0000002C, 0x0000009A, 0x00000002, 0x00000016, 0x00000018}, // L[2]
+{0x00000097, 0x00000014, 0x00000000, 0x00000081, 0x00000081}, // L[3]
+}, // T.state[ 9].w =  12
+{ // R[10] abcde
+{0x00000008, 0x0000002C, 0x00000061, 0x00000063, 0x0000006C}, // L[0]
+{0x00000005, 0x00000084, 0x00000021, 0x000000A3, 0x00000083}, // L[1]
+{0x0000002C, 0x00000050, 0x00000018, 0x00000016, 0x00000014}, // L[2]
+{0x00000097, 0x000000B2, 0x00000081, 0x00000081, 0x00000001}, // L[3]
+}, // T.state[10].w =  16
+{ // R[11] abcde
+{0x0000006C, 0x0000002C, 0x00000061, 0x00000078, 0x00000009}, // L[0]
+{0x00000083, 0x00000084, 0x00000021, 0x00000001, 0x00000062}, // L[1]
+{0x00000014, 0x00000050, 0x00000018, 0x00000010, 0x00000018}, // L[2]
+{0x00000001, 0x000000B2, 0x00000081, 0x00000004, 0x00000085}, // L[3]
+}, // T.state[11].w =  17
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x0000006C, 0x000000CD, 0x00000018, 0x00000004, 0x00000000}, // L[0]
+{0x00000083, 0x00000090, 0x00000085, 0x00000078, 0x00000000}, // L[1]
+{0x00000014, 0x0000006E, 0x00000009, 0x00000001, 0x00000000}, // L[2]
+{0x00000001, 0x0000004A, 0x00000062, 0x00000010, 0x00000000}, // L[3]
+}, // T.state[12].w =  12
+// T.w =  95
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 95 -> 94
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000060}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x000000B0}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000020, 0x00000000, 0x00000030, 0x00000010}, // L[2]
+{0x000000B0, 0x00000000, 0x00000000, 0x00000058, 0x00000078}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000006, 0x00000010, 0x00000030, 0x000000A2}, // L[2]
+{0x000000B0, 0x0000000F, 0x00000078, 0x00000058, 0x00000081}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x000000A2, 0x00000006, 0x00000010, 0x00000094, 0x00000084}, // L[2]
+{0x00000081, 0x0000000F, 0x00000078, 0x000000CE, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x000000CE, 0x00000008}, // L[0]
+{0x00000000, 0x00000005, 0x00000042, 0x00000042, 0x00000005}, // L[1]
+{0x000000A2, 0x0000009A, 0x00000082, 0x00000000, 0x00000008}, // L[2]
+{0x00000081, 0x00000015, 0x00000000, 0x00000094, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  12
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x00000063, 0x00000021}, // L[0]
+{0x00000005, 0x00000005, 0x00000042, 0x000000A3, 0x000000A1}, // L[1]
+{0x00000008, 0x0000009A, 0x00000082, 0x00000004, 0x0000008A}, // L[2]
+{0x00000094, 0x00000015, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  12
+{ // R[10] abcde
+{0x00000008, 0x00000024, 0x00000021, 0x00000063, 0x00000024}, // L[0]
+{0x00000005, 0x00000094, 0x000000A1, 0x000000A3, 0x00000091}, // L[1]
+{0x00000008, 0x00000002, 0x0000008A, 0x00000004, 0x0000000E}, // L[2]
+{0x00000094, 0x000000A2, 0x00000000, 0x00000000, 0x00000012}, // L[3]
+}, // T.state[10].w =  14
+{ // R[11] abcde
+{0x00000024, 0x00000024, 0x00000021, 0x0000003A, 0x00000009}, // L[0]
+{0x00000091, 0x00000094, 0x000000A1, 0x00000091, 0x00000010}, // L[1]
+{0x0000000E, 0x00000002, 0x0000008A, 0x00000050, 0x0000004A}, // L[2]
+{0x00000012, 0x000000A2, 0x00000000, 0x00000090, 0x00000090}, // L[3]
+}, // T.state[11].w =  14
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000024, 0x00000009, 0x0000004A, 0x00000090, 0x00000000}, // L[0]
+{0x00000091, 0x00000090, 0x00000090, 0x0000003A, 0x00000000}, // L[1]
+{0x0000000E, 0x00000064, 0x00000009, 0x00000091, 0x00000000}, // L[2]
+{0x00000012, 0x0000005A, 0x00000010, 0x00000050, 0x00000000}, // L[3]
+}, // T.state[12].w =  16
+// T.w =  94
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 94 -> 93
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000060}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x000000B0}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000020, 0x00000000, 0x00000030, 0x00000010}, // L[2]
+{0x000000B0, 0x00000000, 0x00000000, 0x00000058, 0x00000078}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000006, 0x00000010, 0x00000030, 0x000000A2}, // L[2]
+{0x000000B0, 0x0000000F, 0x00000078, 0x00000058, 0x00000081}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x000000A2, 0x00000006, 0x00000010, 0x00000094, 0x00000084}, // L[2]
+{0x00000081, 0x0000000F, 0x00000078, 0x000000CE, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x000000CE, 0x00000008}, // L[0]
+{0x00000000, 0x00000005, 0x00000042, 0x00000042, 0x00000005}, // L[1]
+{0x000000A2, 0x0000009A, 0x00000082, 0x00000000, 0x00000008}, // L[2]
+{0x00000081, 0x00000015, 0x00000000, 0x00000094, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  12
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x00000063, 0x00000061}, // L[0]
+{0x00000005, 0x00000005, 0x00000042, 0x000000A3, 0x00000021}, // L[1]
+{0x00000008, 0x0000009A, 0x00000082, 0x00000004, 0x0000008A}, // L[2]
+{0x00000094, 0x00000015, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  12
+{ // R[10] abcde
+{0x00000008, 0x0000002C, 0x00000061, 0x00000063, 0x00000064}, // L[0]
+{0x00000005, 0x00000084, 0x00000021, 0x000000A3, 0x00000083}, // L[1]
+{0x00000008, 0x00000002, 0x0000008A, 0x00000004, 0x0000000A}, // L[2]
+{0x00000094, 0x000000A2, 0x00000000, 0x00000000, 0x00000032}, // L[3]
+}, // T.state[10].w =  14
+{ // R[11] abcde
+{0x00000064, 0x0000002C, 0x00000061, 0x00000038, 0x00000009}, // L[0]
+{0x00000083, 0x00000084, 0x00000021, 0x00000001, 0x00000020}, // L[1]
+{0x0000000A, 0x00000002, 0x0000008A, 0x00000070, 0x0000001E}, // L[2]
+{0x00000032, 0x000000A2, 0x00000000, 0x00000091, 0x00000093}, // L[3]
+}, // T.state[11].w =  13
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000064, 0x00000049, 0x0000001E, 0x00000091, 0x00000000}, // L[0]
+{0x00000083, 0x00000038, 0x00000093, 0x00000038, 0x00000000}, // L[1]
+{0x0000000A, 0x00000062, 0x00000009, 0x00000001, 0x00000000}, // L[2]
+{0x00000032, 0x0000004A, 0x00000020, 0x00000070, 0x00000000}, // L[3]
+}, // T.state[12].w =  16
+// T.w =  93
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 93 -> 92
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000080, 0x00000080, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000020, 0x00000000, 0x00000000, 0x00000060}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000000, 0x000000B0}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000020, 0x00000000, 0x00000030, 0x00000010}, // L[2]
+{0x000000B0, 0x00000000, 0x00000000, 0x00000058, 0x00000078}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000008, 0x00000040, 0x00000040, 0x00000008}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000060, 0x00000006, 0x00000010, 0x00000030, 0x000000A2}, // L[2]
+{0x000000B0, 0x0000000F, 0x00000078, 0x00000058, 0x00000081}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000008, 0x00000008, 0x00000040, 0x00000042, 0x00000082}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x000000A2, 0x00000006, 0x00000010, 0x00000094, 0x00000084}, // L[2]
+{0x00000081, 0x0000000F, 0x00000078, 0x000000CE, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  12
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x000000CE, 0x00000008}, // L[0]
+{0x00000000, 0x00000005, 0x00000042, 0x00000042, 0x00000005}, // L[1]
+{0x000000A2, 0x0000009A, 0x00000082, 0x00000000, 0x00000008}, // L[2]
+{0x00000081, 0x00000015, 0x00000000, 0x00000094, 0x00000094}, // L[3]
+}, // T.state[ 8].w =  12
+{ // R[ 9] abcde
+{0x00000008, 0x00000000, 0x00000084, 0x00000063, 0x00000061}, // L[0]
+{0x00000005, 0x00000005, 0x00000042, 0x000000A3, 0x00000021}, // L[1]
+{0x00000008, 0x0000009A, 0x00000082, 0x00000004, 0x0000008A}, // L[2]
+{0x00000094, 0x00000015, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 9].w =  12
+{ // R[10] abcde
+{0x00000008, 0x0000002C, 0x00000061, 0x00000063, 0x00000064}, // L[0]
+{0x00000005, 0x00000084, 0x00000021, 0x000000A3, 0x0000008B}, // L[1]
+{0x00000008, 0x00000002, 0x0000008A, 0x00000004, 0x0000000E}, // L[2]
+{0x00000094, 0x000000A2, 0x00000000, 0x00000000, 0x00000012}, // L[3]
+}, // T.state[10].w =  14
+{ // R[11] abcde
+{0x00000064, 0x0000002C, 0x00000061, 0x00000038, 0x00000009}, // L[0]
+{0x0000008B, 0x00000084, 0x00000021, 0x00000041, 0x00000022}, // L[1]
+{0x0000000E, 0x00000002, 0x0000008A, 0x00000050, 0x0000004A}, // L[2]
+{0x00000012, 0x000000A2, 0x00000000, 0x00000090, 0x00000090}, // L[3]
+}, // T.state[11].w =  13
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000064, 0x0000004D, 0x0000004A, 0x00000090, 0x00000000}, // L[0]
+{0x0000008B, 0x00000090, 0x00000090, 0x00000038, 0x00000000}, // L[1]
+{0x0000000E, 0x00000064, 0x00000009, 0x00000041, 0x00000000}, // L[2]
+{0x00000012, 0x0000004A, 0x00000022, 0x00000050, 0x00000000}, // L[3]
+}, // T.state[12].w =  15
+// T.w =  92
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 92 -> 91
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000019, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000084}, // L[1]
+{0x00000009, 0x00000019, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000090, 0x00000084, 0x00000000, 0x00000090}, // L[1]
+{0x00000009, 0x000000B3, 0x00000084, 0x00000084, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000090, 0x00000090, 0x00000084, 0x00000084, 0x00000000}, // L[1]
+{0x00000088, 0x000000B3, 0x00000084, 0x00000060, 0x00000024}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000021, 0x00000024, 0x00000000, 0x000000A1}, // L[0]
+{0x00000090, 0x0000002F, 0x00000000, 0x00000012, 0x00000089}, // L[1]
+{0x00000088, 0x00000000, 0x00000010, 0x00000084, 0x00000088}, // L[2]
+{0x00000000, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x000000A1, 0x00000021, 0x00000024, 0x000000D0, 0x00000034}, // L[0]
+{0x00000089, 0x0000002F, 0x00000000, 0x000000CD, 0x000000CF}, // L[1]
+{0x00000088, 0x00000000, 0x00000010, 0x00000006, 0x00000012}, // L[2]
+{0x000000A0, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 9].w =  14
+{ // R[10] abcde
+{0x000000A1, 0x000000A2, 0x00000034, 0x000000D0, 0x00000043}, // L[0]
+{0x00000089, 0x0000001C, 0x000000CF, 0x000000CD, 0x000000AD}, // L[1]
+{0x00000088, 0x00000042, 0x00000012, 0x00000006, 0x0000004E}, // L[2]
+{0x000000A0, 0x00000000, 0x000000A0, 0x00000060, 0x000000E0}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000043, 0x000000A2, 0x00000034, 0x0000009C, 0x00000090}, // L[0]
+{0x000000AD, 0x0000001C, 0x000000CF, 0x00000003, 0x00000040}, // L[1]
+{0x0000004E, 0x00000042, 0x00000012, 0x00000042, 0x00000050}, // L[2]
+{0x000000E0, 0x00000000, 0x000000A0, 0x00000004, 0x000000EC}, // L[3]
+}, // T.state[11].w =  15
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000043, 0x000000B8, 0x00000050, 0x00000004, 0x00000000}, // L[0]
+{0x000000AD, 0x00000024, 0x000000EC, 0x0000009C, 0x00000000}, // L[1]
+{0x0000004E, 0x000000D9, 0x00000090, 0x00000003, 0x00000000}, // L[2]
+{0x000000E0, 0x00000064, 0x00000040, 0x00000042, 0x00000000}, // L[3]
+}, // T.state[12].w =  17
+// T.w =  91
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 91 -> 90
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000019, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000084}, // L[1]
+{0x00000009, 0x00000019, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000090, 0x00000084, 0x00000000, 0x00000090}, // L[1]
+{0x00000009, 0x000000B3, 0x00000084, 0x00000084, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000090, 0x00000090, 0x00000084, 0x00000084, 0x00000000}, // L[1]
+{0x00000088, 0x000000B3, 0x00000084, 0x00000060, 0x000000E4}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000021, 0x000000E4, 0x00000000, 0x00000061}, // L[0]
+{0x00000090, 0x000000AE, 0x00000000, 0x00000012, 0x00000036}, // L[1]
+{0x00000088, 0x00000000, 0x00000010, 0x00000084, 0x00000088}, // L[2]
+{0x00000000, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000061, 0x00000021, 0x000000E4, 0x000000B0, 0x00000014}, // L[0]
+{0x00000036, 0x000000AE, 0x00000000, 0x00000012, 0x00000012}, // L[1]
+{0x00000088, 0x00000000, 0x00000010, 0x00000006, 0x00000032}, // L[2]
+{0x000000A0, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 9].w =  13
+{ // R[10] abcde
+{0x00000061, 0x000000A6, 0x00000014, 0x000000B0, 0x00000001}, // L[0]
+{0x00000036, 0x00000097, 0x00000012, 0x00000012, 0x000000C1}, // L[1]
+{0x00000088, 0x00000046, 0x00000032, 0x00000006, 0x00000042}, // L[2]
+{0x000000A0, 0x00000000, 0x000000A0, 0x00000060, 0x000000E0}, // L[3]
+}, // T.state[10].w =  12
+{ // R[11] abcde
+{0x00000001, 0x000000A6, 0x00000014, 0x0000008D, 0x00000081}, // L[0]
+{0x000000C1, 0x00000097, 0x00000012, 0x0000009E, 0x00000080}, // L[1]
+{0x00000042, 0x00000046, 0x00000032, 0x00000022, 0x00000010}, // L[2]
+{0x000000E0, 0x00000000, 0x000000A0, 0x00000004, 0x000000A4}, // L[3]
+}, // T.state[11].w =  19
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000001, 0x0000002E, 0x00000010, 0x00000004, 0x00000000}, // L[0]
+{0x000000C1, 0x000000AC, 0x000000A4, 0x0000008D, 0x00000000}, // L[1]
+{0x00000042, 0x00000049, 0x00000081, 0x0000009E, 0x00000000}, // L[2]
+{0x000000E0, 0x0000004E, 0x00000080, 0x00000022, 0x00000000}, // L[3]
+}, // T.state[12].w =  16
+// T.w =  90
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 90 -> 88
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000019, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000084}, // L[1]
+{0x00000009, 0x00000019, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000090, 0x00000084, 0x00000000, 0x00000090}, // L[1]
+{0x00000009, 0x000000B3, 0x00000084, 0x00000084, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000090, 0x00000090, 0x00000084, 0x00000084, 0x00000000}, // L[1]
+{0x00000088, 0x000000B3, 0x00000084, 0x00000060, 0x000000E4}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000021, 0x000000E4, 0x00000000, 0x000000E1}, // L[0]
+{0x00000090, 0x000000AE, 0x00000000, 0x00000012, 0x00000016}, // L[1]
+{0x00000088, 0x00000000, 0x00000010, 0x00000084, 0x00000098}, // L[2]
+{0x00000000, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x000000E1, 0x00000021, 0x000000E4, 0x000000F0, 0x00000014}, // L[0]
+{0x00000016, 0x000000AE, 0x00000000, 0x00000002, 0x00000002}, // L[1]
+{0x00000098, 0x00000000, 0x00000010, 0x0000000E, 0x00000002}, // L[2]
+{0x000000A0, 0x000000A0, 0x00000000, 0x00000060, 0x00000020}, // L[3]
+}, // T.state[ 9].w =  13
+{ // R[10] abcde
+{0x000000E1, 0x000000A6, 0x00000014, 0x000000F0, 0x000000C5}, // L[0]
+{0x00000016, 0x00000095, 0x00000002, 0x00000002, 0x00000083}, // L[1]
+{0x00000098, 0x00000040, 0x00000002, 0x0000000E, 0x00000048}, // L[2]
+{0x000000A0, 0x00000010, 0x00000020, 0x00000060, 0x000000F0}, // L[3]
+}, // T.state[10].w =  12
+{ // R[11] abcde
+{0x000000C5, 0x000000A6, 0x00000014, 0x000000A9, 0x00000085}, // L[0]
+{0x00000083, 0x00000095, 0x00000002, 0x0000000C, 0x00000002}, // L[1]
+{0x00000048, 0x00000040, 0x00000002, 0x00000032, 0x00000010}, // L[2]
+{0x000000F0, 0x00000010, 0x00000020, 0x00000084, 0x000000A4}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x000000C5, 0x0000002F, 0x00000010, 0x00000084, 0x00000000}, // L[0]
+{0x00000083, 0x000000A0, 0x000000A4, 0x000000A9, 0x00000000}, // L[1]
+{0x00000048, 0x00000069, 0x00000085, 0x0000000C, 0x00000000}, // L[2]
+{0x000000F0, 0x00000046, 0x00000002, 0x00000032, 0x00000000}, // L[3]
+}, // T.state[12].w =  15
+// T.w =  88
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 88 -> 87
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000019, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000084}, // L[1]
+{0x00000009, 0x00000019, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000090, 0x00000084, 0x00000000, 0x00000090}, // L[1]
+{0x00000009, 0x000000B3, 0x00000084, 0x00000084, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000090, 0x00000090, 0x00000084, 0x00000084, 0x00000000}, // L[1]
+{0x00000088, 0x000000B3, 0x00000084, 0x00000060, 0x000000E4}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000021, 0x000000E4, 0x00000000, 0x000000E1}, // L[0]
+{0x00000090, 0x000000AE, 0x00000000, 0x00000012, 0x00000016}, // L[1]
+{0x00000088, 0x00000000, 0x00000010, 0x00000084, 0x00000098}, // L[2]
+{0x00000000, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x000000E1, 0x00000021, 0x000000E4, 0x000000F0, 0x0000001C}, // L[0]
+{0x00000016, 0x000000AE, 0x00000000, 0x00000002, 0x00000002}, // L[1]
+{0x00000098, 0x00000000, 0x00000010, 0x0000000E, 0x00000022}, // L[2]
+{0x000000A0, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 9].w =  13
+{ // R[10] abcde
+{0x000000E1, 0x000000A7, 0x0000001C, 0x000000F0, 0x00000042}, // L[0]
+{0x00000016, 0x00000095, 0x00000002, 0x00000002, 0x00000083}, // L[1]
+{0x00000098, 0x00000044, 0x00000022, 0x0000000E, 0x0000004C}, // L[2]
+{0x000000A0, 0x00000000, 0x000000A0, 0x00000060, 0x000000E0}, // L[3]
+}, // T.state[10].w =  12
+{ // R[11] abcde
+{0x00000042, 0x000000A7, 0x0000001C, 0x00000095, 0x00000089}, // L[0]
+{0x00000083, 0x00000095, 0x00000002, 0x0000000C, 0x00000002}, // L[1]
+{0x0000004C, 0x00000044, 0x00000022, 0x00000012, 0x00000010}, // L[2]
+{0x000000E0, 0x00000000, 0x000000A0, 0x00000004, 0x000000A4}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000042, 0x0000002F, 0x00000010, 0x00000004, 0x00000000}, // L[0]
+{0x00000083, 0x000000A8, 0x000000A4, 0x00000095, 0x00000000}, // L[1]
+{0x0000004C, 0x00000049, 0x00000089, 0x0000000C, 0x00000000}, // L[2]
+{0x000000E0, 0x0000005C, 0x00000002, 0x00000012, 0x00000000}, // L[3]
+}, // T.state[12].w =  14
+// T.w =  87
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 87 -> 86
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000004, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000019, 0x00000000, 0x00000000, 0x00000009}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000002, 0x00000002}, // L[0]
+{0x00000000, 0x00000000, 0x0000008C, 0x00000000, 0x00000084}, // L[1]
+{0x00000009, 0x00000019, 0x00000000, 0x00000084, 0x00000084}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   3
+{ // R[ 6] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000002, 0x00000040}, // L[0]
+{0x00000000, 0x00000090, 0x00000084, 0x00000000, 0x00000090}, // L[1]
+{0x00000009, 0x000000B3, 0x00000084, 0x00000084, 0x00000088}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   6
+{ // R[ 7] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000012, 0x00000010}, // L[0]
+{0x00000090, 0x00000090, 0x00000084, 0x00000084, 0x00000000}, // L[1]
+{0x00000088, 0x000000B3, 0x00000084, 0x00000060, 0x000000E4}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   9
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000040, 0x00000021, 0x000000E4, 0x00000000, 0x000000E1}, // L[0]
+{0x00000090, 0x000000AE, 0x00000000, 0x00000012, 0x00000016}, // L[1]
+{0x00000088, 0x00000000, 0x00000010, 0x00000084, 0x00000098}, // L[2]
+{0x00000000, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x000000E1, 0x00000021, 0x000000E4, 0x000000F0, 0x0000001C}, // L[0]
+{0x00000016, 0x000000AE, 0x00000000, 0x00000002, 0x00000006}, // L[1]
+{0x00000098, 0x00000000, 0x00000010, 0x0000000E, 0x00000002}, // L[2]
+{0x000000A0, 0x000000A0, 0x00000000, 0x00000060, 0x000000A0}, // L[3]
+}, // T.state[ 9].w =  13
+{ // R[10] abcde
+{0x000000E1, 0x000000A7, 0x0000001C, 0x000000F0, 0x00000080}, // L[0]
+{0x00000016, 0x00000015, 0x00000006, 0x00000002, 0x00000003}, // L[1]
+{0x00000098, 0x00000040, 0x00000002, 0x0000000E, 0x00000048}, // L[2]
+{0x000000A0, 0x00000000, 0x000000A0, 0x00000060, 0x000000E0}, // L[3]
+}, // T.state[10].w =  12
+{ // R[11] abcde
+{0x00000080, 0x000000A7, 0x0000001C, 0x00000083, 0x00000081}, // L[0]
+{0x00000003, 0x00000015, 0x00000006, 0x00000008, 0x0000000A}, // L[1]
+{0x00000048, 0x00000040, 0x00000002, 0x00000032, 0x00000010}, // L[2]
+{0x000000E0, 0x00000000, 0x000000A0, 0x00000004, 0x000000A4}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000080, 0x0000003E, 0x00000010, 0x00000004, 0x00000000}, // L[0]
+{0x00000003, 0x000000A0, 0x000000A4, 0x00000083, 0x00000000}, // L[1]
+{0x00000048, 0x00000049, 0x00000081, 0x00000008, 0x00000000}, // L[2]
+{0x000000E0, 0x0000004C, 0x0000000A, 0x00000032, 0x00000000}, // L[3]
+}, // T.state[12].w =  15
+// T.w =  86
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 86 -> 85
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000055}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000055, 0x00000050, 0x00000083, 0x000000A6, 0x00000029}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000029, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000F2, 0x00000000, 0x00000000, 0x00000086}, // L[1]
+{0x00000055, 0x00000000, 0x00000000, 0x00000080, 0x00000075}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000A6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000029, 0x00000010, 0x00000009}, // L[0]
+{0x00000086, 0x000000F2, 0x00000000, 0x00000043, 0x00000041}, // L[1]
+{0x00000075, 0x00000000, 0x00000000, 0x000000FA, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000053, 0x00000055}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000025, 0x00000009, 0x00000010, 0x0000000D}, // L[0]
+{0x00000086, 0x00000076, 0x00000041, 0x00000043, 0x00000050}, // L[1]
+{0x00000075, 0x00000041, 0x0000000A, 0x000000FA, 0x00000016}, // L[2]
+{0x00000000, 0x000000AA, 0x00000055, 0x00000053, 0x000000EA}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x0000000D, 0x00000025, 0x00000009, 0x000000E8, 0x00000021}, // L[0]
+{0x00000050, 0x00000076, 0x00000041, 0x00000098, 0x00000049}, // L[1]
+{0x00000016, 0x00000041, 0x0000000A, 0x00000067, 0x00000025}, // L[2]
+{0x000000EA, 0x000000AA, 0x00000055, 0x000000CD, 0x00000020}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x0000000D, 0x0000007E, 0x00000025, 0x000000CD, 0x00000000}, // L[0]
+{0x00000050, 0x000000C8, 0x00000020, 0x000000E8, 0x00000000}, // L[1]
+{0x00000016, 0x00000015, 0x00000021, 0x00000098, 0x00000000}, // L[2]
+{0x000000EA, 0x00000008, 0x00000049, 0x00000067, 0x00000000}, // L[3]
+}, // T.state[12].w =  22
+// T.w =  85
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 85 -> 84
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000055}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000055, 0x00000050, 0x00000083, 0x000000A6, 0x00000029}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000029, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000F2, 0x00000000, 0x00000000, 0x00000086}, // L[1]
+{0x00000055, 0x00000000, 0x00000000, 0x00000080, 0x00000075}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000A6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000029, 0x00000010, 0x00000009}, // L[0]
+{0x00000086, 0x000000F2, 0x00000000, 0x00000043, 0x00000041}, // L[1]
+{0x00000075, 0x00000000, 0x00000000, 0x000000FA, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000053, 0x00000055}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000025, 0x00000009, 0x00000010, 0x0000000D}, // L[0]
+{0x00000086, 0x00000076, 0x00000041, 0x00000043, 0x00000050}, // L[1]
+{0x00000075, 0x00000041, 0x0000000A, 0x000000FA, 0x000000B6}, // L[2]
+{0x00000000, 0x000000AA, 0x00000055, 0x00000053, 0x000000AA}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x0000000D, 0x00000025, 0x00000009, 0x000000E8, 0x00000021}, // L[0]
+{0x00000050, 0x00000076, 0x00000041, 0x00000098, 0x00000049}, // L[1]
+{0x000000B6, 0x00000041, 0x0000000A, 0x00000062, 0x0000002C}, // L[2]
+{0x000000AA, 0x000000AA, 0x00000055, 0x000000CF, 0x00000000}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x0000000D, 0x0000007E, 0x0000002C, 0x000000CF, 0x00000000}, // L[0]
+{0x00000050, 0x000000DA, 0x00000000, 0x000000E8, 0x00000000}, // L[1]
+{0x000000B6, 0x00000055, 0x00000021, 0x00000098, 0x00000000}, // L[2]
+{0x000000AA, 0x00000008, 0x00000049, 0x00000062, 0x00000000}, // L[3]
+}, // T.state[12].w =  21
+// T.w =  84
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 84 -> 83
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000055}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000055, 0x00000050, 0x00000083, 0x000000A6, 0x00000029}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000029, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000F2, 0x00000000, 0x00000000, 0x00000086}, // L[1]
+{0x00000055, 0x00000000, 0x00000000, 0x00000080, 0x00000075}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000A6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000029, 0x00000010, 0x00000009}, // L[0]
+{0x00000086, 0x000000F2, 0x00000000, 0x00000043, 0x00000041}, // L[1]
+{0x00000075, 0x00000000, 0x00000000, 0x000000FA, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000053, 0x00000055}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000025, 0x00000009, 0x00000010, 0x0000000D}, // L[0]
+{0x00000086, 0x00000076, 0x00000041, 0x00000043, 0x00000010}, // L[1]
+{0x00000075, 0x00000041, 0x0000000A, 0x000000FA, 0x000000B6}, // L[2]
+{0x00000000, 0x000000AA, 0x00000055, 0x00000053, 0x000000FA}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x0000000D, 0x00000025, 0x00000009, 0x000000E8, 0x00000021}, // L[0]
+{0x00000010, 0x00000076, 0x00000041, 0x0000009A, 0x00000049}, // L[1]
+{0x000000B6, 0x00000041, 0x0000000A, 0x00000062, 0x00000028}, // L[2]
+{0x000000FA, 0x000000AA, 0x00000055, 0x0000004D, 0x00000000}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x0000000D, 0x0000007E, 0x00000028, 0x0000004D, 0x00000000}, // L[0]
+{0x00000010, 0x000000D2, 0x00000000, 0x000000E8, 0x00000000}, // L[1]
+{0x000000B6, 0x00000055, 0x00000021, 0x0000009A, 0x00000000}, // L[2]
+{0x000000FA, 0x00000008, 0x00000049, 0x00000062, 0x00000000}, // L[3]
+}, // T.state[12].w =  20
+// T.w =  83
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 83 -> 82
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000055}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000055, 0x00000050, 0x00000083, 0x000000A6, 0x00000029}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000029, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000F2, 0x00000000, 0x00000000, 0x00000086}, // L[1]
+{0x00000055, 0x00000000, 0x00000000, 0x00000080, 0x00000075}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000A6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000029, 0x00000010, 0x00000049}, // L[0]
+{0x00000086, 0x000000F2, 0x00000000, 0x00000043, 0x000000C1}, // L[1]
+{0x00000075, 0x00000000, 0x00000000, 0x000000FA, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000053, 0x00000055}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x0000002D, 0x00000049, 0x00000010, 0x00000015}, // L[0]
+{0x00000086, 0x00000066, 0x000000C1, 0x00000043, 0x00000020}, // L[1]
+{0x00000075, 0x00000041, 0x0000000A, 0x000000FA, 0x000000B6}, // L[2]
+{0x00000000, 0x000000AA, 0x00000055, 0x00000053, 0x000000FA}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x00000015, 0x0000002D, 0x00000049, 0x00000028, 0x00000021}, // L[0]
+{0x00000020, 0x00000066, 0x000000C1, 0x0000001B, 0x00000048}, // L[1]
+{0x000000B6, 0x00000041, 0x0000000A, 0x00000062, 0x00000028}, // L[2]
+{0x000000FA, 0x000000AA, 0x00000055, 0x0000004D, 0x00000020}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000015, 0x0000005C, 0x00000028, 0x0000004D, 0x00000000}, // L[0]
+{0x00000020, 0x000000D2, 0x00000020, 0x00000028, 0x00000000}, // L[1]
+{0x000000B6, 0x00000015, 0x00000021, 0x0000001B, 0x00000000}, // L[2]
+{0x000000FA, 0x00000018, 0x00000048, 0x00000062, 0x00000000}, // L[3]
+}, // T.state[12].w =  19
+// T.w =  82
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 82 -> 81
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000055}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000055, 0x00000050, 0x00000083, 0x000000A6, 0x00000029}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000029, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000F2, 0x00000000, 0x00000000, 0x00000086}, // L[1]
+{0x00000055, 0x00000000, 0x00000000, 0x00000080, 0x00000075}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000A6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000029, 0x00000010, 0x00000049}, // L[0]
+{0x00000086, 0x000000F2, 0x00000000, 0x00000043, 0x000000C1}, // L[1]
+{0x00000075, 0x00000000, 0x00000000, 0x000000FA, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000053, 0x00000055}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x0000002D, 0x00000049, 0x00000010, 0x00000005}, // L[0]
+{0x00000086, 0x00000066, 0x000000C1, 0x00000043, 0x00000060}, // L[1]
+{0x00000075, 0x00000041, 0x0000000A, 0x000000FA, 0x000000BE}, // L[2]
+{0x00000000, 0x000000AA, 0x00000055, 0x00000053, 0x000000FA}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x00000005, 0x0000002D, 0x00000049, 0x000000A8, 0x00000021}, // L[0]
+{0x00000060, 0x00000066, 0x000000C1, 0x00000019, 0x0000004A}, // L[1]
+{0x000000BE, 0x00000041, 0x0000000A, 0x00000022, 0x00000028}, // L[2]
+{0x000000FA, 0x000000AA, 0x00000055, 0x0000004D, 0x00000020}, // L[3]
+}, // T.state[11].w =  18
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000005, 0x00000058, 0x00000028, 0x0000004D, 0x00000000}, // L[0]
+{0x00000060, 0x000000D2, 0x00000020, 0x000000A8, 0x00000000}, // L[1]
+{0x000000BE, 0x00000015, 0x00000021, 0x00000019, 0x00000000}, // L[2]
+{0x000000FA, 0x00000018, 0x0000004A, 0x00000022, 0x00000000}, // L[3]
+}, // T.state[12].w =  18
+// T.w =  81
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 81 -> 80
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000055}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000055, 0x00000050, 0x00000083, 0x000000A6, 0x00000029}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000029, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000F2, 0x00000000, 0x00000000, 0x00000086}, // L[1]
+{0x00000055, 0x00000000, 0x00000000, 0x00000080, 0x00000075}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000A6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000029, 0x00000010, 0x00000029}, // L[0]
+{0x00000086, 0x000000F2, 0x00000000, 0x00000043, 0x00000041}, // L[1]
+{0x00000075, 0x00000000, 0x00000000, 0x000000FA, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000053, 0x00000055}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000021, 0x00000029, 0x00000010, 0x00000001}, // L[0]
+{0x00000086, 0x00000076, 0x00000041, 0x00000043, 0x00000070}, // L[1]
+{0x00000075, 0x00000041, 0x0000000A, 0x000000FA, 0x000000FE}, // L[2]
+{0x00000000, 0x000000AA, 0x00000055, 0x00000053, 0x000000EA}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x00000001, 0x00000021, 0x00000029, 0x00000088, 0x000000A1}, // L[0]
+{0x00000070, 0x00000076, 0x00000041, 0x00000099, 0x00000048}, // L[1]
+{0x000000FE, 0x00000041, 0x0000000A, 0x00000020, 0x0000002A}, // L[2]
+{0x000000EA, 0x000000AA, 0x00000055, 0x000000CD, 0x00000000}, // L[3]
+}, // T.state[11].w =  17
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000001, 0x0000007C, 0x0000002A, 0x000000CD, 0x00000000}, // L[0]
+{0x00000070, 0x000000D6, 0x00000000, 0x00000088, 0x00000000}, // L[1]
+{0x000000FE, 0x00000055, 0x000000A1, 0x00000099, 0x00000000}, // L[2]
+{0x000000EA, 0x00000001, 0x00000048, 0x00000020, 0x00000000}, // L[3]
+}, // T.state[12].w =  18
+// T.w =  80
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 80 -> 79
+#if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 13
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000003}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000003, 0x00000001, 0x00000000, 0x00000081, 0x00000083}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000003, 0x00000050, 0x00000083, 0x00000081, 0x00000055}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000055, 0x00000050, 0x00000083, 0x000000A6, 0x00000029}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   5
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000029, 0x00000000, 0x00000020}, // L[0]
+{0x00000010, 0x000000F2, 0x00000000, 0x00000000, 0x00000086}, // L[1]
+{0x00000055, 0x00000000, 0x00000000, 0x00000080, 0x00000075}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000A6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   6
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000029, 0x00000010, 0x00000029}, // L[0]
+{0x00000086, 0x000000F2, 0x00000000, 0x00000043, 0x00000041}, // L[1]
+{0x00000075, 0x00000000, 0x00000000, 0x000000FA, 0x0000000A}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000053, 0x00000055}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000021, 0x00000029, 0x00000010, 0x00000001}, // L[0]
+{0x00000086, 0x00000076, 0x00000041, 0x00000043, 0x00000070}, // L[1]
+{0x00000075, 0x00000041, 0x0000000A, 0x000000FA, 0x000000FE}, // L[2]
+{0x00000000, 0x000000AA, 0x00000055, 0x00000053, 0x000000FA}, // L[3]
+}, // T.state[10].w =  17
+{ // R[11] abcde
+{0x00000001, 0x00000021, 0x00000029, 0x00000088, 0x000000A1}, // L[0]
+{0x00000070, 0x00000076, 0x00000041, 0x00000099, 0x00000048}, // L[1]
+{0x000000FE, 0x00000041, 0x0000000A, 0x00000020, 0x0000003A}, // L[2]
+{0x000000FA, 0x000000AA, 0x00000055, 0x0000004D, 0x00000000}, // L[3]
+}, // T.state[11].w =  17
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000001, 0x0000007C, 0x0000003A, 0x0000004D, 0x00000000}, // L[0]
+{0x00000070, 0x000000F6, 0x00000000, 0x00000088, 0x00000000}, // L[1]
+{0x000000FE, 0x00000055, 0x000000A1, 0x00000099, 0x00000000}, // L[2]
+{0x000000FA, 0x00000001, 0x00000048, 0x00000020, 0x00000000}, // L[3]
+}, // T.state[12].w =  17
+// T.w =  79
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 12 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+[./tests/norx-best-diff-search-tests.cc:3372] norx_print_bounds_file(): Print bounds for first 12 rounds:
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  3
+B[ 4]  4
+B[ 5]  5
+B[ 6]  6
+B[ 7]  8
+B[ 8] 11
+B[ 9] 26
+B[10] 42
+B[11] 79
+
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 179 -> 178
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000005}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x0000002A, 0x00000000, 0x00000084, 0x0000002E}, // L[0]
+{0x00000030, 0x00000000, 0x0000008C, 0x00000000, 0x00000050}, // L[1]
+{0x00000000, 0x00000039, 0x00000000, 0x00000085, 0x00000049}, // L[2]
+{0x00000090, 0x00000000, 0x00000005, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x0000002E, 0x0000002A, 0x00000000, 0x00000055, 0x00000055}, // L[0]
+{0x00000050, 0x00000000, 0x0000008C, 0x00000028, 0x000000A4}, // L[1]
+{0x00000049, 0x00000039, 0x00000000, 0x00000066, 0x0000002A}, // L[2]
+{0x00000090, 0x00000000, 0x00000005, 0x00000048, 0x00000055}, // L[3]
+}, // T.state[ 5].w =  11
+{ // R[ 6] abcde
+{0x0000002E, 0x000000EF, 0x00000055, 0x00000055, 0x00000001}, // L[0]
+{0x00000050, 0x00000094, 0x000000A4, 0x00000028, 0x000000C4}, // L[1]
+{0x00000049, 0x00000062, 0x0000002A, 0x00000066, 0x0000002B}, // L[2]
+{0x00000090, 0x000000AA, 0x00000055, 0x00000048, 0x0000000A}, // L[3]
+}, // T.state[ 6].w =  16
+{ // R[ 7] abcde
+{0x00000001, 0x000000EF, 0x00000055, 0x000000A2, 0x00000031}, // L[0]
+{0x000000C4, 0x00000094, 0x000000A4, 0x00000067, 0x00000001}, // L[1]
+{0x0000002B, 0x00000062, 0x0000002A, 0x0000006A, 0x00000000}, // L[2]
+{0x0000000A, 0x000000AA, 0x00000055, 0x00000012, 0x000000C9}, // L[3]
+}, // T.state[ 7].w =  21
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000001, 0x0000002B, 0x00000000, 0x00000012, 0x00000028}, // L[0]
+{0x000000C4, 0x000000C4, 0x000000C9, 0x000000A2, 0x00000000}, // L[1]
+{0x0000002B, 0x000000C6, 0x00000031, 0x00000067, 0x00000021}, // L[2]
+{0x0000000A, 0x000000BD, 0x00000001, 0x0000006A, 0x00000081}, // L[3]
+}, // T.state[ 8].w =  22
+{ // R[ 9] abcde
+{0x00000028, 0x0000002B, 0x00000000, 0x0000001D, 0x00000005}, // L[0]
+{0x00000000, 0x000000C4, 0x000000C9, 0x00000051, 0x0000008A}, // L[1]
+{0x00000021, 0x000000C6, 0x00000031, 0x00000023, 0x00000010}, // L[2]
+{0x00000081, 0x000000BD, 0x00000001, 0x000000F5, 0x0000001C}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000028, 0x000000C5, 0x00000005, 0x0000001D, 0x00000025}, // L[0]
+{0x00000000, 0x000000C9, 0x0000008A, 0x00000051, 0x00000049}, // L[1]
+{0x00000021, 0x000000DA, 0x00000010, 0x00000023, 0x00000019}, // L[2]
+{0x00000081, 0x00000034, 0x0000001C, 0x000000F5, 0x000000F5}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000025, 0x000000C5, 0x00000005, 0x000000C1, 0x00000044}, // L[0]
+{0x00000049, 0x000000C9, 0x0000008A, 0x000000C0, 0x0000004A}, // L[1]
+{0x00000019, 0x000000DA, 0x00000010, 0x000000D1, 0x00000041}, // L[2]
+{0x000000F5, 0x00000034, 0x0000001C, 0x00000000, 0x0000003C}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000025, 0x00000007, 0x00000041, 0x00000000, 0x00000020}, // L[0]
+{0x00000049, 0x00000037, 0x0000003C, 0x000000C1, 0x00000000}, // L[1]
+{0x00000019, 0x00000010, 0x00000044, 0x000000C0, 0x00000009}, // L[2]
+{0x000000F5, 0x00000003, 0x0000004A, 0x000000D1, 0x00000010}, // L[3]
+}, // T.state[12].w =  15
+{ // R[13] abcde
+{0x00000020, 0x00000007, 0x00000041, 0x00000010, 0x00000000}, // L[0]
+{0x00000000, 0x00000037, 0x0000003C, 0x000000E0, 0x00000000}, // L[1]
+{0x00000009, 0x00000010, 0x00000044, 0x000000E4, 0x00000000}, // L[2]
+{0x00000010, 0x00000003, 0x0000004A, 0x000000E0, 0x00000000}, // L[3]
+}, // T.state[13].w =  21
+// T.w = 178
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 178 -> 177
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000005}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x0000002A, 0x00000000, 0x00000084, 0x0000002E}, // L[0]
+{0x00000030, 0x00000000, 0x0000008C, 0x00000000, 0x00000050}, // L[1]
+{0x00000000, 0x00000039, 0x00000000, 0x00000085, 0x00000049}, // L[2]
+{0x00000090, 0x00000000, 0x00000005, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x0000002E, 0x0000002A, 0x00000000, 0x00000055, 0x00000055}, // L[0]
+{0x00000050, 0x00000000, 0x0000008C, 0x00000028, 0x000000A4}, // L[1]
+{0x00000049, 0x00000039, 0x00000000, 0x00000066, 0x0000002A}, // L[2]
+{0x00000090, 0x00000000, 0x00000005, 0x00000048, 0x00000055}, // L[3]
+}, // T.state[ 5].w =  11
+{ // R[ 6] abcde
+{0x0000002E, 0x000000EF, 0x00000055, 0x00000055, 0x00000001}, // L[0]
+{0x00000050, 0x00000094, 0x000000A4, 0x00000028, 0x000000C4}, // L[1]
+{0x00000049, 0x00000062, 0x0000002A, 0x00000066, 0x0000002B}, // L[2]
+{0x00000090, 0x000000AA, 0x00000055, 0x00000048, 0x0000000A}, // L[3]
+}, // T.state[ 6].w =  16
+{ // R[ 7] abcde
+{0x00000001, 0x000000EF, 0x00000055, 0x000000A2, 0x00000031}, // L[0]
+{0x000000C4, 0x00000094, 0x000000A4, 0x00000067, 0x00000001}, // L[1]
+{0x0000002B, 0x00000062, 0x0000002A, 0x0000006A, 0x00000000}, // L[2]
+{0x0000000A, 0x000000AA, 0x00000055, 0x00000012, 0x000000C9}, // L[3]
+}, // T.state[ 7].w =  21
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000001, 0x0000002B, 0x00000000, 0x00000012, 0x00000028}, // L[0]
+{0x000000C4, 0x000000C4, 0x000000C9, 0x000000A2, 0x00000000}, // L[1]
+{0x0000002B, 0x000000C6, 0x00000031, 0x00000067, 0x00000021}, // L[2]
+{0x0000000A, 0x000000BD, 0x00000001, 0x0000006A, 0x00000081}, // L[3]
+}, // T.state[ 8].w =  22
+{ // R[ 9] abcde
+{0x00000028, 0x0000002B, 0x00000000, 0x0000001D, 0x00000005}, // L[0]
+{0x00000000, 0x000000C4, 0x000000C9, 0x00000051, 0x0000008A}, // L[1]
+{0x00000021, 0x000000C6, 0x00000031, 0x00000023, 0x00000010}, // L[2]
+{0x00000081, 0x000000BD, 0x00000001, 0x000000F5, 0x0000001C}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000028, 0x000000C5, 0x00000005, 0x0000001D, 0x00000025}, // L[0]
+{0x00000000, 0x000000C9, 0x0000008A, 0x00000051, 0x00000049}, // L[1]
+{0x00000021, 0x000000DA, 0x00000010, 0x00000023, 0x00000019}, // L[2]
+{0x00000081, 0x00000034, 0x0000001C, 0x000000F5, 0x000000F5}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000025, 0x000000C5, 0x00000005, 0x000000C1, 0x0000004C}, // L[0]
+{0x00000049, 0x000000C9, 0x0000008A, 0x000000C0, 0x0000004A}, // L[1]
+{0x00000019, 0x000000DA, 0x00000010, 0x000000D1, 0x00000063}, // L[2]
+{0x000000F5, 0x00000034, 0x0000001C, 0x00000000, 0x0000003C}, // L[3]
+}, // T.state[11].w =  22
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000025, 0x00000007, 0x00000063, 0x00000000, 0x00000020}, // L[0]
+{0x00000049, 0x00000073, 0x0000003C, 0x000000C1, 0x00000008}, // L[1]
+{0x00000019, 0x00000010, 0x0000004C, 0x000000C0, 0x0000000B}, // L[2]
+{0x000000F5, 0x00000013, 0x0000004A, 0x000000D1, 0x00000000}, // L[3]
+}, // T.state[12].w =  15
+{ // R[13] abcde
+{0x00000020, 0x00000007, 0x00000063, 0x00000010, 0x00000000}, // L[0]
+{0x00000008, 0x00000073, 0x0000003C, 0x000000E4, 0x00000000}, // L[1]
+{0x0000000B, 0x00000010, 0x0000004C, 0x000000E5, 0x00000000}, // L[2]
+{0x00000000, 0x00000013, 0x0000004A, 0x000000E8, 0x00000000}, // L[3]
+}, // T.state[13].w =  20
+// T.w = 177
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 177 -> 176
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000005}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x0000002A, 0x00000000, 0x00000084, 0x0000002E}, // L[0]
+{0x00000030, 0x00000000, 0x0000008C, 0x00000000, 0x00000050}, // L[1]
+{0x00000000, 0x00000039, 0x00000000, 0x00000085, 0x00000049}, // L[2]
+{0x00000090, 0x00000000, 0x00000005, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x0000002E, 0x0000002A, 0x00000000, 0x00000055, 0x00000055}, // L[0]
+{0x00000050, 0x00000000, 0x0000008C, 0x00000028, 0x000000A4}, // L[1]
+{0x00000049, 0x00000039, 0x00000000, 0x00000066, 0x0000002A}, // L[2]
+{0x00000090, 0x00000000, 0x00000005, 0x00000048, 0x00000055}, // L[3]
+}, // T.state[ 5].w =  11
+{ // R[ 6] abcde
+{0x0000002E, 0x000000EF, 0x00000055, 0x00000055, 0x00000001}, // L[0]
+{0x00000050, 0x00000094, 0x000000A4, 0x00000028, 0x000000C4}, // L[1]
+{0x00000049, 0x00000062, 0x0000002A, 0x00000066, 0x0000002B}, // L[2]
+{0x00000090, 0x000000AA, 0x00000055, 0x00000048, 0x0000000A}, // L[3]
+}, // T.state[ 6].w =  16
+{ // R[ 7] abcde
+{0x00000001, 0x000000EF, 0x00000055, 0x000000A2, 0x00000031}, // L[0]
+{0x000000C4, 0x00000094, 0x000000A4, 0x00000067, 0x00000001}, // L[1]
+{0x0000002B, 0x00000062, 0x0000002A, 0x0000006A, 0x00000000}, // L[2]
+{0x0000000A, 0x000000AA, 0x00000055, 0x00000012, 0x000000C9}, // L[3]
+}, // T.state[ 7].w =  21
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000001, 0x0000002B, 0x00000000, 0x00000012, 0x00000028}, // L[0]
+{0x000000C4, 0x000000C4, 0x000000C9, 0x000000A2, 0x00000000}, // L[1]
+{0x0000002B, 0x000000C6, 0x00000031, 0x00000067, 0x00000021}, // L[2]
+{0x0000000A, 0x000000BD, 0x00000001, 0x0000006A, 0x00000081}, // L[3]
+}, // T.state[ 8].w =  22
+{ // R[ 9] abcde
+{0x00000028, 0x0000002B, 0x00000000, 0x0000001D, 0x00000005}, // L[0]
+{0x00000000, 0x000000C4, 0x000000C9, 0x00000051, 0x0000008A}, // L[1]
+{0x00000021, 0x000000C6, 0x00000031, 0x00000023, 0x00000030}, // L[2]
+{0x00000081, 0x000000BD, 0x00000001, 0x000000F5, 0x0000001C}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000028, 0x000000C5, 0x00000005, 0x0000001D, 0x00000025}, // L[0]
+{0x00000000, 0x000000C9, 0x0000008A, 0x00000051, 0x00000059}, // L[1]
+{0x00000021, 0x000000DE, 0x00000030, 0x00000023, 0x00000001}, // L[2]
+{0x00000081, 0x00000034, 0x0000001C, 0x000000F5, 0x000000F5}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000025, 0x000000C5, 0x00000005, 0x000000C1, 0x0000004C}, // L[0]
+{0x00000059, 0x000000C9, 0x0000008A, 0x00000040, 0x0000004A}, // L[1]
+{0x00000001, 0x000000DE, 0x00000030, 0x00000011, 0x00000041}, // L[2]
+{0x000000F5, 0x00000034, 0x0000001C, 0x00000000, 0x00000034}, // L[3]
+}, // T.state[11].w =  23
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000025, 0x00000007, 0x00000041, 0x00000000, 0x00000020}, // L[0]
+{0x00000059, 0x0000003F, 0x00000034, 0x000000C1, 0x00000000}, // L[1]
+{0x00000001, 0x00000000, 0x0000004C, 0x00000040, 0x00000001}, // L[2]
+{0x000000F5, 0x00000013, 0x0000004A, 0x00000011, 0x00000000}, // L[3]
+}, // T.state[12].w =  14
+{ // R[13] abcde
+{0x00000020, 0x00000007, 0x00000041, 0x00000010, 0x00000000}, // L[0]
+{0x00000000, 0x0000003F, 0x00000034, 0x000000E0, 0x00000000}, // L[1]
+{0x00000001, 0x00000000, 0x0000004C, 0x000000A0, 0x00000000}, // L[2]
+{0x00000000, 0x00000013, 0x0000004A, 0x00000088, 0x00000000}, // L[3]
+}, // T.state[13].w =  19
+// T.w = 176
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 176 -> 175
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000001, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000080, 0x00000030}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000030, 0x00000010, 0x00000080, 0x00000085, 0x00000005}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x0000008C}, // L[3]
+}, // T.state[ 3].w =   3
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x0000002A, 0x00000000, 0x00000084, 0x0000002E}, // L[0]
+{0x00000030, 0x00000000, 0x0000008C, 0x00000000, 0x00000050}, // L[1]
+{0x00000000, 0x00000039, 0x00000000, 0x00000085, 0x00000049}, // L[2]
+{0x00000090, 0x00000000, 0x00000005, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   5
+{ // R[ 5] abcde
+{0x0000002E, 0x0000002A, 0x00000000, 0x00000055, 0x00000055}, // L[0]
+{0x00000050, 0x00000000, 0x0000008C, 0x00000028, 0x000000A4}, // L[1]
+{0x00000049, 0x00000039, 0x00000000, 0x00000066, 0x0000002A}, // L[2]
+{0x00000090, 0x00000000, 0x00000005, 0x00000048, 0x00000055}, // L[3]
+}, // T.state[ 5].w =  11
+{ // R[ 6] abcde
+{0x0000002E, 0x000000EF, 0x00000055, 0x00000055, 0x00000001}, // L[0]
+{0x00000050, 0x00000094, 0x000000A4, 0x00000028, 0x000000C4}, // L[1]
+{0x00000049, 0x00000062, 0x0000002A, 0x00000066, 0x0000002B}, // L[2]
+{0x00000090, 0x000000AA, 0x00000055, 0x00000048, 0x0000000A}, // L[3]
+}, // T.state[ 6].w =  16
+{ // R[ 7] abcde
+{0x00000001, 0x000000EF, 0x00000055, 0x000000A2, 0x00000031}, // L[0]
+{0x000000C4, 0x00000094, 0x000000A4, 0x00000067, 0x00000001}, // L[1]
+{0x0000002B, 0x00000062, 0x0000002A, 0x0000006A, 0x00000000}, // L[2]
+{0x0000000A, 0x000000AA, 0x00000055, 0x00000012, 0x000000C9}, // L[3]
+}, // T.state[ 7].w =  21
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000001, 0x0000002B, 0x00000000, 0x00000012, 0x00000028}, // L[0]
+{0x000000C4, 0x000000C4, 0x000000C9, 0x000000A2, 0x00000000}, // L[1]
+{0x0000002B, 0x000000C6, 0x00000031, 0x00000067, 0x00000021}, // L[2]
+{0x0000000A, 0x000000BD, 0x00000001, 0x0000006A, 0x00000081}, // L[3]
+}, // T.state[ 8].w =  22
+{ // R[ 9] abcde
+{0x00000028, 0x0000002B, 0x00000000, 0x0000001D, 0x00000005}, // L[0]
+{0x00000000, 0x000000C4, 0x000000C9, 0x00000051, 0x0000008A}, // L[1]
+{0x00000021, 0x000000C6, 0x00000031, 0x00000023, 0x00000030}, // L[2]
+{0x00000081, 0x000000BD, 0x00000001, 0x000000F5, 0x0000001C}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000028, 0x000000C5, 0x00000005, 0x0000001D, 0x00000025}, // L[0]
+{0x00000000, 0x000000C9, 0x0000008A, 0x00000051, 0x00000059}, // L[1]
+{0x00000021, 0x000000DE, 0x00000030, 0x00000023, 0x00000001}, // L[2]
+{0x00000081, 0x00000034, 0x0000001C, 0x000000F5, 0x000000F5}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000025, 0x000000C5, 0x00000005, 0x000000C1, 0x00000046}, // L[0]
+{0x00000059, 0x000000C9, 0x0000008A, 0x00000040, 0x000000CA}, // L[1]
+{0x00000001, 0x000000DE, 0x00000030, 0x00000011, 0x00000063}, // L[2]
+{0x000000F5, 0x00000034, 0x0000001C, 0x00000000, 0x00000034}, // L[3]
+}, // T.state[11].w =  23
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000025, 0x00000006, 0x00000063, 0x00000000, 0x00000021}, // L[0]
+{0x00000059, 0x0000007B, 0x00000034, 0x000000C1, 0x00000000}, // L[1]
+{0x00000001, 0x00000000, 0x00000046, 0x00000040, 0x00000001}, // L[2]
+{0x000000F5, 0x00000007, 0x000000CA, 0x00000011, 0x00000010}, // L[3]
+}, // T.state[12].w =  14
+{ // R[13] abcde
+{0x00000021, 0x00000006, 0x00000063, 0x00000090, 0x00000000}, // L[0]
+{0x00000000, 0x0000007B, 0x00000034, 0x000000E0, 0x00000000}, // L[1]
+{0x00000001, 0x00000000, 0x00000046, 0x000000A0, 0x00000000}, // L[2]
+{0x00000010, 0x00000007, 0x000000CA, 0x00000080, 0x00000000}, // L[3]
+}, // T.state[13].w =  18
+// T.w = 175
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 175 -> 158
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000084, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x00000069}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000004, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000042, 0x00000042}, // L[0]
+{0x00000008, 0x00000008, 0x00000084, 0x00000004, 0x00000080}, // L[1]
+{0x00000069, 0x00000029, 0x00000000, 0x000000B4, 0x000000D4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x0000004A, 0x0000005A}, // L[3]
+}, // T.state[ 5].w =   6
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x00000042, 0x00000048}, // L[0]
+{0x00000008, 0x00000011, 0x00000080, 0x00000004, 0x00000009}, // L[1]
+{0x00000069, 0x000000BF, 0x000000D4, 0x000000B4, 0x00000080}, // L[2]
+{0x00000090, 0x0000004B, 0x0000005A, 0x0000004A, 0x000000C9}, // L[3]
+}, // T.state[ 6].w =  12
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000050, 0x00000012}, // L[0]
+{0x00000009, 0x00000011, 0x00000080, 0x00000068, 0x00000028}, // L[1]
+{0x00000080, 0x000000BF, 0x000000D4, 0x000000A1, 0x00000015}, // L[2]
+{0x000000C9, 0x0000004B, 0x0000005A, 0x0000001C, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  19
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000072, 0x00000015, 0x0000001C, 0x0000000E}, // L[0]
+{0x00000009, 0x00000055, 0x00000042, 0x00000050, 0x00000044}, // L[1]
+{0x00000080, 0x00000012, 0x00000012, 0x00000068, 0x00000092}, // L[2]
+{0x000000C9, 0x000000B4, 0x00000028, 0x000000A1, 0x000000AF}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x0000000E, 0x00000072, 0x00000015, 0x00000009, 0x00000004}, // L[0]
+{0x00000044, 0x00000055, 0x00000042, 0x0000000A, 0x00000048}, // L[1]
+{0x00000092, 0x00000012, 0x00000012, 0x0000007D, 0x000000A1}, // L[2]
+{0x000000AF, 0x000000B4, 0x00000028, 0x00000007, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x0000000E, 0x000000CE, 0x00000004, 0x00000009, 0x00000040}, // L[0]
+{0x00000044, 0x000000A3, 0x00000048, 0x0000000A, 0x00000021}, // L[1]
+{0x00000092, 0x00000076, 0x000000A1, 0x0000007D, 0x00000080}, // L[2]
+{0x000000AF, 0x000000B2, 0x00000021, 0x00000007, 0x00000001}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000040, 0x000000CE, 0x00000004, 0x0000004A, 0x00000042}, // L[0]
+{0x00000021, 0x000000A3, 0x00000048, 0x00000059, 0x00000081}, // L[1]
+{0x00000080, 0x00000076, 0x000000A1, 0x000000EF, 0x00000080}, // L[2]
+{0x00000001, 0x000000B2, 0x00000021, 0x00000030, 0x00000031}, // L[3]
+}, // T.state[11].w =  24
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000044, 0x00000080, 0x00000030, 0x00000004}, // L[0]
+{0x00000021, 0x000000ED, 0x00000031, 0x0000004A, 0x00000044}, // L[1]
+{0x00000080, 0x00000007, 0x00000042, 0x00000059, 0x00000081}, // L[2]
+{0x00000001, 0x00000019, 0x00000081, 0x000000EF, 0x0000000A}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x00000004, 0x00000044, 0x00000080, 0x0000001A, 0x00000000}, // L[0]
+{0x00000044, 0x000000ED, 0x00000031, 0x00000007, 0x00000000}, // L[1]
+{0x00000081, 0x00000007, 0x00000042, 0x0000006C, 0x00000000}, // L[2]
+{0x0000000A, 0x00000019, 0x00000081, 0x000000F2, 0x00000000}, // L[3]
+}, // T.state[13].w =  15
+// T.w = 158
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 158 -> 157
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000084, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x00000069}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000004, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000042, 0x00000042}, // L[0]
+{0x00000008, 0x00000008, 0x00000084, 0x00000004, 0x00000080}, // L[1]
+{0x00000069, 0x00000029, 0x00000000, 0x000000B4, 0x000000D4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x0000004A, 0x0000005A}, // L[3]
+}, // T.state[ 5].w =   6
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x00000042, 0x00000048}, // L[0]
+{0x00000008, 0x00000011, 0x00000080, 0x00000004, 0x00000009}, // L[1]
+{0x00000069, 0x000000BF, 0x000000D4, 0x000000B4, 0x00000080}, // L[2]
+{0x00000090, 0x0000004B, 0x0000005A, 0x0000004A, 0x000000C9}, // L[3]
+}, // T.state[ 6].w =  12
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000050, 0x00000012}, // L[0]
+{0x00000009, 0x00000011, 0x00000080, 0x00000068, 0x00000028}, // L[1]
+{0x00000080, 0x000000BF, 0x000000D4, 0x000000A1, 0x00000015}, // L[2]
+{0x000000C9, 0x0000004B, 0x0000005A, 0x0000001C, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  19
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000072, 0x00000015, 0x0000001C, 0x0000000E}, // L[0]
+{0x00000009, 0x00000055, 0x00000042, 0x00000050, 0x00000044}, // L[1]
+{0x00000080, 0x00000012, 0x00000012, 0x00000068, 0x00000092}, // L[2]
+{0x000000C9, 0x000000B4, 0x00000028, 0x000000A1, 0x000000AF}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x0000000E, 0x00000072, 0x00000015, 0x00000009, 0x00000004}, // L[0]
+{0x00000044, 0x00000055, 0x00000042, 0x0000000A, 0x00000048}, // L[1]
+{0x00000092, 0x00000012, 0x00000012, 0x0000007D, 0x000000A1}, // L[2]
+{0x000000AF, 0x000000B4, 0x00000028, 0x00000007, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x0000000E, 0x000000CE, 0x00000004, 0x00000009, 0x00000040}, // L[0]
+{0x00000044, 0x000000A3, 0x00000048, 0x0000000A, 0x00000021}, // L[1]
+{0x00000092, 0x00000076, 0x000000A1, 0x0000007D, 0x00000080}, // L[2]
+{0x000000AF, 0x000000B2, 0x00000021, 0x00000007, 0x00000001}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000040, 0x000000CE, 0x00000004, 0x0000004A, 0x00000042}, // L[0]
+{0x00000021, 0x000000A3, 0x00000048, 0x00000059, 0x00000081}, // L[1]
+{0x00000080, 0x00000076, 0x000000A1, 0x000000EF, 0x00000040}, // L[2]
+{0x00000001, 0x000000B2, 0x00000021, 0x00000030, 0x00000031}, // L[3]
+}, // T.state[11].w =  24
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000044, 0x00000040, 0x00000030, 0x00000004}, // L[0]
+{0x00000021, 0x0000006C, 0x00000031, 0x0000004A, 0x00000005}, // L[1]
+{0x00000080, 0x00000007, 0x00000042, 0x00000059, 0x00000085}, // L[2]
+{0x00000001, 0x00000019, 0x00000081, 0x000000EF, 0x0000000A}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x00000004, 0x00000044, 0x00000040, 0x0000001A, 0x00000000}, // L[0]
+{0x00000005, 0x0000006C, 0x00000031, 0x000000A7, 0x00000000}, // L[1]
+{0x00000085, 0x00000007, 0x00000042, 0x0000006E, 0x00000000}, // L[2]
+{0x0000000A, 0x00000019, 0x00000081, 0x000000F2, 0x00000000}, // L[3]
+}, // T.state[13].w =  14
+// T.w = 157
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 157 -> 156
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000084, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x00000069}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000004, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000042, 0x00000042}, // L[0]
+{0x00000008, 0x00000008, 0x00000084, 0x00000004, 0x00000080}, // L[1]
+{0x00000069, 0x00000029, 0x00000000, 0x000000B4, 0x000000D4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x0000004A, 0x0000005A}, // L[3]
+}, // T.state[ 5].w =   6
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x00000042, 0x00000048}, // L[0]
+{0x00000008, 0x00000011, 0x00000080, 0x00000004, 0x00000009}, // L[1]
+{0x00000069, 0x000000BF, 0x000000D4, 0x000000B4, 0x00000080}, // L[2]
+{0x00000090, 0x0000004B, 0x0000005A, 0x0000004A, 0x000000C9}, // L[3]
+}, // T.state[ 6].w =  12
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000050, 0x00000012}, // L[0]
+{0x00000009, 0x00000011, 0x00000080, 0x00000068, 0x00000028}, // L[1]
+{0x00000080, 0x000000BF, 0x000000D4, 0x000000A1, 0x00000015}, // L[2]
+{0x000000C9, 0x0000004B, 0x0000005A, 0x0000001C, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  19
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000072, 0x00000015, 0x0000001C, 0x0000000E}, // L[0]
+{0x00000009, 0x00000055, 0x00000042, 0x00000050, 0x00000044}, // L[1]
+{0x00000080, 0x00000012, 0x00000012, 0x00000068, 0x00000092}, // L[2]
+{0x000000C9, 0x000000B4, 0x00000028, 0x000000A1, 0x000000AF}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x0000000E, 0x00000072, 0x00000015, 0x00000009, 0x00000004}, // L[0]
+{0x00000044, 0x00000055, 0x00000042, 0x0000000A, 0x00000048}, // L[1]
+{0x00000092, 0x00000012, 0x00000012, 0x0000007D, 0x000000A1}, // L[2]
+{0x000000AF, 0x000000B4, 0x00000028, 0x00000007, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x0000000E, 0x000000CE, 0x00000004, 0x00000009, 0x00000040}, // L[0]
+{0x00000044, 0x000000A3, 0x00000048, 0x0000000A, 0x00000021}, // L[1]
+{0x00000092, 0x00000076, 0x000000A1, 0x0000007D, 0x00000080}, // L[2]
+{0x000000AF, 0x000000B2, 0x00000021, 0x00000007, 0x00000001}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000040, 0x000000CE, 0x00000004, 0x0000004A, 0x0000004A}, // L[0]
+{0x00000021, 0x000000A3, 0x00000048, 0x00000059, 0x00000081}, // L[1]
+{0x00000080, 0x00000076, 0x000000A1, 0x000000EF, 0x00000040}, // L[2]
+{0x00000001, 0x000000B2, 0x00000021, 0x00000030, 0x00000071}, // L[3]
+}, // T.state[11].w =  24
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000044, 0x00000040, 0x00000030, 0x00000004}, // L[0]
+{0x00000021, 0x0000006C, 0x00000071, 0x0000004A, 0x00000005}, // L[1]
+{0x00000080, 0x00000087, 0x0000004A, 0x00000059, 0x00000007}, // L[2]
+{0x00000001, 0x00000009, 0x00000081, 0x000000EF, 0x00000008}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x00000004, 0x00000044, 0x00000040, 0x0000001A, 0x00000000}, // L[0]
+{0x00000005, 0x0000006C, 0x00000071, 0x000000A7, 0x00000000}, // L[1]
+{0x00000007, 0x00000087, 0x0000004A, 0x0000002F, 0x00000000}, // L[2]
+{0x00000008, 0x00000009, 0x00000081, 0x000000F3, 0x00000000}, // L[3]
+}, // T.state[13].w =  13
+// T.w = 156
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 156 -> 155
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000084, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x00000069}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000004, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000042, 0x00000042}, // L[0]
+{0x00000008, 0x00000008, 0x00000084, 0x00000004, 0x00000080}, // L[1]
+{0x00000069, 0x00000029, 0x00000000, 0x000000B4, 0x000000D4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x0000004A, 0x0000005A}, // L[3]
+}, // T.state[ 5].w =   6
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x00000042, 0x00000048}, // L[0]
+{0x00000008, 0x00000011, 0x00000080, 0x00000004, 0x00000009}, // L[1]
+{0x00000069, 0x000000BF, 0x000000D4, 0x000000B4, 0x00000080}, // L[2]
+{0x00000090, 0x0000004B, 0x0000005A, 0x0000004A, 0x000000C9}, // L[3]
+}, // T.state[ 6].w =  12
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000050, 0x00000012}, // L[0]
+{0x00000009, 0x00000011, 0x00000080, 0x00000068, 0x00000028}, // L[1]
+{0x00000080, 0x000000BF, 0x000000D4, 0x000000A1, 0x00000015}, // L[2]
+{0x000000C9, 0x0000004B, 0x0000005A, 0x0000001C, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  19
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000072, 0x00000015, 0x0000001C, 0x0000000E}, // L[0]
+{0x00000009, 0x00000055, 0x00000042, 0x00000050, 0x00000044}, // L[1]
+{0x00000080, 0x00000012, 0x00000012, 0x00000068, 0x00000092}, // L[2]
+{0x000000C9, 0x000000B4, 0x00000028, 0x000000A1, 0x000000AF}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x0000000E, 0x00000072, 0x00000015, 0x00000009, 0x00000004}, // L[0]
+{0x00000044, 0x00000055, 0x00000042, 0x0000000A, 0x00000048}, // L[1]
+{0x00000092, 0x00000012, 0x00000012, 0x0000007D, 0x000000A1}, // L[2]
+{0x000000AF, 0x000000B4, 0x00000028, 0x00000007, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x0000000E, 0x000000CE, 0x00000004, 0x00000009, 0x00000040}, // L[0]
+{0x00000044, 0x000000A3, 0x00000048, 0x0000000A, 0x00000021}, // L[1]
+{0x00000092, 0x00000076, 0x000000A1, 0x0000007D, 0x00000080}, // L[2]
+{0x000000AF, 0x000000B2, 0x00000021, 0x00000007, 0x00000001}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000040, 0x000000CE, 0x00000004, 0x0000004A, 0x0000004A}, // L[0]
+{0x00000021, 0x000000A3, 0x00000048, 0x00000059, 0x000000A1}, // L[1]
+{0x00000080, 0x00000076, 0x000000A1, 0x000000EF, 0x000000D4}, // L[2]
+{0x00000001, 0x000000B2, 0x00000021, 0x00000030, 0x00000031}, // L[3]
+}, // T.state[11].w =  24
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000004, 0x000000D4, 0x00000030, 0x00000044}, // L[0]
+{0x00000021, 0x00000045, 0x00000031, 0x0000004A, 0x00000024}, // L[1]
+{0x00000080, 0x00000007, 0x0000004A, 0x00000059, 0x00000081}, // L[2]
+{0x00000001, 0x00000009, 0x000000A1, 0x000000EF, 0x0000000A}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x00000044, 0x00000004, 0x000000D4, 0x0000003A, 0x00000000}, // L[0]
+{0x00000024, 0x00000045, 0x00000031, 0x00000037, 0x00000000}, // L[1]
+{0x00000081, 0x00000007, 0x0000004A, 0x0000006C, 0x00000000}, // L[2]
+{0x0000000A, 0x00000009, 0x000000A1, 0x000000F2, 0x00000000}, // L[3]
+}, // T.state[13].w =  12
+// T.w = 155
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 155 -> 154
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000084, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x00000069}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000004, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000042, 0x00000042}, // L[0]
+{0x00000008, 0x00000008, 0x00000084, 0x00000004, 0x00000080}, // L[1]
+{0x00000069, 0x00000029, 0x00000000, 0x000000B4, 0x000000D4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x0000004A, 0x0000005A}, // L[3]
+}, // T.state[ 5].w =   6
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x00000042, 0x00000048}, // L[0]
+{0x00000008, 0x00000011, 0x00000080, 0x00000004, 0x00000009}, // L[1]
+{0x00000069, 0x000000BF, 0x000000D4, 0x000000B4, 0x00000080}, // L[2]
+{0x00000090, 0x0000004B, 0x0000005A, 0x0000004A, 0x000000C9}, // L[3]
+}, // T.state[ 6].w =  12
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000050, 0x00000012}, // L[0]
+{0x00000009, 0x00000011, 0x00000080, 0x00000068, 0x00000028}, // L[1]
+{0x00000080, 0x000000BF, 0x000000D4, 0x000000A1, 0x00000015}, // L[2]
+{0x000000C9, 0x0000004B, 0x0000005A, 0x0000001C, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  19
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000072, 0x00000015, 0x0000001C, 0x0000000E}, // L[0]
+{0x00000009, 0x00000055, 0x00000042, 0x00000050, 0x00000044}, // L[1]
+{0x00000080, 0x00000012, 0x00000012, 0x00000068, 0x00000092}, // L[2]
+{0x000000C9, 0x000000B4, 0x00000028, 0x000000A1, 0x000000AF}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x0000000E, 0x00000072, 0x00000015, 0x00000009, 0x00000004}, // L[0]
+{0x00000044, 0x00000055, 0x00000042, 0x0000000A, 0x00000048}, // L[1]
+{0x00000092, 0x00000012, 0x00000012, 0x0000007D, 0x000000A1}, // L[2]
+{0x000000AF, 0x000000B4, 0x00000028, 0x00000007, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x0000000E, 0x000000CE, 0x00000004, 0x00000009, 0x00000040}, // L[0]
+{0x00000044, 0x000000A3, 0x00000048, 0x0000000A, 0x00000021}, // L[1]
+{0x00000092, 0x00000076, 0x000000A1, 0x0000007D, 0x00000080}, // L[2]
+{0x000000AF, 0x000000B2, 0x00000021, 0x00000007, 0x00000001}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000040, 0x000000CE, 0x00000004, 0x0000004A, 0x0000004E}, // L[0]
+{0x00000021, 0x000000A3, 0x00000048, 0x00000059, 0x000000A1}, // L[1]
+{0x00000080, 0x00000076, 0x000000A1, 0x000000EF, 0x00000046}, // L[2]
+{0x00000001, 0x000000B2, 0x00000021, 0x00000030, 0x00000011}, // L[3]
+}, // T.state[11].w =  24
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000004, 0x00000046, 0x00000030, 0x0000004C}, // L[0]
+{0x00000021, 0x00000060, 0x00000011, 0x0000004A, 0x00000001}, // L[1]
+{0x00000080, 0x00000047, 0x0000004E, 0x00000059, 0x00000041}, // L[2]
+{0x00000001, 0x00000001, 0x000000A1, 0x000000EF, 0x00000000}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x0000004C, 0x00000004, 0x00000046, 0x0000003E, 0x00000000}, // L[0]
+{0x00000001, 0x00000060, 0x00000011, 0x000000A5, 0x00000000}, // L[1]
+{0x00000041, 0x00000047, 0x0000004E, 0x0000000C, 0x00000000}, // L[2]
+{0x00000000, 0x00000001, 0x000000A1, 0x000000F7, 0x00000000}, // L[3]
+}, // T.state[13].w =  11
+// T.w = 154
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 154 -> 153
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000084, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x00000069}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000004, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000042, 0x00000042}, // L[0]
+{0x00000008, 0x00000008, 0x00000084, 0x00000004, 0x00000080}, // L[1]
+{0x00000069, 0x00000029, 0x00000000, 0x000000B4, 0x000000D4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x0000004A, 0x0000005A}, // L[3]
+}, // T.state[ 5].w =   6
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x00000042, 0x00000048}, // L[0]
+{0x00000008, 0x00000011, 0x00000080, 0x00000004, 0x00000009}, // L[1]
+{0x00000069, 0x000000BF, 0x000000D4, 0x000000B4, 0x00000080}, // L[2]
+{0x00000090, 0x0000004B, 0x0000005A, 0x0000004A, 0x000000C9}, // L[3]
+}, // T.state[ 6].w =  12
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000050, 0x00000012}, // L[0]
+{0x00000009, 0x00000011, 0x00000080, 0x00000068, 0x00000028}, // L[1]
+{0x00000080, 0x000000BF, 0x000000D4, 0x000000A1, 0x00000015}, // L[2]
+{0x000000C9, 0x0000004B, 0x0000005A, 0x0000001C, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  19
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000072, 0x00000015, 0x0000001C, 0x0000000E}, // L[0]
+{0x00000009, 0x00000055, 0x00000042, 0x00000050, 0x00000044}, // L[1]
+{0x00000080, 0x00000012, 0x00000012, 0x00000068, 0x00000092}, // L[2]
+{0x000000C9, 0x000000B4, 0x00000028, 0x000000A1, 0x000000AF}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x0000000E, 0x00000072, 0x00000015, 0x00000009, 0x00000004}, // L[0]
+{0x00000044, 0x00000055, 0x00000042, 0x0000000A, 0x00000048}, // L[1]
+{0x00000092, 0x00000012, 0x00000012, 0x0000007D, 0x000000A1}, // L[2]
+{0x000000AF, 0x000000B4, 0x00000028, 0x00000007, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x0000000E, 0x000000CE, 0x00000004, 0x00000009, 0x00000040}, // L[0]
+{0x00000044, 0x000000A3, 0x00000048, 0x0000000A, 0x00000021}, // L[1]
+{0x00000092, 0x00000076, 0x000000A1, 0x0000007D, 0x00000080}, // L[2]
+{0x000000AF, 0x000000B2, 0x00000021, 0x00000007, 0x00000001}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000040, 0x000000CE, 0x00000004, 0x0000004A, 0x0000004E}, // L[0]
+{0x00000021, 0x000000A3, 0x00000048, 0x00000059, 0x000000A1}, // L[1]
+{0x00000080, 0x00000076, 0x000000A1, 0x000000EF, 0x00000056}, // L[2]
+{0x00000001, 0x000000B2, 0x00000021, 0x00000030, 0x00000031}, // L[3]
+}, // T.state[11].w =  24
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000004, 0x00000056, 0x00000030, 0x00000044}, // L[0]
+{0x00000021, 0x00000040, 0x00000031, 0x0000004A, 0x00000021}, // L[1]
+{0x00000080, 0x00000007, 0x0000004E, 0x00000059, 0x00000085}, // L[2]
+{0x00000001, 0x00000001, 0x000000A1, 0x000000EF, 0x00000000}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x00000044, 0x00000004, 0x00000056, 0x0000003A, 0x00000000}, // L[0]
+{0x00000021, 0x00000040, 0x00000031, 0x000000B5, 0x00000000}, // L[1]
+{0x00000085, 0x00000007, 0x0000004E, 0x0000006E, 0x00000000}, // L[2]
+{0x00000000, 0x00000001, 0x000000A1, 0x000000F7, 0x00000000}, // L[3]
+}, // T.state[13].w =  10
+// T.w = 153
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 153 -> 152
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000084, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x00000069}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000004, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000042, 0x00000042}, // L[0]
+{0x00000008, 0x00000008, 0x00000084, 0x00000004, 0x00000080}, // L[1]
+{0x00000069, 0x00000029, 0x00000000, 0x000000B4, 0x000000D4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x0000004A, 0x0000005A}, // L[3]
+}, // T.state[ 5].w =   6
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x00000042, 0x00000048}, // L[0]
+{0x00000008, 0x00000011, 0x00000080, 0x00000004, 0x00000009}, // L[1]
+{0x00000069, 0x000000BF, 0x000000D4, 0x000000B4, 0x00000080}, // L[2]
+{0x00000090, 0x0000004B, 0x0000005A, 0x0000004A, 0x000000C9}, // L[3]
+}, // T.state[ 6].w =  12
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000050, 0x00000012}, // L[0]
+{0x00000009, 0x00000011, 0x00000080, 0x00000068, 0x00000028}, // L[1]
+{0x00000080, 0x000000BF, 0x000000D4, 0x000000A1, 0x00000015}, // L[2]
+{0x000000C9, 0x0000004B, 0x0000005A, 0x0000001C, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  19
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000072, 0x00000015, 0x0000001C, 0x0000000E}, // L[0]
+{0x00000009, 0x00000055, 0x00000042, 0x00000050, 0x00000044}, // L[1]
+{0x00000080, 0x00000012, 0x00000012, 0x00000068, 0x00000092}, // L[2]
+{0x000000C9, 0x000000B4, 0x00000028, 0x000000A1, 0x000000AF}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x0000000E, 0x00000072, 0x00000015, 0x00000009, 0x00000004}, // L[0]
+{0x00000044, 0x00000055, 0x00000042, 0x0000000A, 0x00000048}, // L[1]
+{0x00000092, 0x00000012, 0x00000012, 0x0000007D, 0x000000A1}, // L[2]
+{0x000000AF, 0x000000B4, 0x00000028, 0x00000007, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x0000000E, 0x000000CE, 0x00000004, 0x00000009, 0x00000040}, // L[0]
+{0x00000044, 0x000000A3, 0x00000048, 0x0000000A, 0x00000021}, // L[1]
+{0x00000092, 0x00000076, 0x000000A1, 0x0000007D, 0x00000080}, // L[2]
+{0x000000AF, 0x000000B2, 0x00000021, 0x00000007, 0x00000001}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000040, 0x000000CE, 0x00000004, 0x0000004A, 0x0000004E}, // L[0]
+{0x00000021, 0x000000A3, 0x00000048, 0x00000059, 0x00000083}, // L[1]
+{0x00000080, 0x00000076, 0x000000A1, 0x000000EF, 0x00000046}, // L[2]
+{0x00000001, 0x000000B2, 0x00000021, 0x00000030, 0x00000031}, // L[3]
+}, // T.state[11].w =  24
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000040, 0x00000046, 0x00000030, 0x00000000}, // L[0]
+{0x00000021, 0x00000060, 0x00000031, 0x0000004A, 0x00000001}, // L[1]
+{0x00000080, 0x00000007, 0x0000004E, 0x00000059, 0x00000081}, // L[2]
+{0x00000001, 0x00000001, 0x00000083, 0x000000EF, 0x00000000}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x00000000, 0x00000040, 0x00000046, 0x00000018, 0x00000000}, // L[0]
+{0x00000001, 0x00000060, 0x00000031, 0x000000A5, 0x00000000}, // L[1]
+{0x00000081, 0x00000007, 0x0000004E, 0x0000006C, 0x00000000}, // L[2]
+{0x00000000, 0x00000001, 0x00000083, 0x000000F7, 0x00000000}, // L[3]
+}, // T.state[13].w =   9
+// T.w = 152
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 152 -> 151
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000010, 0x00000000, 0x00000000, 0x00000090}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[2]
+{0x00000090, 0x00000010, 0x00000000, 0x00000084, 0x00000084}, // L[3]
+}, // T.state[ 3].w =   2
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000084, 0x00000000}, // L[0]
+{0x00000000, 0x00000008, 0x00000084, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000029, 0x00000000, 0x00000000, 0x00000069}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x00000004, 0x00000090}, // L[3]
+}, // T.state[ 4].w =   3
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000004, 0x00000042, 0x00000042}, // L[0]
+{0x00000008, 0x00000008, 0x00000084, 0x00000004, 0x00000080}, // L[1]
+{0x00000069, 0x00000029, 0x00000000, 0x000000B4, 0x000000D4}, // L[2]
+{0x00000090, 0x00000000, 0x00000000, 0x0000004A, 0x0000005A}, // L[3]
+}, // T.state[ 5].w =   6
+{ // R[ 6] abcde
+{0x00000000, 0x00000048, 0x00000042, 0x00000042, 0x00000048}, // L[0]
+{0x00000008, 0x00000011, 0x00000080, 0x00000004, 0x00000009}, // L[1]
+{0x00000069, 0x000000BF, 0x000000D4, 0x000000B4, 0x00000080}, // L[2]
+{0x00000090, 0x0000004B, 0x0000005A, 0x0000004A, 0x000000C9}, // L[3]
+}, // T.state[ 6].w =  12
+{ // R[ 7] abcde
+{0x00000048, 0x00000048, 0x00000042, 0x00000050, 0x00000012}, // L[0]
+{0x00000009, 0x00000011, 0x00000080, 0x00000068, 0x00000028}, // L[1]
+{0x00000080, 0x000000BF, 0x000000D4, 0x000000A1, 0x00000015}, // L[2]
+{0x000000C9, 0x0000004B, 0x0000005A, 0x0000001C, 0x00000042}, // L[3]
+}, // T.state[ 7].w =  19
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000048, 0x00000072, 0x00000015, 0x0000001C, 0x0000000E}, // L[0]
+{0x00000009, 0x00000055, 0x00000042, 0x00000050, 0x00000044}, // L[1]
+{0x00000080, 0x00000012, 0x00000012, 0x00000068, 0x00000092}, // L[2]
+{0x000000C9, 0x000000B4, 0x00000028, 0x000000A1, 0x000000AF}, // L[3]
+}, // T.state[ 8].w =  18
+{ // R[ 9] abcde
+{0x0000000E, 0x00000072, 0x00000015, 0x00000009, 0x00000004}, // L[0]
+{0x00000044, 0x00000055, 0x00000042, 0x0000000A, 0x00000048}, // L[1]
+{0x00000092, 0x00000012, 0x00000012, 0x0000007D, 0x000000A1}, // L[2]
+{0x000000AF, 0x000000B4, 0x00000028, 0x00000007, 0x00000021}, // L[3]
+}, // T.state[ 9].w =  20
+{ // R[10] abcde
+{0x0000000E, 0x000000CE, 0x00000004, 0x00000009, 0x00000040}, // L[0]
+{0x00000044, 0x000000A3, 0x00000048, 0x0000000A, 0x00000021}, // L[1]
+{0x00000092, 0x00000076, 0x000000A1, 0x0000007D, 0x00000004}, // L[2]
+{0x000000AF, 0x000000B2, 0x00000021, 0x00000007, 0x00000001}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000040, 0x000000CE, 0x00000004, 0x0000004A, 0x0000004E}, // L[0]
+{0x00000021, 0x000000A3, 0x00000048, 0x00000059, 0x00000081}, // L[1]
+{0x00000004, 0x00000076, 0x000000A1, 0x000000CB, 0x000000FE}, // L[2]
+{0x00000001, 0x000000B2, 0x00000021, 0x00000030, 0x00000031}, // L[3]
+}, // T.state[11].w =  24
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000044, 0x000000FE, 0x00000030, 0x00000004}, // L[0]
+{0x00000021, 0x00000011, 0x00000031, 0x0000004A, 0x00000010}, // L[1]
+{0x00000004, 0x00000007, 0x0000004E, 0x00000059, 0x00000005}, // L[2]
+{0x00000001, 0x00000001, 0x00000081, 0x000000CB, 0x00000000}, // L[3]
+}, // T.state[12].w =  17
+{ // R[13] abcde
+{0x00000004, 0x00000044, 0x000000FE, 0x0000001A, 0x00000000}, // L[0]
+{0x00000010, 0x00000011, 0x00000031, 0x0000002D, 0x00000000}, // L[1]
+{0x00000005, 0x00000007, 0x0000004E, 0x0000002E, 0x00000000}, // L[2]
+{0x00000000, 0x00000001, 0x00000081, 0x000000E5, 0x00000000}, // L[3]
+}, // T.state[13].w =   9
+// T.w = 151
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 151 -> 150
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000080, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000023}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x00000044}, // L[0]
+{0x00000008, 0x00000018, 0x00000080, 0x00000004, 0x00000084}, // L[1]
+{0x00000023, 0x00000021, 0x00000000, 0x00000091, 0x000000B1}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000A}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000088, 0x00000044, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000093, 0x00000084, 0x00000004, 0x00000089}, // L[1]
+{0x00000023, 0x00000012, 0x000000B1, 0x00000091, 0x00000031}, // L[2]
+{0x00000030, 0x00000041, 0x0000000A, 0x0000001A, 0x00000093}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000088, 0x00000088, 0x00000044, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000093, 0x00000084, 0x0000006C, 0x00000020}, // L[1]
+{0x00000031, 0x00000012, 0x000000B1, 0x00000005, 0x000000D4}, // L[2]
+{0x00000093, 0x00000041, 0x0000000A, 0x0000004C, 0x00000052}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000067, 0x000000D4, 0x0000004C, 0x00000021}, // L[0]
+{0x00000089, 0x0000008D, 0x00000052, 0x00000046, 0x00000004}, // L[1]
+{0x00000031, 0x00000026, 0x00000002, 0x0000006C, 0x0000007B}, // L[2]
+{0x00000093, 0x00000015, 0x00000020, 0x00000005, 0x00000080}, // L[3]
+}, // T.state[ 8].w =  17
+{ // R[ 9] abcde
+{0x00000021, 0x00000067, 0x000000D4, 0x000000B6, 0x0000000A}, // L[0]
+{0x00000004, 0x0000008D, 0x00000052, 0x00000021, 0x00000011}, // L[1]
+{0x0000007B, 0x00000026, 0x00000002, 0x0000008B, 0x00000089}, // L[2]
+{0x00000080, 0x00000015, 0x00000020, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000021, 0x000000AD, 0x0000000A, 0x000000B6, 0x000000C4}, // L[0]
+{0x00000004, 0x00000093, 0x00000011, 0x00000021, 0x000000B1}, // L[1]
+{0x0000007B, 0x000000F5, 0x00000089, 0x0000008B, 0x00000080}, // L[2]
+{0x00000080, 0x000000E6, 0x00000022, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x000000C4, 0x000000AD, 0x0000000A, 0x00000093, 0x000000AD}, // L[0]
+{0x000000B1, 0x00000093, 0x00000011, 0x00000084, 0x00000095}, // L[1]
+{0x00000080, 0x000000F5, 0x00000089, 0x00000058, 0x00000041}, // L[2]
+{0x00000022, 0x000000E6, 0x00000022, 0x00000007, 0x00000025}, // L[3]
+}, // T.state[11].w =  23
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x000000C4, 0x0000000C, 0x00000041, 0x00000007, 0x00000040}, // L[0]
+{0x000000B1, 0x00000069, 0x00000025, 0x00000093, 0x00000038}, // L[1]
+{0x00000080, 0x00000087, 0x000000AD, 0x00000084, 0x00000005}, // L[2]
+{0x00000022, 0x00000000, 0x00000095, 0x00000058, 0x00000022}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x00000040, 0x0000000C, 0x00000041, 0x000000A3, 0x00000000}, // L[0]
+{0x00000038, 0x00000069, 0x00000025, 0x000000D5, 0x00000000}, // L[1]
+{0x00000005, 0x00000087, 0x000000AD, 0x000000C0, 0x00000000}, // L[2]
+{0x00000022, 0x00000000, 0x00000095, 0x0000003D, 0x00000000}, // L[3]
+}, // T.state[13].w =  16
+// T.w = 150
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 150 -> 149
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000080, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000023}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x00000044}, // L[0]
+{0x00000008, 0x00000018, 0x00000080, 0x00000004, 0x00000084}, // L[1]
+{0x00000023, 0x00000021, 0x00000000, 0x00000091, 0x000000B1}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000A}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000088, 0x00000044, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000093, 0x00000084, 0x00000004, 0x00000089}, // L[1]
+{0x00000023, 0x00000012, 0x000000B1, 0x00000091, 0x00000031}, // L[2]
+{0x00000030, 0x00000041, 0x0000000A, 0x0000001A, 0x00000093}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000088, 0x00000088, 0x00000044, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000093, 0x00000084, 0x0000006C, 0x00000020}, // L[1]
+{0x00000031, 0x00000012, 0x000000B1, 0x00000005, 0x000000D4}, // L[2]
+{0x00000093, 0x00000041, 0x0000000A, 0x0000004C, 0x00000052}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000067, 0x000000D4, 0x0000004C, 0x00000021}, // L[0]
+{0x00000089, 0x0000008D, 0x00000052, 0x00000046, 0x00000004}, // L[1]
+{0x00000031, 0x00000026, 0x00000002, 0x0000006C, 0x0000007B}, // L[2]
+{0x00000093, 0x00000015, 0x00000020, 0x00000005, 0x00000080}, // L[3]
+}, // T.state[ 8].w =  17
+{ // R[ 9] abcde
+{0x00000021, 0x00000067, 0x000000D4, 0x000000B6, 0x0000000A}, // L[0]
+{0x00000004, 0x0000008D, 0x00000052, 0x00000021, 0x00000011}, // L[1]
+{0x0000007B, 0x00000026, 0x00000002, 0x0000008B, 0x00000089}, // L[2]
+{0x00000080, 0x00000015, 0x00000020, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000021, 0x000000AD, 0x0000000A, 0x000000B6, 0x000000C4}, // L[0]
+{0x00000004, 0x00000093, 0x00000011, 0x00000021, 0x000000B1}, // L[1]
+{0x0000007B, 0x000000F5, 0x00000089, 0x0000008B, 0x00000080}, // L[2]
+{0x00000080, 0x000000E6, 0x00000022, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x000000C4, 0x000000AD, 0x0000000A, 0x00000093, 0x000000AD}, // L[0]
+{0x000000B1, 0x00000093, 0x00000011, 0x00000084, 0x00000095}, // L[1]
+{0x00000080, 0x000000F5, 0x00000089, 0x00000058, 0x00000061}, // L[2]
+{0x00000022, 0x000000E6, 0x00000022, 0x00000007, 0x00000025}, // L[3]
+}, // T.state[11].w =  23
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x000000C4, 0x0000000C, 0x00000061, 0x00000007, 0x00000040}, // L[0]
+{0x000000B1, 0x00000029, 0x00000025, 0x00000093, 0x00000088}, // L[1]
+{0x00000080, 0x00000087, 0x000000AD, 0x00000084, 0x00000001}, // L[2]
+{0x00000022, 0x00000000, 0x00000095, 0x00000058, 0x00000062}, // L[3]
+}, // T.state[12].w =  18
+{ // R[13] abcde
+{0x00000040, 0x0000000C, 0x00000061, 0x000000A3, 0x00000000}, // L[0]
+{0x00000088, 0x00000029, 0x00000025, 0x0000008D, 0x00000000}, // L[1]
+{0x00000001, 0x00000087, 0x000000AD, 0x000000C2, 0x00000000}, // L[2]
+{0x00000062, 0x00000000, 0x00000095, 0x0000001D, 0x00000000}, // L[3]
+}, // T.state[13].w =  15
+// T.w = 149
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 149 -> 148
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000080, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000023}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x00000044}, // L[0]
+{0x00000008, 0x00000018, 0x00000080, 0x00000004, 0x00000084}, // L[1]
+{0x00000023, 0x00000021, 0x00000000, 0x00000091, 0x000000B1}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000A}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000088, 0x00000044, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000093, 0x00000084, 0x00000004, 0x00000089}, // L[1]
+{0x00000023, 0x00000012, 0x000000B1, 0x00000091, 0x00000031}, // L[2]
+{0x00000030, 0x00000041, 0x0000000A, 0x0000001A, 0x00000093}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000088, 0x00000088, 0x00000044, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000093, 0x00000084, 0x0000006C, 0x00000020}, // L[1]
+{0x00000031, 0x00000012, 0x000000B1, 0x00000005, 0x000000D4}, // L[2]
+{0x00000093, 0x00000041, 0x0000000A, 0x0000004C, 0x00000052}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000067, 0x000000D4, 0x0000004C, 0x00000021}, // L[0]
+{0x00000089, 0x0000008D, 0x00000052, 0x00000046, 0x00000004}, // L[1]
+{0x00000031, 0x00000026, 0x00000002, 0x0000006C, 0x0000007B}, // L[2]
+{0x00000093, 0x00000015, 0x00000020, 0x00000005, 0x00000080}, // L[3]
+}, // T.state[ 8].w =  17
+{ // R[ 9] abcde
+{0x00000021, 0x00000067, 0x000000D4, 0x000000B6, 0x0000000A}, // L[0]
+{0x00000004, 0x0000008D, 0x00000052, 0x00000021, 0x00000011}, // L[1]
+{0x0000007B, 0x00000026, 0x00000002, 0x0000008B, 0x00000089}, // L[2]
+{0x00000080, 0x00000015, 0x00000020, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000021, 0x000000AD, 0x0000000A, 0x000000B6, 0x00000084}, // L[0]
+{0x00000004, 0x00000093, 0x00000011, 0x00000021, 0x000000B1}, // L[1]
+{0x0000007B, 0x000000F5, 0x00000089, 0x0000008B, 0x00000010}, // L[2]
+{0x00000080, 0x000000E6, 0x00000022, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000084, 0x000000AD, 0x0000000A, 0x00000091, 0x000000A9}, // L[0]
+{0x000000B1, 0x00000093, 0x00000011, 0x00000084, 0x00000095}, // L[1]
+{0x00000010, 0x000000F5, 0x00000089, 0x000000DC, 0x000000F5}, // L[2]
+{0x00000022, 0x000000E6, 0x00000022, 0x00000007, 0x00000067}, // L[3]
+}, // T.state[11].w =  23
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000084, 0x0000000C, 0x000000F5, 0x00000007, 0x00000090}, // L[0]
+{0x000000B1, 0x00000000, 0x00000067, 0x00000091, 0x00000091}, // L[1]
+{0x00000010, 0x00000003, 0x000000A9, 0x00000084, 0x00000011}, // L[2]
+{0x00000022, 0x00000008, 0x00000095, 0x000000DC, 0x0000002E}, // L[3]
+}, // T.state[12].w =  19
+{ // R[13] abcde
+{0x00000090, 0x0000000C, 0x000000F5, 0x000000CB, 0x00000000}, // L[0]
+{0x00000091, 0x00000000, 0x00000067, 0x00000000, 0x00000000}, // L[1]
+{0x00000011, 0x00000003, 0x000000A9, 0x000000CA, 0x00000000}, // L[2]
+{0x0000002E, 0x00000008, 0x00000095, 0x00000079, 0x00000000}, // L[3]
+}, // T.state[13].w =  13
+// T.w = 148
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 148 -> 147
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000080, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000023}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x00000044}, // L[0]
+{0x00000008, 0x00000018, 0x00000080, 0x00000004, 0x00000084}, // L[1]
+{0x00000023, 0x00000021, 0x00000000, 0x00000091, 0x000000B1}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000A}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000088, 0x00000044, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000093, 0x00000084, 0x00000004, 0x00000089}, // L[1]
+{0x00000023, 0x00000012, 0x000000B1, 0x00000091, 0x00000031}, // L[2]
+{0x00000030, 0x00000041, 0x0000000A, 0x0000001A, 0x00000093}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000088, 0x00000088, 0x00000044, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000093, 0x00000084, 0x0000006C, 0x00000020}, // L[1]
+{0x00000031, 0x00000012, 0x000000B1, 0x00000005, 0x000000D4}, // L[2]
+{0x00000093, 0x00000041, 0x0000000A, 0x0000004C, 0x00000052}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000067, 0x000000D4, 0x0000004C, 0x00000021}, // L[0]
+{0x00000089, 0x0000008D, 0x00000052, 0x00000046, 0x00000004}, // L[1]
+{0x00000031, 0x00000026, 0x00000002, 0x0000006C, 0x0000007B}, // L[2]
+{0x00000093, 0x00000015, 0x00000020, 0x00000005, 0x00000080}, // L[3]
+}, // T.state[ 8].w =  17
+{ // R[ 9] abcde
+{0x00000021, 0x00000067, 0x000000D4, 0x000000B6, 0x0000000A}, // L[0]
+{0x00000004, 0x0000008D, 0x00000052, 0x00000021, 0x00000011}, // L[1]
+{0x0000007B, 0x00000026, 0x00000002, 0x0000008B, 0x00000089}, // L[2]
+{0x00000080, 0x00000015, 0x00000020, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000021, 0x000000AD, 0x0000000A, 0x000000B6, 0x00000084}, // L[0]
+{0x00000004, 0x00000093, 0x00000011, 0x00000021, 0x000000B1}, // L[1]
+{0x0000007B, 0x000000F5, 0x00000089, 0x0000008B, 0x00000010}, // L[2]
+{0x00000080, 0x000000E6, 0x00000022, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000084, 0x000000AD, 0x0000000A, 0x00000091, 0x000000AD}, // L[0]
+{0x000000B1, 0x00000093, 0x00000011, 0x00000084, 0x00000095}, // L[1]
+{0x00000010, 0x000000F5, 0x00000089, 0x000000DC, 0x00000075}, // L[2]
+{0x00000022, 0x000000E6, 0x00000022, 0x00000007, 0x0000006F}, // L[3]
+}, // T.state[11].w =  23
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000084, 0x0000000C, 0x00000075, 0x00000007, 0x00000080}, // L[0]
+{0x000000B1, 0x00000001, 0x0000006F, 0x00000091, 0x00000090}, // L[1]
+{0x00000010, 0x00000013, 0x000000AD, 0x00000084, 0x00000001}, // L[2]
+{0x00000022, 0x00000000, 0x00000095, 0x000000DC, 0x00000022}, // L[3]
+}, // T.state[12].w =  19
+{ // R[13] abcde
+{0x00000080, 0x0000000C, 0x00000075, 0x000000C3, 0x00000000}, // L[0]
+{0x00000090, 0x00000001, 0x0000006F, 0x00000080, 0x00000000}, // L[1]
+{0x00000001, 0x00000013, 0x000000AD, 0x000000C2, 0x00000000}, // L[2]
+{0x00000022, 0x00000000, 0x00000095, 0x0000007F, 0x00000000}, // L[3]
+}, // T.state[13].w =  12
+// T.w = 147
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 147 -> 146
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000001, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000010, 0x00000000, 0x00000000, 0x00000010}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000004, 0x0000000C}, // L[2]
+{0x00000010, 0x00000010, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000018, 0x00000080, 0x00000000, 0x00000008}, // L[1]
+{0x00000000, 0x00000021, 0x00000000, 0x00000000, 0x00000023}, // L[2]
+{0x00000010, 0x00000000, 0x00000000, 0x00000004, 0x00000030}, // L[3]
+}, // T.state[ 4].w =   2
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x0000000C, 0x00000040, 0x00000044}, // L[0]
+{0x00000008, 0x00000018, 0x00000080, 0x00000004, 0x00000084}, // L[1]
+{0x00000023, 0x00000021, 0x00000000, 0x00000091, 0x000000B1}, // L[2]
+{0x00000030, 0x00000000, 0x00000000, 0x0000001A, 0x0000000A}, // L[3]
+}, // T.state[ 5].w =   5
+{ // R[ 6] abcde
+{0x00000000, 0x00000088, 0x00000044, 0x00000040, 0x00000088}, // L[0]
+{0x00000008, 0x00000093, 0x00000084, 0x00000004, 0x00000089}, // L[1]
+{0x00000023, 0x00000012, 0x000000B1, 0x00000091, 0x00000031}, // L[2]
+{0x00000030, 0x00000041, 0x0000000A, 0x0000001A, 0x00000093}, // L[3]
+}, // T.state[ 6].w =  11
+{ // R[ 7] abcde
+{0x00000088, 0x00000088, 0x00000044, 0x00000046, 0x00000002}, // L[0]
+{0x00000089, 0x00000093, 0x00000084, 0x0000006C, 0x00000020}, // L[1]
+{0x00000031, 0x00000012, 0x000000B1, 0x00000005, 0x000000D4}, // L[2]
+{0x00000093, 0x00000041, 0x0000000A, 0x0000004C, 0x00000052}, // L[3]
+}, // T.state[ 7].w =  15
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000088, 0x00000067, 0x000000D4, 0x0000004C, 0x00000021}, // L[0]
+{0x00000089, 0x0000008D, 0x00000052, 0x00000046, 0x00000004}, // L[1]
+{0x00000031, 0x00000026, 0x00000002, 0x0000006C, 0x0000007B}, // L[2]
+{0x00000093, 0x00000015, 0x00000020, 0x00000005, 0x00000080}, // L[3]
+}, // T.state[ 8].w =  17
+{ // R[ 9] abcde
+{0x00000021, 0x00000067, 0x000000D4, 0x000000B6, 0x0000000A}, // L[0]
+{0x00000004, 0x0000008D, 0x00000052, 0x00000021, 0x00000011}, // L[1]
+{0x0000007B, 0x00000026, 0x00000002, 0x0000008B, 0x00000089}, // L[2]
+{0x00000080, 0x00000015, 0x00000020, 0x000000C2, 0x00000022}, // L[3]
+}, // T.state[ 9].w =  21
+{ // R[10] abcde
+{0x00000021, 0x000000AD, 0x0000000A, 0x000000B6, 0x00000086}, // L[0]
+{0x00000004, 0x00000093, 0x00000011, 0x00000021, 0x00000091}, // L[1]
+{0x0000007B, 0x000000F5, 0x00000089, 0x0000008B, 0x00000002}, // L[2]
+{0x00000080, 0x000000E6, 0x00000022, 0x000000C2, 0x000000E2}, // L[3]
+}, // T.state[10].w =  19
+{ // R[11] abcde
+{0x00000086, 0x000000AD, 0x0000000A, 0x00000081, 0x0000008D}, // L[0]
+{0x00000091, 0x00000093, 0x00000011, 0x00000085, 0x00000096}, // L[1]
+{0x00000002, 0x000000F5, 0x00000089, 0x0000004C, 0x00000055}, // L[2]
+{0x000000E2, 0x000000E6, 0x00000022, 0x00000001, 0x00000067}, // L[3]
+}, // T.state[11].w =  23
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000086, 0x0000000A, 0x00000055, 0x00000001, 0x00000088}, // L[0]
+{0x00000091, 0x00000041, 0x00000067, 0x00000081, 0x00000050}, // L[1]
+{0x00000002, 0x00000003, 0x0000008D, 0x00000085, 0x00000001}, // L[2]
+{0x000000E2, 0x00000040, 0x00000096, 0x0000004C, 0x00000022}, // L[3]
+}, // T.state[12].w =  16
+{ // R[13] abcde
+{0x00000088, 0x0000000A, 0x00000055, 0x000000C4, 0x00000000}, // L[0]
+{0x00000050, 0x00000041, 0x00000067, 0x000000E8, 0x00000000}, // L[1]
+{0x00000001, 0x00000003, 0x0000008D, 0x00000042, 0x00000000}, // L[2]
+{0x00000022, 0x00000040, 0x00000096, 0x00000037, 0x00000000}, // L[3]
+}, // T.state[13].w =  14
+// T.w = 146
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 146 -> 107
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000051}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000051, 0x00000030, 0x00000080, 0x0000008E, 0x00000012}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000012, 0x00000046, 0x00000020}, // L[0]
+{0x00000010, 0x00000044, 0x00000002, 0x00000000, 0x000000DC}, // L[1]
+{0x00000051, 0x00000014, 0x00000000, 0x00000080, 0x00000045}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x0000008E, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000012, 0x00000033, 0x00000001}, // L[0]
+{0x000000DC, 0x00000044, 0x00000002, 0x0000006E, 0x00000028}, // L[1]
+{0x00000045, 0x00000014, 0x00000000, 0x000000E2, 0x00000022}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000003, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000024, 0x00000001, 0x00000033, 0x00000044}, // L[0]
+{0x000000DC, 0x0000008D, 0x00000028, 0x0000006E, 0x00000041}, // L[1]
+{0x00000045, 0x000000C6, 0x00000022, 0x000000E2, 0x00000081}, // L[2]
+{0x00000088, 0x00000020, 0x00000001, 0x00000003, 0x000000B8}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000044, 0x00000024, 0x00000001, 0x000000BB, 0x00000088}, // L[0]
+{0x00000041, 0x0000008D, 0x00000028, 0x00000079, 0x00000001}, // L[1]
+{0x00000081, 0x000000C6, 0x00000022, 0x0000001B, 0x0000000B}, // L[2]
+{0x000000B8, 0x00000020, 0x00000001, 0x000000DD, 0x00000044}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000044, 0x00000019, 0x0000000B, 0x000000DD, 0x00000045}, // L[0]
+{0x00000041, 0x0000009B, 0x00000044, 0x000000BB, 0x00000048}, // L[1]
+{0x00000081, 0x000000C8, 0x00000088, 0x00000079, 0x00000049}, // L[2]
+{0x000000B8, 0x00000059, 0x00000001, 0x0000001B, 0x00000001}, // L[3]
+}, // T.state[12].w =  22
+{ // R[13] abcde
+{0x00000045, 0x00000019, 0x0000000B, 0x0000004C, 0x00000000}, // L[0]
+{0x00000048, 0x0000009B, 0x00000044, 0x000000F9, 0x00000000}, // L[1]
+{0x00000049, 0x000000C8, 0x00000088, 0x00000018, 0x00000000}, // L[2]
+{0x00000001, 0x00000059, 0x00000001, 0x0000000D, 0x00000000}, // L[3]
+}, // T.state[13].w =  21
+// T.w = 107
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 107 -> 106
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000051}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000051, 0x00000030, 0x00000080, 0x0000008E, 0x00000012}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000012, 0x00000046, 0x00000020}, // L[0]
+{0x00000010, 0x00000044, 0x00000002, 0x00000000, 0x000000DC}, // L[1]
+{0x00000051, 0x00000014, 0x00000000, 0x00000080, 0x00000045}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x0000008E, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000012, 0x00000033, 0x00000001}, // L[0]
+{0x000000DC, 0x00000044, 0x00000002, 0x0000006E, 0x00000028}, // L[1]
+{0x00000045, 0x00000014, 0x00000000, 0x000000E2, 0x00000022}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000003, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000024, 0x00000001, 0x00000033, 0x00000044}, // L[0]
+{0x000000DC, 0x0000008D, 0x00000028, 0x0000006E, 0x00000041}, // L[1]
+{0x00000045, 0x000000C6, 0x00000022, 0x000000E2, 0x00000081}, // L[2]
+{0x00000088, 0x00000020, 0x00000001, 0x00000003, 0x000000B8}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000044, 0x00000024, 0x00000001, 0x000000BB, 0x00000088}, // L[0]
+{0x00000041, 0x0000008D, 0x00000028, 0x00000079, 0x00000081}, // L[1]
+{0x00000081, 0x000000C6, 0x00000022, 0x0000001B, 0x0000000B}, // L[2]
+{0x000000B8, 0x00000020, 0x00000001, 0x000000DD, 0x00000044}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000044, 0x00000018, 0x0000000B, 0x000000DD, 0x00000044}, // L[0]
+{0x00000041, 0x0000009B, 0x00000044, 0x000000BB, 0x0000006C}, // L[1]
+{0x00000081, 0x000000C8, 0x00000088, 0x00000079, 0x00000049}, // L[2]
+{0x000000B8, 0x00000059, 0x00000081, 0x0000001B, 0x00000001}, // L[3]
+}, // T.state[12].w =  22
+{ // R[13] abcde
+{0x00000044, 0x00000018, 0x0000000B, 0x000000CC, 0x00000000}, // L[0]
+{0x0000006C, 0x0000009B, 0x00000044, 0x000000EB, 0x00000000}, // L[1]
+{0x00000049, 0x000000C8, 0x00000088, 0x00000018, 0x00000000}, // L[2]
+{0x00000001, 0x00000059, 0x00000081, 0x0000000D, 0x00000000}, // L[3]
+}, // T.state[13].w =  20
+// T.w = 106
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 106 -> 105
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000051}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000051, 0x00000030, 0x00000080, 0x0000008E, 0x00000012}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000012, 0x00000046, 0x00000020}, // L[0]
+{0x00000010, 0x00000044, 0x00000002, 0x00000000, 0x000000DC}, // L[1]
+{0x00000051, 0x00000014, 0x00000000, 0x00000080, 0x00000045}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x0000008E, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000012, 0x00000033, 0x00000001}, // L[0]
+{0x000000DC, 0x00000044, 0x00000002, 0x0000006E, 0x00000028}, // L[1]
+{0x00000045, 0x00000014, 0x00000000, 0x000000E2, 0x00000022}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000003, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000024, 0x00000001, 0x00000033, 0x00000044}, // L[0]
+{0x000000DC, 0x0000008D, 0x00000028, 0x0000006E, 0x00000041}, // L[1]
+{0x00000045, 0x000000C6, 0x00000022, 0x000000E2, 0x00000081}, // L[2]
+{0x00000088, 0x00000020, 0x00000001, 0x00000003, 0x000000B8}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000044, 0x00000024, 0x00000001, 0x000000BB, 0x000000E8}, // L[0]
+{0x00000041, 0x0000008D, 0x00000028, 0x00000079, 0x00000091}, // L[1]
+{0x00000081, 0x000000C6, 0x00000022, 0x0000001B, 0x0000004B}, // L[2]
+{0x000000B8, 0x00000020, 0x00000001, 0x000000DD, 0x00000044}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000044, 0x00000038, 0x0000004B, 0x000000DD, 0x00000004}, // L[0]
+{0x00000041, 0x0000001B, 0x00000044, 0x000000BB, 0x00000048}, // L[1]
+{0x00000081, 0x000000C8, 0x000000E8, 0x00000079, 0x00000049}, // L[2]
+{0x000000B8, 0x00000099, 0x00000091, 0x0000001B, 0x00000021}, // L[3]
+}, // T.state[12].w =  22
+{ // R[13] abcde
+{0x00000004, 0x00000038, 0x0000004B, 0x000000EC, 0x00000000}, // L[0]
+{0x00000048, 0x0000001B, 0x00000044, 0x000000F9, 0x00000000}, // L[1]
+{0x00000049, 0x000000C8, 0x000000E8, 0x00000018, 0x00000000}, // L[2]
+{0x00000021, 0x00000099, 0x00000091, 0x0000001D, 0x00000000}, // L[3]
+}, // T.state[13].w =  19
+// T.w = 105
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 105 -> 104
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000051}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000051, 0x00000030, 0x00000080, 0x0000008E, 0x00000012}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000012, 0x00000046, 0x00000020}, // L[0]
+{0x00000010, 0x00000044, 0x00000002, 0x00000000, 0x000000DC}, // L[1]
+{0x00000051, 0x00000014, 0x00000000, 0x00000080, 0x00000045}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x0000008E, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000012, 0x00000033, 0x00000001}, // L[0]
+{0x000000DC, 0x00000044, 0x00000002, 0x0000006E, 0x00000028}, // L[1]
+{0x00000045, 0x00000014, 0x00000000, 0x000000E2, 0x00000022}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000003, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000024, 0x00000001, 0x00000033, 0x00000044}, // L[0]
+{0x000000DC, 0x0000008D, 0x00000028, 0x0000006E, 0x00000041}, // L[1]
+{0x00000045, 0x000000C6, 0x00000022, 0x000000E2, 0x00000081}, // L[2]
+{0x00000088, 0x00000020, 0x00000001, 0x00000003, 0x000000B8}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000044, 0x00000024, 0x00000001, 0x000000BB, 0x000000A8}, // L[0]
+{0x00000041, 0x0000008D, 0x00000028, 0x00000079, 0x000000B1}, // L[1]
+{0x00000081, 0x000000C6, 0x00000022, 0x0000001B, 0x0000006B}, // L[2]
+{0x000000B8, 0x00000020, 0x00000001, 0x000000DD, 0x00000064}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000044, 0x00000078, 0x0000006B, 0x000000DD, 0x00000004}, // L[0]
+{0x00000041, 0x0000005B, 0x00000064, 0x000000BB, 0x0000000A}, // L[1]
+{0x00000081, 0x00000088, 0x000000A8, 0x00000079, 0x0000000B}, // L[2]
+{0x000000B8, 0x00000019, 0x000000B1, 0x0000001B, 0x00000081}, // L[3]
+}, // T.state[12].w =  22
+{ // R[13] abcde
+{0x00000004, 0x00000078, 0x0000006B, 0x000000EC, 0x00000000}, // L[0]
+{0x0000000A, 0x0000005B, 0x00000064, 0x000000D8, 0x00000000}, // L[1]
+{0x0000000B, 0x00000088, 0x000000A8, 0x00000039, 0x00000000}, // L[2]
+{0x00000081, 0x00000019, 0x000000B1, 0x0000004D, 0x00000000}, // L[3]
+}, // T.state[13].w =  18
+// T.w = 104
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 104 -> 103
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000051}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000051, 0x00000030, 0x00000080, 0x0000008E, 0x00000012}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000012, 0x00000046, 0x00000020}, // L[0]
+{0x00000010, 0x00000044, 0x00000002, 0x00000000, 0x000000DC}, // L[1]
+{0x00000051, 0x00000014, 0x00000000, 0x00000080, 0x00000045}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x0000008E, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000012, 0x00000033, 0x00000001}, // L[0]
+{0x000000DC, 0x00000044, 0x00000002, 0x0000006E, 0x00000028}, // L[1]
+{0x00000045, 0x00000014, 0x00000000, 0x000000E2, 0x00000022}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000003, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000024, 0x00000001, 0x00000033, 0x00000044}, // L[0]
+{0x000000DC, 0x0000008D, 0x00000028, 0x0000006E, 0x00000041}, // L[1]
+{0x00000045, 0x000000C6, 0x00000022, 0x000000E2, 0x00000081}, // L[2]
+{0x00000088, 0x00000020, 0x00000001, 0x00000003, 0x000000B8}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000044, 0x00000024, 0x00000001, 0x000000BB, 0x000000AA}, // L[0]
+{0x00000041, 0x0000008D, 0x00000028, 0x00000079, 0x00000081}, // L[1]
+{0x00000081, 0x000000C6, 0x00000022, 0x0000001B, 0x0000004F}, // L[2]
+{0x000000B8, 0x00000020, 0x00000001, 0x000000DD, 0x00000064}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000044, 0x00000018, 0x0000004F, 0x000000DD, 0x00000044}, // L[0]
+{0x00000041, 0x00000013, 0x00000064, 0x000000BB, 0x00000050}, // L[1]
+{0x00000081, 0x00000088, 0x000000AA, 0x00000079, 0x00000009}, // L[2]
+{0x000000B8, 0x0000001D, 0x00000081, 0x0000001B, 0x000000C5}, // L[3]
+}, // T.state[12].w =  22
+{ // R[13] abcde
+{0x00000044, 0x00000018, 0x0000004F, 0x000000CC, 0x00000000}, // L[0]
+{0x00000050, 0x00000013, 0x00000064, 0x000000F5, 0x00000000}, // L[1]
+{0x00000009, 0x00000088, 0x000000AA, 0x00000038, 0x00000000}, // L[2]
+{0x000000C5, 0x0000001D, 0x00000081, 0x0000006F, 0x00000000}, // L[3]
+}, // T.state[13].w =  17
+// T.w = 103
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 103 -> 102
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000051}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000051, 0x00000030, 0x00000080, 0x0000008E, 0x00000012}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000012, 0x00000046, 0x00000020}, // L[0]
+{0x00000010, 0x00000044, 0x00000002, 0x00000000, 0x000000DC}, // L[1]
+{0x00000051, 0x00000014, 0x00000000, 0x00000080, 0x00000045}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x0000008E, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000012, 0x00000033, 0x00000001}, // L[0]
+{0x000000DC, 0x00000044, 0x00000002, 0x0000006E, 0x00000028}, // L[1]
+{0x00000045, 0x00000014, 0x00000000, 0x000000E2, 0x00000022}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000003, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000024, 0x00000001, 0x00000033, 0x00000004}, // L[0]
+{0x000000DC, 0x0000008D, 0x00000028, 0x0000006E, 0x00000041}, // L[1]
+{0x00000045, 0x000000C6, 0x00000022, 0x000000E2, 0x00000009}, // L[2]
+{0x00000088, 0x00000020, 0x00000001, 0x00000003, 0x000000A8}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000004, 0x00000024, 0x00000001, 0x000000B9, 0x00000088}, // L[0]
+{0x00000041, 0x0000008D, 0x00000028, 0x00000079, 0x00000083}, // L[1]
+{0x00000009, 0x000000C6, 0x00000022, 0x0000005F, 0x00000065}, // L[2]
+{0x000000A8, 0x00000020, 0x00000001, 0x0000005D, 0x00000064}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000004, 0x0000001C, 0x00000065, 0x0000005D, 0x00000000}, // L[0]
+{0x00000041, 0x00000047, 0x00000064, 0x000000B9, 0x00000000}, // L[1]
+{0x00000009, 0x00000088, 0x00000088, 0x00000079, 0x00000081}, // L[2]
+{0x000000A8, 0x00000059, 0x00000083, 0x0000005F, 0x00000001}, // L[3]
+}, // T.state[12].w =  22
+{ // R[13] abcde
+{0x00000000, 0x0000001C, 0x00000065, 0x000000AE, 0x00000000}, // L[0]
+{0x00000000, 0x00000047, 0x00000064, 0x000000DC, 0x00000000}, // L[1]
+{0x00000081, 0x00000088, 0x00000088, 0x0000007C, 0x00000000}, // L[2]
+{0x00000001, 0x00000059, 0x00000083, 0x0000002F, 0x00000000}, // L[3]
+}, // T.state[13].w =  16
+// T.w = 102
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 102 -> 101
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000051}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000051, 0x00000030, 0x00000080, 0x0000008E, 0x00000012}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000012, 0x00000046, 0x00000020}, // L[0]
+{0x00000010, 0x00000044, 0x00000002, 0x00000000, 0x000000DC}, // L[1]
+{0x00000051, 0x00000014, 0x00000000, 0x00000080, 0x00000045}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x0000008E, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000012, 0x00000033, 0x00000001}, // L[0]
+{0x000000DC, 0x00000044, 0x00000002, 0x0000006E, 0x00000028}, // L[1]
+{0x00000045, 0x00000014, 0x00000000, 0x000000E2, 0x00000022}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000003, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000024, 0x00000001, 0x00000033, 0x00000004}, // L[0]
+{0x000000DC, 0x0000008D, 0x00000028, 0x0000006E, 0x00000049}, // L[1]
+{0x00000045, 0x000000C6, 0x00000022, 0x000000E2, 0x00000001}, // L[2]
+{0x00000088, 0x00000020, 0x00000001, 0x00000003, 0x000000A8}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000004, 0x00000024, 0x00000001, 0x000000B9, 0x000000A8}, // L[0]
+{0x00000049, 0x0000008D, 0x00000028, 0x00000039, 0x00000001}, // L[1]
+{0x00000001, 0x000000C6, 0x00000022, 0x0000001F, 0x00000041}, // L[2]
+{0x000000A8, 0x00000020, 0x00000001, 0x0000005D, 0x00000064}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000004, 0x00000019, 0x00000041, 0x0000005D, 0x00000025}, // L[0]
+{0x00000049, 0x0000000F, 0x00000064, 0x000000B9, 0x00000040}, // L[1]
+{0x00000001, 0x00000088, 0x000000A8, 0x00000039, 0x0000008B}, // L[2]
+{0x000000A8, 0x00000019, 0x00000001, 0x0000001F, 0x000000C1}, // L[3]
+}, // T.state[12].w =  20
+{ // R[13] abcde
+{0x00000025, 0x00000019, 0x00000041, 0x0000003C, 0x00000000}, // L[0]
+{0x00000040, 0x0000000F, 0x00000064, 0x000000FC, 0x00000000}, // L[1]
+{0x0000008B, 0x00000088, 0x000000A8, 0x00000059, 0x00000000}, // L[2]
+{0x000000C1, 0x00000019, 0x00000001, 0x0000006F, 0x00000000}, // L[3]
+}, // T.state[13].w =  17
+// T.w = 101
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 101 -> 100
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000000, 0x00000081, 0x00000080}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   1
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000001, 0x00000001, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x00000040}, // L[3]
+}, // T.state[ 5].w =   2
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000001, 0x00000030, 0x00000080, 0x00000080, 0x00000051}, // L[2]
+{0x00000080, 0x00000008, 0x00000040, 0x00000040, 0x00000088}, // L[3]
+}, // T.state[ 6].w =   3
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000051, 0x00000030, 0x00000080, 0x0000008E, 0x00000012}, // L[2]
+{0x00000088, 0x00000008, 0x00000040, 0x00000046, 0x00000002}, // L[3]
+}, // T.state[ 7].w =   6
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000012, 0x00000046, 0x00000020}, // L[0]
+{0x00000010, 0x00000044, 0x00000002, 0x00000000, 0x000000DC}, // L[1]
+{0x00000051, 0x00000014, 0x00000000, 0x00000080, 0x00000045}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x0000008E, 0x00000088}, // L[3]
+}, // T.state[ 8].w =   8
+{ // R[ 9] abcde
+{0x00000020, 0x00000020, 0x00000012, 0x00000033, 0x00000001}, // L[0]
+{0x000000DC, 0x00000044, 0x00000002, 0x0000006E, 0x00000028}, // L[1]
+{0x00000045, 0x00000014, 0x00000000, 0x000000E2, 0x00000022}, // L[2]
+{0x00000088, 0x00000000, 0x00000000, 0x00000003, 0x00000001}, // L[3]
+}, // T.state[ 9].w =  10
+{ // R[10] abcde
+{0x00000020, 0x00000024, 0x00000001, 0x00000033, 0x00000004}, // L[0]
+{0x000000DC, 0x0000008D, 0x00000028, 0x0000006E, 0x00000049}, // L[1]
+{0x00000045, 0x000000C6, 0x00000022, 0x000000E2, 0x00000001}, // L[2]
+{0x00000088, 0x00000020, 0x00000001, 0x00000003, 0x000000A8}, // L[3]
+}, // T.state[10].w =  15
+{ // R[11] abcde
+{0x00000004, 0x00000024, 0x00000001, 0x000000B9, 0x000000E8}, // L[0]
+{0x00000049, 0x0000008D, 0x00000028, 0x00000039, 0x00000001}, // L[1]
+{0x00000001, 0x000000C6, 0x00000022, 0x0000001F, 0x00000043}, // L[2]
+{0x000000A8, 0x00000020, 0x00000001, 0x0000005D, 0x00000064}, // L[3]
+}, // T.state[11].w =  16
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000004, 0x00000019, 0x00000043, 0x0000005D, 0x00000005}, // L[0]
+{0x00000049, 0x0000000B, 0x00000064, 0x000000B9, 0x00000040}, // L[1]
+{0x00000001, 0x00000088, 0x000000E8, 0x00000039, 0x00000089}, // L[2]
+{0x000000A8, 0x00000099, 0x00000001, 0x0000001F, 0x00000021}, // L[3]
+}, // T.state[12].w =  20
+{ // R[13] abcde
+{0x00000005, 0x00000019, 0x00000043, 0x0000002C, 0x00000000}, // L[0]
+{0x00000040, 0x0000000B, 0x00000064, 0x000000FC, 0x00000000}, // L[1]
+{0x00000089, 0x00000088, 0x000000E8, 0x00000058, 0x00000000}, // L[2]
+{0x00000021, 0x00000099, 0x00000001, 0x0000001F, 0x00000000}, // L[3]
+}, // T.state[13].w =  16
+// T.w = 100
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 100 -> 82
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000098}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x000000C0, 0x000000C6, 0x00000002}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000034, 0x00000000, 0x00000000, 0x00000054}, // L[1]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x000000A8}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[0]
+{0x00000054, 0x00000034, 0x00000000, 0x0000002A, 0x0000003A}, // L[1]
+{0x000000A8, 0x00000000, 0x00000000, 0x00000054, 0x00000054}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x000000A5}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000040}, // L[0]
+{0x00000054, 0x000000C1, 0x0000003A, 0x0000002A, 0x00000015}, // L[1]
+{0x000000A8, 0x0000008A, 0x00000054, 0x00000054, 0x00000022}, // L[2]
+{0x00000000, 0x000000B4, 0x000000A5, 0x00000063, 0x0000009C}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000015, 0x000000C1, 0x0000003A, 0x000000F9, 0x00000001}, // L[1]
+{0x00000022, 0x0000008A, 0x00000054, 0x000000B3, 0x00000001}, // L[2]
+{0x0000009C, 0x000000B4, 0x000000A5, 0x000000FF, 0x00000000}, // L[3]
+}, // T.state[11].w =  14
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000081, 0x00000001, 0x000000FF, 0x00000041}, // L[0]
+{0x00000015, 0x00000017, 0x00000000, 0x00000002, 0x00000020}, // L[1]
+{0x00000022, 0x00000069, 0x00000000, 0x000000F9, 0x00000009}, // L[2]
+{0x0000009C, 0x00000080, 0x00000001, 0x000000B3, 0x00000004}, // L[3]
+}, // T.state[12].w =  23
+{ // R[13] abcde
+{0x00000041, 0x00000081, 0x00000001, 0x0000005F, 0x00000000}, // L[0]
+{0x00000020, 0x00000017, 0x00000000, 0x00000011, 0x00000000}, // L[1]
+{0x00000009, 0x00000069, 0x00000000, 0x00000078, 0x00000000}, // L[2]
+{0x00000004, 0x00000080, 0x00000001, 0x000000DB, 0x00000000}, // L[3]
+}, // T.state[13].w =  16
+// T.w =  82
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 82 -> 81
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000098}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x000000C0, 0x000000C6, 0x00000002}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000034, 0x00000000, 0x00000000, 0x00000054}, // L[1]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x000000A8}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[0]
+{0x00000054, 0x00000034, 0x00000000, 0x0000002A, 0x0000003A}, // L[1]
+{0x000000A8, 0x00000000, 0x00000000, 0x00000054, 0x00000054}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x000000A5}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000040}, // L[0]
+{0x00000054, 0x000000C1, 0x0000003A, 0x0000002A, 0x00000015}, // L[1]
+{0x000000A8, 0x0000008A, 0x00000054, 0x00000054, 0x00000022}, // L[2]
+{0x00000000, 0x000000B4, 0x000000A5, 0x00000063, 0x0000009C}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000015, 0x000000C1, 0x0000003A, 0x000000F9, 0x00000001}, // L[1]
+{0x00000022, 0x0000008A, 0x00000054, 0x000000B3, 0x00000001}, // L[2]
+{0x0000009C, 0x000000B4, 0x000000A5, 0x000000FF, 0x00000080}, // L[3]
+}, // T.state[11].w =  14
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000081, 0x00000001, 0x000000FF, 0x00000041}, // L[0]
+{0x00000015, 0x00000017, 0x00000080, 0x00000002, 0x00000000}, // L[1]
+{0x00000022, 0x00000068, 0x00000000, 0x000000F9, 0x0000000A}, // L[2]
+{0x0000009C, 0x00000080, 0x00000001, 0x000000B3, 0x00000004}, // L[3]
+}, // T.state[12].w =  23
+{ // R[13] abcde
+{0x00000041, 0x00000081, 0x00000001, 0x0000005F, 0x00000000}, // L[0]
+{0x00000000, 0x00000017, 0x00000080, 0x00000001, 0x00000000}, // L[1]
+{0x0000000A, 0x00000068, 0x00000000, 0x000000F9, 0x00000000}, // L[2]
+{0x00000004, 0x00000080, 0x00000001, 0x000000DB, 0x00000000}, // L[3]
+}, // T.state[13].w =  15
+// T.w =  81
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 81 -> 80
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000098}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x000000C0, 0x000000C6, 0x00000002}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000034, 0x00000000, 0x00000000, 0x00000054}, // L[1]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x000000A8}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[0]
+{0x00000054, 0x00000034, 0x00000000, 0x0000002A, 0x0000003A}, // L[1]
+{0x000000A8, 0x00000000, 0x00000000, 0x00000054, 0x00000054}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x000000A5}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000040}, // L[0]
+{0x00000054, 0x000000C1, 0x0000003A, 0x0000002A, 0x00000015}, // L[1]
+{0x000000A8, 0x0000008A, 0x00000054, 0x00000054, 0x00000022}, // L[2]
+{0x00000000, 0x000000B4, 0x000000A5, 0x00000063, 0x0000009C}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000015, 0x000000C1, 0x0000003A, 0x000000F9, 0x00000081}, // L[1]
+{0x00000022, 0x0000008A, 0x00000054, 0x000000B3, 0x00000081}, // L[2]
+{0x0000009C, 0x000000B4, 0x000000A5, 0x000000FF, 0x00000080}, // L[3]
+}, // T.state[11].w =  14
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000080, 0x00000081, 0x000000FF, 0x00000040}, // L[0]
+{0x00000015, 0x00000016, 0x00000080, 0x00000002, 0x00000001}, // L[1]
+{0x00000022, 0x00000068, 0x00000000, 0x000000F9, 0x0000000E}, // L[2]
+{0x0000009C, 0x00000080, 0x00000081, 0x000000B3, 0x00000014}, // L[3]
+}, // T.state[12].w =  23
+{ // R[13] abcde
+{0x00000040, 0x00000080, 0x00000081, 0x000000DF, 0x00000000}, // L[0]
+{0x00000001, 0x00000016, 0x00000080, 0x00000081, 0x00000000}, // L[1]
+{0x0000000E, 0x00000068, 0x00000000, 0x000000FB, 0x00000000}, // L[2]
+{0x00000014, 0x00000080, 0x00000081, 0x000000D3, 0x00000000}, // L[3]
+}, // T.state[13].w =  14
+// T.w =  80
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 80 -> 79
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000098}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x000000C0, 0x000000C6, 0x00000002}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000034, 0x00000000, 0x00000000, 0x00000054}, // L[1]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x000000A8}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[0]
+{0x00000054, 0x00000034, 0x00000000, 0x0000002A, 0x0000003A}, // L[1]
+{0x000000A8, 0x00000000, 0x00000000, 0x00000054, 0x00000054}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x000000A5}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000040}, // L[0]
+{0x00000054, 0x000000C1, 0x0000003A, 0x0000002A, 0x00000015}, // L[1]
+{0x000000A8, 0x0000008A, 0x00000054, 0x00000054, 0x00000022}, // L[2]
+{0x00000000, 0x000000B4, 0x000000A5, 0x00000063, 0x0000009C}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000015, 0x000000C1, 0x0000003A, 0x000000F9, 0x00000081}, // L[1]
+{0x00000022, 0x0000008A, 0x00000054, 0x000000B3, 0x00000081}, // L[2]
+{0x0000009C, 0x000000B4, 0x000000A5, 0x000000FF, 0x000000A0}, // L[3]
+}, // T.state[11].w =  14
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000080, 0x00000081, 0x000000FF, 0x00000040}, // L[0]
+{0x00000015, 0x00000016, 0x000000A0, 0x00000002, 0x00000001}, // L[1]
+{0x00000022, 0x00000028, 0x00000000, 0x000000F9, 0x0000000A}, // L[2]
+{0x0000009C, 0x00000080, 0x00000081, 0x000000B3, 0x00000024}, // L[3]
+}, // T.state[12].w =  23
+{ // R[13] abcde
+{0x00000040, 0x00000080, 0x00000081, 0x000000DF, 0x00000000}, // L[0]
+{0x00000001, 0x00000016, 0x000000A0, 0x00000081, 0x00000000}, // L[1]
+{0x0000000A, 0x00000028, 0x00000000, 0x000000F9, 0x00000000}, // L[2]
+{0x00000024, 0x00000080, 0x00000081, 0x000000CB, 0x00000000}, // L[3]
+}, // T.state[13].w =  13
+// T.w =  79
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 79 -> 78
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000098}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x000000C0, 0x000000C6, 0x00000002}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000034, 0x00000000, 0x00000000, 0x00000054}, // L[1]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x000000A8}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[0]
+{0x00000054, 0x00000034, 0x00000000, 0x0000002A, 0x0000003A}, // L[1]
+{0x000000A8, 0x00000000, 0x00000000, 0x00000054, 0x00000054}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x000000A5}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000040}, // L[0]
+{0x00000054, 0x000000C1, 0x0000003A, 0x0000002A, 0x00000015}, // L[1]
+{0x000000A8, 0x0000008A, 0x00000054, 0x00000054, 0x00000022}, // L[2]
+{0x00000000, 0x000000B4, 0x000000A5, 0x00000063, 0x0000009C}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000015, 0x000000C1, 0x0000003A, 0x000000F9, 0x000000E1}, // L[1]
+{0x00000022, 0x0000008A, 0x00000054, 0x000000B3, 0x00000001}, // L[2]
+{0x0000009C, 0x000000B4, 0x000000A5, 0x000000FF, 0x000000A0}, // L[3]
+}, // T.state[11].w =  14
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000040, 0x00000001, 0x000000FF, 0x00000000}, // L[0]
+{0x00000015, 0x00000017, 0x000000A0, 0x00000002, 0x00000000}, // L[1]
+{0x00000022, 0x00000028, 0x00000000, 0x000000F9, 0x0000000A}, // L[2]
+{0x0000009C, 0x00000080, 0x000000E1, 0x000000B3, 0x00000004}, // L[3]
+}, // T.state[12].w =  23
+{ // R[13] abcde
+{0x00000000, 0x00000040, 0x00000001, 0x000000FF, 0x00000000}, // L[0]
+{0x00000000, 0x00000017, 0x000000A0, 0x00000001, 0x00000000}, // L[1]
+{0x0000000A, 0x00000028, 0x00000000, 0x000000F9, 0x00000000}, // L[2]
+{0x00000004, 0x00000080, 0x000000E1, 0x000000DB, 0x00000000}, // L[3]
+}, // T.state[13].w =  12
+// T.w =  78
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 78 -> 77
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000098}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x000000C0, 0x000000C6, 0x00000002}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000034, 0x00000000, 0x00000000, 0x00000054}, // L[1]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x000000A8}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[0]
+{0x00000054, 0x00000034, 0x00000000, 0x0000002A, 0x0000003A}, // L[1]
+{0x000000A8, 0x00000000, 0x00000000, 0x00000054, 0x000000D4}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x000000A5}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000040}, // L[0]
+{0x00000054, 0x000000C1, 0x0000003A, 0x0000002A, 0x00000015}, // L[1]
+{0x000000A8, 0x0000009A, 0x000000D4, 0x00000054, 0x00000002}, // L[2]
+{0x00000000, 0x000000B4, 0x000000A5, 0x00000063, 0x000000D4}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000015, 0x000000C1, 0x0000003A, 0x000000F9, 0x000000C1}, // L[1]
+{0x00000002, 0x0000009A, 0x000000D4, 0x000000B2, 0x00000002}, // L[2]
+{0x000000D4, 0x000000B4, 0x000000A5, 0x000000BD, 0x00000020}, // L[3]
+}, // T.state[11].w =  15
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000000, 0x00000002, 0x000000BD, 0x00000040}, // L[0]
+{0x00000015, 0x00000031, 0x00000020, 0x00000002, 0x0000000C}, // L[1]
+{0x00000002, 0x00000029, 0x00000000, 0x000000F9, 0x00000029}, // L[2]
+{0x000000D4, 0x00000080, 0x000000C1, 0x000000B2, 0x00000054}, // L[3]
+}, // T.state[12].w =  20
+{ // R[13] abcde
+{0x00000040, 0x00000000, 0x00000002, 0x000000FE, 0x00000000}, // L[0]
+{0x0000000C, 0x00000031, 0x00000020, 0x00000007, 0x00000000}, // L[1]
+{0x00000029, 0x00000029, 0x00000000, 0x00000068, 0x00000000}, // L[2]
+{0x00000054, 0x00000080, 0x000000C1, 0x00000073, 0x00000000}, // L[3]
+}, // T.state[13].w =  13
+// T.w =  77
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 77 -> 76
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000098}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x000000C0, 0x000000C6, 0x00000002}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000034, 0x00000000, 0x00000000, 0x00000054}, // L[1]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x000000A8}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[0]
+{0x00000054, 0x00000034, 0x00000000, 0x0000002A, 0x0000003A}, // L[1]
+{0x000000A8, 0x00000000, 0x00000000, 0x00000054, 0x000000D4}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x000000A5}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000040}, // L[0]
+{0x00000054, 0x000000C1, 0x0000003A, 0x0000002A, 0x00000015}, // L[1]
+{0x000000A8, 0x0000009A, 0x000000D4, 0x00000054, 0x00000002}, // L[2]
+{0x00000000, 0x000000B4, 0x000000A5, 0x00000063, 0x000000D4}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000015, 0x000000C1, 0x0000003A, 0x000000F9, 0x000000E1}, // L[1]
+{0x00000002, 0x0000009A, 0x000000D4, 0x000000B2, 0x00000002}, // L[2]
+{0x000000D4, 0x000000B4, 0x000000A5, 0x000000BD, 0x00000030}, // L[3]
+}, // T.state[11].w =  15
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x000000BD, 0x00000000}, // L[0]
+{0x00000015, 0x00000031, 0x00000030, 0x00000002, 0x00000004}, // L[1]
+{0x00000002, 0x00000009, 0x00000000, 0x000000F9, 0x0000000B}, // L[2]
+{0x000000D4, 0x00000080, 0x000000E1, 0x000000B2, 0x00000074}, // L[3]
+}, // T.state[12].w =  20
+{ // R[13] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x000000DE, 0x00000000}, // L[0]
+{0x00000004, 0x00000031, 0x00000030, 0x00000003, 0x00000000}, // L[1]
+{0x0000000B, 0x00000009, 0x00000000, 0x00000079, 0x00000000}, // L[2]
+{0x00000074, 0x00000080, 0x000000E1, 0x00000063, 0x00000000}, // L[3]
+}, // T.state[13].w =  12
+// T.w =  76
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+[./tests/norx-best-diff-search-tests.cc:3125] Update bound: 76 -> 75
+#if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 14
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000081, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   1
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000000, 0x00000000, 0x00000040, 0x000000C0}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   1
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000018, 0x000000C0, 0x00000040, 0x00000098}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000098, 0x00000018, 0x000000C0, 0x000000C6, 0x00000002}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   3
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000034, 0x00000000, 0x00000000, 0x00000054}, // L[1]
+{0x00000098, 0x00000000, 0x00000000, 0x00000000, 0x000000A8}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x000000C6, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   4
+{ // R[ 9] abcde
+{0x00000000, 0x00000000, 0x00000002, 0x00000000, 0x00000002}, // L[0]
+{0x00000054, 0x00000034, 0x00000000, 0x0000002A, 0x0000003A}, // L[1]
+{0x000000A8, 0x00000000, 0x00000000, 0x00000054, 0x000000D4}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000063, 0x00000065}, // L[3]
+}, // T.state[ 9].w =   6
+{ // R[10] abcde
+{0x00000000, 0x00000040, 0x00000002, 0x00000000, 0x00000040}, // L[0]
+{0x00000054, 0x000000C1, 0x0000003A, 0x0000002A, 0x00000015}, // L[1]
+{0x000000A8, 0x0000009A, 0x000000D4, 0x00000054, 0x00000042}, // L[2]
+{0x00000000, 0x000000AC, 0x00000065, 0x00000063, 0x000000A4}, // L[3]
+}, // T.state[10].w =  11
+{ // R[11] abcde
+{0x00000040, 0x00000040, 0x00000002, 0x00000002, 0x00000000}, // L[0]
+{0x00000015, 0x000000C1, 0x0000003A, 0x000000F9, 0x000000E1}, // L[1]
+{0x00000042, 0x0000009A, 0x000000D4, 0x000000B0, 0x00000004}, // L[2]
+{0x000000A4, 0x000000AC, 0x00000065, 0x0000003E, 0x0000008D}, // L[3]
+}, // T.state[11].w =  15
+//         --- Permuted state after round 12: diagonals to columns ---
+{ // R[12] abcde
+{0x00000040, 0x00000040, 0x00000004, 0x0000003E, 0x00000000}, // L[0]
+{0x00000015, 0x0000003D, 0x0000008D, 0x00000002, 0x00000010}, // L[1]
+{0x00000042, 0x00000042, 0x00000000, 0x000000F9, 0x00000000}, // L[2]
+{0x000000A4, 0x00000080, 0x000000E1, 0x000000B0, 0x00000024}, // L[3]
+}, // T.state[12].w =  20
+{ // R[13] abcde
+{0x00000000, 0x00000040, 0x00000004, 0x0000001F, 0x00000000}, // L[0]
+{0x00000010, 0x0000003D, 0x0000008D, 0x00000009, 0x00000000}, // L[1]
+{0x00000000, 0x00000042, 0x00000000, 0x000000FC, 0x00000000}, // L[2]
+{0x00000024, 0x00000080, 0x000000E1, 0x0000004A, 0x00000000}, // L[3]
+}, // T.state[13].w =  11
+// T.w =  75
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 13 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+ */
+
+/* --- */
+
+#if INIT_N
+const WORD_T g_NBITS[NLANES][4] = {
+  {2, 1, 1, 1}, // lane 0: a0, b0, c0, d0 == s0 s4  s8 s12 ==  u0  k0  u2  u6  
+  {2, 1, 1, 1}, // lane 1: a1, b1, c1, d1 == s1 s5  s9 s13 ==  n0  k1  u3  u7
+  {1, 1, 1, 1}, // lane 1: a1, b1, c1, d1 == s2 s6 s10 s14 ==  n1  k2  u4  u8
+  {1, 1, 1, 1}, // lane 3: a3, b3, c3, d3 == s3 s7 s11 s15 ==  u1  k3  u5  u9
+};
+#elif INIT_NK
+const WORD_T g_NBITS[NLANES][4] = {
+  {2, 2, 1, 1}, // lane 0: a0, b0, c0, d0 == s0 s4  s8 s12 ==  u0  k0  u2  u6  
+  {2, 2, 1, 1}, // lane 1: a1, b1, c1, d1 == s1 s5  s9 s13 ==  n0  k1  u3  u7 
+  {1, 2, 1, 1}, // lane 1: a1, b1, c1, d1 == s2 s6 s10 s14 ==  n1  k2  u4  u8
+  {1, 2, 1, 1}, // lane 3: a3, b3, c3, d3 == s3 s7 s11 s15 ==  u1  k3  u5  u9
+};
+#elif RATE
+//const WORD_T g_NBITS[NLANES][4] = {
+//  {2, 2, 1, 1}, // lane 0: a0, b0, c0, d0 == s0 s4  s8 s12 ==
+//  {2, 2, 1, 1}, // lane 1: a1, b1, c1, d1 == s1 s5  s9 s13 ==
+//  {2, 2, 1, 1}, // lane 1: a1, b1, c1, d1 == s2 s6 s10 s14 ==
+//  {2, 2, 1, 1}, // lane 3: a3, b3, c3, d3 == s3 s7 s11 s15 ==
+//};
+const WORD_T g_NBITS[NLANES][4] = { // according to the Latincrypt paper: "Analysis of NORX"
+  {2, 2, 2, 1}, // lane 0: a0, b0, c0, d0 == s0 s4  s8 s12 ==  u0  k0  u2  u6  
+  {2, 2, 2, 1}, // lane 1: a1, b1, c1, d1 == s1 s5  s9 s13 ==  n0  k1  u3  u7 
+  {2, 2, 1, 1}, // lane 1: a1, b1, c1, d1 == s2 s6 s10 s14 ==  n1  k2  u4  u8
+  {2, 2, 1, 1}, // lane 3: a3, b3, c3, d3 == s3 s7 s11 s15 ==  u1  k3  u5  u9
+};
+#elif FULL
+const WORD_T g_NBITS[NLANES][4] = {
+  {2, 2, 2, 2}, // lane 0: a0, b0, c0, d0 == s0 s4  s8 s12 ==  u0  k0  u2  u6  
+  {2, 2, 2, 2}, // lane 1: a1, b1, c1, d1 == s1 s5  s9 s13 ==  n0  k1  u3  u7 
+  {2, 2, 2, 2}, // lane 1: a1, b1, c1, d1 == s2 s6 s10 s14 ==  n1  k2  u4  u8
+  {2, 2, 2, 2}, // lane 3: a3, b3, c3, d3 == s3 s7 s11 s15 ==  u1  k3  u5  u9
+};
+#elif NONE
+const WORD_T g_NBITS[NLANES][4] = {
+  {1, 1, 1, 1},
+  {1, 1, 1, 1},
+  {1, 1, 1, 1},
+  {2, 2, 2, 2},
+};
+#else
+#error("Invalid attack scenario!")
+#endif
+
+/* --- */
+
+//const WORD_T g_NBITS[NLANES][4] = {
+//  {2, 1, 1, 1}, // lane 0: a0, b0, c0, d0 == s0 s4  s8 s12 == n0 k0  u8 u12 
+//  {2, 1, 1, 1}, // lane 1: a1, b1, c1, d1 == s1 s5  s9 s13 == n1 k1  u9 u13
+//  {1, 1, 1, 1}, // lane 1: a1, b1, c1, d1 == s2 s6 s10 s14 == u2 k2 u10 u14
+//  {1, 1, 1, 1}, // lane 3: a3, b3, c3, d3 == s3 s7 s11 s15 == u3 k3 u11 u15
+//};
+
+/* --- */
+/* 
+
+NORX32-RATE: problem case, 20160810
+
+vesselin@LACS-BIGMAN:~/exper-logs$ time ./norx-best-diff-search-tests.0010
+[./tests/norx-best-diff-search-tests.cc:2152] Tests, WORD_SIZE  = 32, MASK = FFFFFFFF
+[./tests/norx-best-diff-search-tests.cc:2153] Attack scenario: INIT_N 0 INIT_NK 0 RATE 1 FULL 0
+-- g_nrounds =  1
+-- g_Bn =   0
+-- g_nrounds =  2
+-- g_Bn =   0 ... [./tests/norx-best-diff-search-tests.cc:1503] Update bound: 0 -> 0
+Trail found!
+-- g_nrounds =  3
+-- g_Bn =   0 ... No trail found.
+-- g_Bn =   1 ... [./tests/norx-best-diff-search-tests.cc:1794] Update bound: 1 -> 1
+Trail found!
+-- g_nrounds =  4
+-- g_Bn =   1 ... No trail found.
+-- g_Bn =   2 ... [./tests/norx-best-diff-search-tests.cc:1794] Update bound: 2 -> 2
+Trail found!
+-- g_nrounds =  5
+-- g_Bn =   2 ... No trail found.
+-- g_Bn =   3 ... No trail found.
+-- g_Bn =   4 ... [./tests/norx-best-diff-search-tests.cc:1794] Update bound: 4 -> 4
+Trail found!
+-- g_nrounds =  6
+-- g_Bn =   4 ... No trail found.
+-- g_Bn =   5 ... No trail found.
+-- g_Bn =   6 ... No trail found.
+-- g_Bn =   7 ... [./tests/norx-best-diff-search-tests.cc:1794] Update bound: 7 -> 7
+Trail found!
+-- g_nrounds =  7
+-- g_Bn =   7 ... No trail found.
+-- g_Bn =   8 ... No trail found.
+-- g_Bn =   9 ... No trail found.
+xxx
+-- g_Bn =  10 ... No trail found.
+xxx
+
+Time:
+
+real    57122m20.213s = 952 hrs = 40 days
+user    57204m21.056s
+sys     0m5.104s
+
+
+
+ */
+
+/* --- */
+
+#if 1 // WORD_SIZE 32 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000400, 0x80000400, 0x80000000, 0x80000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+//{0x80000000, 0x80000000, 0x80008000, 0x00800000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x80000000, 0x80000400, 0x80000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 1].w =   0
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x80000000, 0x80000000, 0x80000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x80000000, 0x80000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x80000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x80000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00100000, 0x80000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00100000, 0x00100000, 0x80000000, 0x00000010, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   1
+// T.w =   3
+};
+#endif // #if 1 // WORD_SIZE 32 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+/* --- */
+
+#if 1 // WORD_SIZE 32 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 8
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x80000000, 0x80000000, 0x80008000, 0x00800000, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x80000000, 0x80008000, 0x00008000, 0x80000000}, // L[3]
+}, // T.state[ 1].w =   0
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x80000000, 0x00008000, 0x00000000}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x80000000, 0x80000000, 0x00000000}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x80000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00800000, 0x00800000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00001000, 0x00800000, 0x00800000, 0x00001000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 6].w =   1
+{ // R[ 7] abcde
+{0x00001000, 0x00001000, 0x00800000, 0x10000080, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 7].w =   1
+// T.w =   3
+};
+#endif // #if 1 // WORD_SIZE 32 nrounds 7 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+/* --- */
+
+#if 0 // WORD_SIZE 64 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+  { // R[ 0] abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x8000000000000000, 0x8000000000000000, 0x8000000000000000, 0x0000000000000000, 0x0000000000000000},
+  }, // T.state[ 0].w =   0
+  { // R[ 1{abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x8000000000000000, 0x8000000000000000, 0x0000000000000000, 0x0000000000000000},
+  }, // T.state[ 1].w =   0
+  { // R[ 2{abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x8000000000000000, 0x0000000000000000, 0x0000000000000000},
+  }, // T.state[ 2].w =   1
+  { // R[ 3{abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x8000000000000000, 0x0000000000000000, 0x8000000000000000},
+  }, // T.state[ 3].w =   0
+  //         --- Permuted state after round 4: diagonals to columns ---
+  { // R[ 4{abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x8000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+  }, // T.state[ 4].w =   0
+};
+#endif // #if 1 // WORD_SIZE 64 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+#if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 9
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+{ // R[ 0] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000080, 0x00000080, 0x00000090, 0x00000020, 0x00000000}, // L[2]
+{0x00000084, 0x00000084, 0x00000000, 0x00000001, 0x00000000}, // L[3]
+}, // T.state[ 0].w =   0
+{ // R[ 1] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000080, 0x00000090, 0x00000010, 0x00000080}, // L[2]
+{0x00000000, 0x00000084, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 1].w =   1
+{ // R[ 2] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000010, 0x00000000}, // L[2]
+{0x00000000, 0x00000080, 0x00000080, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 2].w =   1
+{ // R[ 3] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000080, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000080, 0x00000080, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 3].w =   0
+//         --- Permuted state after round 4: diagonals to columns ---
+{ // R[ 4] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[3]
+}, // T.state[ 4].w =   0
+{ // R[ 5] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000000, 0x00000080, 0x00000000, 0x00000080}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 5].w =   0
+{ // R[ 6] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000000, 0x00000010, 0x00000080, 0x00000000, 0x00000010}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000080}, // L[3]
+}, // T.state[ 6].w =   0
+{ // R[ 7] abcde
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+{0x00000010, 0x00000010, 0x00000080, 0x00000080, 0x00000000}, // L[1]
+{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000004, 0x00000004}, // L[3]
+}, // T.state[ 7].w =   1
+//         --- Permuted state after round 8: diagonals to columns ---
+{ // R[ 8] abcde
+{0x00000000, 0x00000020, 0x00000000, 0x00000004, 0x00000000}, // L[0]
+{0x00000010, 0x00000000, 0x00000004, 0x00000000, 0x00000000}, // L[1]
+{0x00000000, 0x00000008, 0x00000000, 0x00000080, 0x00000000}, // L[2]
+{0x00000080, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+}, // T.state[ 8].w =   1
+// T.w =   4
+};
+#endif // #if 1 // WORD_SIZE 8 nrounds 8 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+/* --- */
+
+#if 0 // DEBUG
+						  //						  if((ibit == 63) && (je[THREE] == 1)) 
+						  //						  if(ibit == 31) 
+						  if((ibit == 31) && (je[THREE] == 0))
+						  {
+							 if(
+								 (g_T.state[0].lane[THREE].a == 0x8000000000000000) && 
+								 (g_T.state[0].lane[THREE].b == 0x8000000000000000) && 
+								 (g_T.state[0].lane[THREE].c == 0x8000000000000000) &&
+								 (g_T.state[0].lane[THREE].e == 0) && 
+								 // 
+								 (g_T.state[1].lane[THREE].b == 0x8000000000000000) && 
+								 (g_T.state[1].lane[THREE].c == 0x8000000000000000) &&
+								 // 
+								 (g_T.state[2].lane[THREE].a == 0) &&
+								 (g_T.state[2].lane[THREE].b == 0) &&
+								 (g_T.state[2].lane[THREE].c == 0x8000000000000000) &&
+								 (g_T.state[2].lane[THREE].d == 0) &&
+								 //								 (g_T.state[2].lane[THREE].e == 0)
+								 (g_T.state[2].lane[THREE].e == 0x8000000000000000)
+								 ) { 
+								printf("[%s:%d] ibit %d iround %d\n", __FILE__, __LINE__, ibit, iround);
+								//		  norx_state_print(g_T.state[0]);
+								norx_trail_print(g_T, iround);
+								printf("[%s:%d] L_zero.w %d\n", __FILE__, __LINE__, L_zero.w);
+								printf("[%s:%d] L_one.w %d\n", __FILE__, __LINE__, L_one.w);
+								printf("[%s:%d] L_two.w %d\n", __FILE__, __LINE__, L_two.w);
+								printf("[%s:%d] L_three.w %d\n", __FILE__, __LINE__, L_three.w);
+								assert(1 == 0);
+							 }
+						  }
+#endif // #if 1 // DEBUG
+
+
+/* --- */
+
+#if 1 // DEBUG
+		if((g_T.state[0].lane[THREE].a == 0x8000000000000000) && 
+			(g_T.state[0].lane[THREE].b == 0x8000000000000000) && 
+			(g_T.state[0].lane[THREE].c == 0x8000000000000000) &&
+			(g_T.state[0].lane[THREE].e == 0)) { 
+		  printf("[%s:%d]\n", __FILE__, __LINE__);
+		  //		  norx_state_print(g_T.state[0]);
+		  norx_trail_print(g_T, iround);
+		  assert(1 == 0);
+		}
+#endif
+
+
+
+/* --- */
+
+if((ibit == 63) && (a_i == 1) && (b_i == 1) && (je[THREE] == 0))  {
+  printf("BEFORE [%s:%d] ja jb je %ld %ld %ld\n", __FILE__, __LINE__, a_i, b_i, je[THREE]);
+  norx_state_print(S);
+ }
+
+if((ibit == 63) && (a_i == 1) && (b_i == 1) && (je[THREE] == 0))  {
+  printf("AFTER [%s:%d] ja jb je %ld %ld %ld\n", __FILE__, __LINE__, a_i, b_i, je[THREE]);
+  norx_state_print(S);
+ }
+
+/* --- */
+
+/* Prob. 1 differential for NORX64! */
+
+#if 1 // WORD_SIZE 64 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+#define NORX_TRAIL_LEN 5
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+  { // R[ 0] abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x8000000000000000, 0x8000000000000000, 0x8000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 //	 {0x8000000000000000, 0x8000000000000000, 0x8000008000000000, 0x0000800000000000, 0x0000000000000000},
+  }, // T.state[ 0].w =   0
+  { // R[ 1{abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x8000000000000000, 0x8000008000000000, 0x0000008000000000, 0x8000000000000000},
+  }, // T.state[ 1].w =   0
+  { // R[ 2{abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x8000000000000000, 0x0000008000000000, 0x0000000000000000},
+  }, // T.state[ 2].w =   1
+  { // R[ 3{abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x8000000000000000, 0x8000000000000000, 0x0000000000000000},
+  }, // T.state[ 3].w =   0
+  //         --- Permuted state after round 4: diagonals to columns ---
+  { // R[ 4{abcde
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x8000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000001, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+  }, // T.state[ 4].w =   0
+  //  { // R[ 4{abcde
+  //	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x8000000000000000, 0x0000000000000000},
+  //	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+  //	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+  //	 {0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+  //  }, // T.state[ 4].w =   0
+  // T.w =   1
+};
+#endif // #if 1 // WORD_SIZE 64 nrounds 4 INIT_N 0 INIT_NK 0 RATE 0 FULL 1
+
+
+/* 
+
+INIT_N 32
+
+[./tests/norx-best-diff-search-tests.cc:3235] Print bounds for first 16 rounds
+B[ 0]  0
+B[ 1]  1
+B[ 2]  2
+B[ 3]  6
+B[ 4] 12
+B[ 5] 25
+B[ 6] 44
+B[ 7] 73
+B[ 8] 111
+B[ 9] 160
+B[10] 216
+B[11] 265
+B[12] 319
+B[13] 376
+B[14] 437
+B[15] 496
+
+real    5m40.049s
+user    5m40.119s
+sys     0m0.016s
+vpv@mazirat:~/skcrypto/trunk/work/src/yaarx$
+
+ */
+
+/* --- */
+
+/* 
+[./tests/norx-best-diff-search-tests.cc:3489] Start Time 1469702110 sec
+[./tests/norx-best-diff-search-tests.cc:3491] Tests, WORD_SIZE  = 32, MASK = FFFFFFFF
+[./tests/norx-best-diff-search-tests.cc:3492] Rotations: R0  8 R1 11 R2 16 R3 31
+[./tests/norx-best-diff-search-tests.cc:3493] Attack scenario: INIT_N 1 INIT_NK 0 RATE 0 FULL 0
+-- g_nrounds =  2
+-- g_Bn = 100 ... [./tests/norx-best-diff-search-tests.cc:1701] Update bound: 100 -> 1
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 1
+-- g_nrounds =  3
+-- g_Bn = 101 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 101 -> 2
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 2
+-- g_nrounds =  4
+-- g_Bn = 102 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 102 -> 6
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 6
+-- g_nrounds =  5
+-- g_Bn = 106 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 106 -> 12
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 12
+-- g_nrounds =  6
+-- g_Bn = 112 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 112 -> 25
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 25
+-- g_nrounds =  7
+-- g_Bn = 125 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 125 -> 44
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 44
+-- g_nrounds =  8
+-- g_Bn = 144 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 144 -> 73
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 73
+-- g_nrounds =  9
+-- g_Bn = 173 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 173 -> 111
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 111
+-- g_nrounds = 10
+-- g_Bn = 211 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 211 -> 160
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 160
+-- g_nrounds = 11
+-- g_Bn = 260 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 260 -> 216
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 216
+-- g_nrounds = 12
+-- g_Bn = 316 ... [./tests/norx-best-diff-search-tests.cc:2025] Update bound: 316 -> 265
+[./tests/norx-best-diff-search-tests.cc:3076] Restart timer (time limit 3 sec): g_Bn = 265
+
+real    0m35.579s
+user    0m35.589s
+sys     0m0.000s
+
+ */
+
+/* --- */
+
+/*
+vpv@mazirat:~/skcrypto/trunk/work/src/yaarx$ make norx-best-diff-search-tests
+g++ -O3 -std=c++11 -Wall -c -I./include/ ./tests/norx-best-diff-search-tests.cc -o ./obj/norx-best-diff-search-tests.o
+g++  ./obj/common.o ./obj/norx-best-diff-search-tests.o -o ./bin/norx-best-diff-search-tests -lgsl -lgslcblas -lgmpxx -lgmp
+  vpv@mazirat:~/skcrypto/trunk/work/src/yaarx$ time ./bin/norx-best-diff-search-tests
+  [./tests/norx-best-diff-search-tests.cc:3360] Start Time 1469699354 sec
+  [./tests/norx-best-diff-search-tests.cc:3362] Tests, WORD_SIZE  = 32, MASK = FFFFFFFF
+  [./tests/norx-best-diff-search-tests.cc:3363] Rotations: R0  8 R1 11 R2 16 R3 31
+  [./tests/norx-best-diff-search-tests.cc:3364] Attack scenario: INIT_N 1 INIT_NK 0 RATE 0 FULL 0
+-- g_nrounds =  2
+  -- g_Bn = 100 ... [./tests/norx-best-diff-search-tests.cc:2404] Update bound: 100 -> 1
+  [./tests/norx-best-diff-search-tests.cc:2979] Try  1 /  1 restart timer: g_Bn = 1
+-- g_nrounds =  3
+  -- g_Bn = 101 ... [./tests/norx-best-diff-search-tests.cc:2819] Update bound: 101 -> 2
+  [./tests/norx-best-diff-search-tests.cc:2979] Try  1 /  1 restart timer: g_Bn = 2
+-- g_nrounds =  4
+  -- g_Bn = 102 ... [./tests/norx-best-diff-search-tests.cc:2819] Update bound: 102 -> 6
+  [./tests/norx-best-diff-search-tests.cc:2979] Try  1 /  1 restart timer: g_Bn = 6
+-- g_nrounds =  5
+  -- g_Bn = 106 ... [./tests/norx-best-diff-search-tests.cc:2819] Update bound: 106 -> 12
+  [./tests/norx-best-diff-search-tests.cc:2979] Try  1 /  1 restart timer: g_Bn = 12
+-- g_nrounds =  6
+  -- g_Bn = 112 ... [./tests/norx-best-diff-search-tests.cc:2819] Update bound: 112 -> 25
+  [./tests/norx-best-diff-search-tests.cc:2979] Try  1 /  1 restart timer: g_Bn = 25
+-- g_nrounds =  7
+  -- g_Bn = 125 ... [./tests/norx-best-diff-search-tests.cc:2819] Update bound: 125 -> 44
+  [./tests/norx-best-diff-search-tests.cc:2979] Try  1 /  1 restart timer: g_Bn = 44
+-- g_nrounds =  8
+  -- g_Bn = 144 ... [./tests/norx-best-diff-search-tests.cc:2819] Update bound: 144 -> 73
+  [./tests/norx-best-diff-search-tests.cc:2979] Try  1 /  1 restart timer: g_Bn = 73
+
+real    2m34.327s
+user    2m34.372s
+sys     0m0.000s
+*/
+
+/* --- */
+
+/*
+-- g_nrounds =  6
+  -- g_Bn = 112 ... [./tests/norx-best-diff-search-tests.cc:2813] Update bound: 112 -> 26
+  [./tests/norx-best-diff-search-tests.cc:2973] Try  0 /  5 restart timer: g_Bn = 26
+  -- g_Bn =  26 ... [./tests/norx-best-diff-search-tests.cc:2973] Try  1 /  5 restart timer: g_Bn = 26
+
+-- g_nrounds =  6
+-- g_Bn = 112 ... [./tests/norx-best-diff-search-tests.cc:2818] Update bound: 112 -> 25
+[./tests/norx-best-diff-search-tests.cc:2978] Try  0 /  5 restart timer: g_Bn = 25
+
+
+*/
+
+/* --- */
+
+/*
+ * Get a random number from 0 to (n-1) inclusive.
+ */
+uint32_t roll_die(uint32_t n)
+{
+  uint32_t r = random() % n;
+  return r;
+}
+
+uint32_t gen_random_bit()
+{
+  uint32_t r = random() % 2;
+  return r;
+}
+
+uint32_t gen_random_bit_biased()
+{
+  uint32_t r = random() % 4;
+  if(r <= 2) {
+	 return 0;
+  } else {
+	 return 1;
+  }
+}
+
+
+
+/* --- */
+
+/* 
+
+[./tests/norx-best-diff-search-tests.cc:3011] Attack scenario: INIT_N 1 INIT_NK 0 RATE 0 FULL 0
+-- g_nrounds =  1
+-- g_Bn =   0
+-- g_nrounds =  2
+-- g_Bn =   0 ... No trail found.
+-- g_Bn =   1 ... [./tests/norx-best-diff-search-tests.cc:2283] Update bound: 1 -> 1
+Trail found!
+-- g_nrounds =  3
+-- g_Bn =   1 ... No trail found.
+-- g_Bn =   2 ... [./tests/norx-best-diff-search-tests.cc:2574] Update bound: 2 -> 2
+Trail found!
+-- g_nrounds =  4
+-- g_Bn =   2 ... No trail found.
+-- g_Bn =   3 ... No trail found.
+-- g_Bn =   4 ... No trail found.
+-- g_Bn =   5 ... No trail found.
+-- g_Bn =   6 ... [./tests/norx-best-diff-search-tests.cc:2574] Update bound: 6 -> 6
+Trail found!
+-- g_nrounds =  5
+-- g_Bn =   6 ... No trail found.
+-- g_Bn =   7 ... No trail found.
+-- g_Bn =   8 ... No trail found.
+-- g_Bn =   9 ... No trail found.
+-- g_Bn =  10 ... No trail found.
+
+^C
+real    26m14.461s
+user    26m13.737s
+sys     0m1.032s
+
+
+ */
+
+/* --- */
+
+/*
+ * A swap of the 0-th and 3-rd columns after round 8 in order to fix a
+ * bug in storing the state after round 8.
+ *
+ * WARNING! This is a hack! TODO: to be fixed properly.
+ */
+void norx_array_state_permute_round8(WORD_T S[16])
+{
+  WORD_T S_copy[16] = {0};
+  for(uint32_t i = 0; i < 16; i++) {
+	 S_copy[i] = S[i];
+  }
+
+  S[0 ] = S_copy[ 2];
+  S[4 ] = S_copy[ 6];
+  S[8 ] = S_copy[10];
+  S[12] = S_copy[14];
+
+  S[2 ] = S_copy[ 0];
+  S[6 ] = S_copy[ 4];
+  S[10] = S_copy[ 8];
+  S[14] = S_copy[12];
+}
+
+
+/* variant with a hash map */
+
+/*
+ * Search for differential trails in NORX (variant with a hash map)
+ *
+ * \param iround current round
+ * \param ibit current bit position
+ * \param S internal state input to round \p r
+ * \param e the output word from the H operation of this round
+ */
+bool norx_diff_trail_search(const uint32_t iround, const uint32_t ibit, const norx_diff_state_t S)
+{
+  //  printf("[%s:%d] Enter %s() g_Bn %d\n", __FILE__, __LINE__, __FUNCTION__, g_Bn);
+  /*
+	* First round
+	*/
+  if(iround == 0) {
+	 //	 printf("[%s:%d] First iround %d ibit %d g_Bn %d g_T.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+	 //			  iround, ibit, g_Bn, g_T.w, g_nrounds);
+#if 1 // FIRST ROUND
+	 if (ibit == WORD_SIZE) {
+
+		if(!norx_state_is_all_zero(S)) { // skip the all-zero state
+
+		  norx_trail_add_state(&g_T, S, iround); // add state 0 (input state)
+		  assert(g_T.w == 0);
+		  norx_diff_state_t S_next;
+		  norx_state_init(&S_next);
+		  norx_compute_next_state(&S_next, S, iround);
+		  norx_trail_add_state(&g_T, S_next, iround + 1); // add state 1
+		  assert((g_T.w  + g_B[g_nrounds - 2]) <= g_Bn);
+
+#if FIND_ALL_TRAILS
+		  //		  norx_diff_trail_search(iround + 1, 0, S); <------------ S_next!!!
+		  norx_diff_trail_search(iround + 1, 0, S_next);
+#else
+		  bool b_state_found = norx_hash_map_diff_state_find(S_next, &g_HMAP[iround + 1]); 
+		  if(b_state_found) {
+			 //			 printf("[%s:%d] State already added! g_HMAP[%d].size() 2^%4.1f\n", __FILE__, __LINE__, iround + 1, log2(g_HMAP[iround + 1].size()));
+			 norx_trail_remove_state(&g_T, S_next, iround + 1); // remove state 1
+			 norx_trail_remove_state(&g_T, S, iround); // remove state 0
+			 assert(g_T.w == 0);
+			 return false;
+		  } else {
+			 norx_hash_map_diff_state_add(S_next, &g_HMAP[iround + 1]);
+			 bool b_found = norx_diff_trail_search(iround + 1, 0, S_next);
+			 if(b_found) {
+				return true;
+			 }
+		  }
+
+#endif // #if !FIND_ALL_TRAILS
+
+		  norx_trail_remove_state(&g_T, S_next, iround + 1); // remove state 1
+		  norx_trail_remove_state(&g_T, S, iround); // remove state 0
+		  assert(g_T.w == 0);
+		}
+
+	 } else {
+		// counters
+		WORD_T ja[NLANES] = {0};
+		WORD_T jb[NLANES] = {0};
+		WORD_T je[NLANES] = {0};
+		WORD_T a_i = 0;
+		WORD_T b_i = 0;
+
+		// lane 0
+		for (ja[ZERO] = 0; ja[ZERO] < g_NBITS[ZERO][A]; ja[ZERO]++) { // a
+		  for (jb[ZERO] = 0; jb[ZERO] < g_NBITS[ZERO][B]; jb[ZERO]++) { // b
+			 for (je[ZERO] = 0; je[ZERO] < 2; je[ZERO]++) { // e
+
+				//				WORD_T weight_agg = g_T.w + g_B[g_nrounds - 2];
+				norx_diff_lane_t L_zero;
+				norx_lane_init(&L_zero);
+
+				a_i = ja[ZERO];
+				b_i = jb[ZERO];
+				if(g_NBITS[ZERO][A] == 1) { // A word is fixed
+				  assert(g_T.state[iround].lane[ZERO].a == 0);
+				  WORD_T a = g_T.state[iround].lane[ZERO].a;
+				  a_i = (a >> ibit) & 1; 
+				}
+				if(g_NBITS[ZERO][B] == 1) { // B word is fixed
+				  assert(g_T.state[iround].lane[ZERO].b == 0);
+				  WORD_T b = g_T.state[iround].lane[ZERO].b;
+				  b_i = (b >> ibit) & 1; 
+				}
+
+				// norx_lane_assign_bits_xyz(&L_zero, S.lane[ZERO], ja[ZERO], jb[ZERO], je[ZERO], ibit, iround);
+				norx_lane_assign_bits_xyz(&L_zero, S.lane[ZERO], a_i, b_i, je[ZERO], ibit, iround);
+
+				// printf("[%s:%d] g_B[g_nrounds - 2] = g_B[%d] = %d\n", __FILE__, __LINE__, g_nrounds - 2, g_B[g_nrounds - 2]);
+				//				printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + g_B[g_nrounds - 2], g_Bn);
+				if((g_T.w + L_zero.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+				  // lane 1
+				  for (ja[ONE] = 0; ja[ONE] < g_NBITS[ONE][A]; ja[ONE]++) { // a
+					 for (jb[ONE] = 0; jb[ONE] < g_NBITS[ONE][B]; jb[ONE]++) { // b
+						for (je[ONE] = 0; je[ONE] < 2; je[ONE]++) { // e
+
+						  norx_diff_lane_t L_one;
+						  norx_lane_init(&L_one);
+
+						  a_i = ja[ONE];
+						  b_i = jb[ONE];
+						  if(g_NBITS[ONE][A] == 1) { // A word is fixed
+							 assert(g_T.state[iround].lane[ONE].a == 0);
+							 WORD_T a = g_T.state[iround].lane[ONE].a;
+							 a_i = (a >> ibit) & 1; 
+						  }
+						  if(g_NBITS[ONE][B] == 1) { // B word is fixed
+							 assert(g_T.state[iround].lane[ONE].b == 0);
+							 WORD_T b = g_T.state[iround].lane[ONE].b;
+							 b_i = (b >> ibit) & 1; 
+						  }
+
+						  // norx_lane_assign_bits_xyz(&L_one, S.lane[ONE], ja[ONE], jb[ONE], je[ONE], ibit, iround);
+						  norx_lane_assign_bits_xyz(&L_one, S.lane[ONE], a_i, b_i, je[ONE], ibit, iround);
+
+						  //						  printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - 2], g_Bn);
+						  if((g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+				          // lane 2
+							 for (ja[TWO] = 0; ja[TWO] < g_NBITS[TWO][A]; ja[TWO]++) { // a
+								for (jb[TWO] = 0; jb[TWO] < g_NBITS[TWO][B]; jb[TWO]++) { // b
+								  for (je[TWO] = 0; je[TWO] < 2; je[TWO]++) { // e
+
+									 norx_diff_lane_t L_two;
+									 norx_lane_init(&L_two);
+
+									 a_i = ja[TWO];
+									 b_i = jb[TWO];
+									 if(g_NBITS[TWO][A] == 1) { // A word is fixed
+										assert(g_T.state[iround].lane[TWO].a == 0);
+										WORD_T a = g_T.state[iround].lane[TWO].a;
+										a_i = (a >> ibit) & 1; 
+									 }
+									 if(g_NBITS[TWO][B] == 1) { // B word is fixed
+										assert(g_T.state[iround].lane[TWO].b == 0);
+										WORD_T b = g_T.state[iround].lane[TWO].b;
+										b_i = (b >> ibit) & 1; 
+									 }
+
+									 // norx_lane_assign_bits_xyz(&L_two, S.lane[TWO], ja[TWO], jb[TWO], je[TWO], ibit, iround);
+									 norx_lane_assign_bits_xyz(&L_two, S.lane[TWO], a_i, b_i, je[TWO], ibit, iround);
+
+									 //									 printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - 2], g_Bn);
+									 if((g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+				                  // lane 3
+										for (ja[THREE] = 0; ja[THREE] < g_NBITS[THREE][A]; ja[THREE]++) { // a
+										  for (jb[THREE] = 0; jb[THREE] < g_NBITS[THREE][B]; jb[THREE]++) { // b
+											 for (je[THREE] = 0; je[THREE] < 2; je[THREE]++) { // e
+
+												norx_diff_lane_t L_three;
+												norx_lane_init(&L_three);
+
+												a_i = ja[THREE];
+												b_i = jb[THREE];
+												if(g_NBITS[THREE][A] == 1) { // A word is fixed
+												  assert(g_T.state[iround].lane[THREE].a == 0);
+												  WORD_T a = g_T.state[iround].lane[THREE].a;
+												  a_i = (a >> ibit) & 1; 
+												}
+												if(g_NBITS[THREE][B] == 1) { // B word is fixed
+												  assert(g_T.state[iround].lane[THREE].b == 0);
+												  WORD_T b = g_T.state[iround].lane[THREE].b;
+												  b_i = (b >> ibit) & 1; 
+												}
+
+												//norx_lane_assign_bits_xyz(&L_three, S.lane[THREE], ja[THREE], jb[THREE], je[THREE], ibit, iround);
+												norx_lane_assign_bits_xyz(&L_three, S.lane[THREE], a_i, b_i, je[THREE], ibit, iround);
+
+												//												printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + g_B[g_nrounds - 2], g_Bn);
+												if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + g_B[g_nrounds - 2]) <= g_Bn) {
+												  norx_diff_state_t S_part;
+												  norx_state_init(&S_part);
+												  S_part.lane[ZERO] = L_zero;
+												  S_part.lane[ONE] = L_one;
+												  S_part.lane[TWO] = L_two;
+												  S_part.lane[THREE] = L_three;
+												  S_part.w = L_zero.w + L_one.w + L_two.w + L_three.w;
+												  assert(S_part.w < INF);
+#if FIND_ALL_TRAILS
+												  norx_diff_trail_search(iround, ibit + 1, S_part);
+#else
+												  bool b_found = norx_diff_trail_search(iround, ibit + 1, S_part);
+												  if(b_found) {
+													 return true;
+												  }
+#endif // #if !FIND_ALL_TRAILS
+												}
+											 }
+										  }
+										}
+									 }
+								  }
+								}
+							 }
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+	 }
+#endif // #if 1 // FIRST ROUND
+  }
+
+  /*
+	* Second round
+	*/
+  if(iround == 1) {
+	 //	 printf("[%s:%d] Second iround %d ibit %d g_Bn %d g_T.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+	 //			  iround, ibit, g_Bn, g_T.w, g_nrounds);
+#if 1 // SECOND ROUND
+	 if (ibit == WORD_SIZE) {
+
+		norx_diff_state_t S_next;
+		norx_state_init(&S_next);
+		norx_compute_next_state(&S_next, S, iround);
+		assert(S_next.w == S.w);
+
+		// Add correction to the first two states
+		for(uint32_t ilane = 0; ilane < NLANES; ilane++) {
+
+		  assert(S.lane[ilane].e == S_next.lane[ilane].c);
+
+		  g_T.state[1].lane[ilane].e = S.lane[ilane].e;
+
+		  if(g_NBITS[ilane][C] == 2) { // C word is not fixed
+			 g_T.state[0].lane[ilane].c = S.lane[ilane].c;
+			 g_T.state[1].lane[ilane].c = S.lane[ilane].c;
+		  }
+
+		  if(g_NBITS[ilane][D] == 2) { // D word is not fixed
+			 //			 g_T.state[0].lane[ilane].d = (RROT(S.lane[ilane].d, ROTCONST[0]) ^ g_T.state[0].lane[ilane].e) & MASK;
+			 g_T.state[0].lane[ilane].d = (LROT(S.lane[ilane].d, ROTCONST[0]) ^ g_T.state[0].lane[ilane].e) & MASK; // <--- bug! RROT must be LROT as we are rotationg backwards
+			 g_T.state[1].lane[ilane].d = S.lane[ilane].d;
+#if 0 // DEBUG
+			 if(g_T.state[0].lane[ilane].e == 0x10) {
+				printf("[%s:%d] D_prev %X = (D %X <<< %d) ^ A %X\n", __FILE__, __LINE__, 
+						 g_T.state[0].lane[ilane].d, S.lane[ilane].d, ROTCONST[0], g_T.state[0].lane[ilane].e);
+			 }
+#endif // #if 1 // DEBUG
+		  }
+
+#if 1 // DEBUG
+		  assert(S_next.lane[ilane].e == 0);
+		  assert(g_T.state[iround+1].lane[ilane].e == 0);
+#endif // #if 1 // DEBUG
+		}
+
+		assert((iround + 1) != 4);
+		norx_trail_add_state(&g_T, S_next, iround + 1);
+
+		if(iround == (g_nrounds - 1)) { // last round (g_nrounds == 2)
+		  assert(g_nrounds == 2);
+		  assert(g_B[g_nrounds - 2] == 0);
+		  assert(g_T.w <= g_Bn);
+		  if(g_T.w <= g_Bn) {
+			 printf("[%s:%d] Update bound: %lld -> %lld\n", __FILE__, __LINE__, (WORD_MAX_T)g_Bn, (WORD_MAX_T)g_T.w);
+			 g_Bn = g_T.w;
+#if 0 // DEBUG
+			 norx_trail_print(g_T, iround + 1);
+#endif // #if 1 // DEBUG
+			 norx_trail_assert(g_T, iround + 1);
+#if !FIND_ALL_TRAILS
+			 return true; /* We have a winner! */
+#endif // #if !FIND_ALL_TRAILS
+		  }
+		} else { // not last round
+		assert((g_T.w  + g_B[g_nrounds - iround - 2]) <= g_Bn);
+#if FIND_ALL_TRAILS
+		  norx_diff_trail_search(iround + 1, 0, S_next); // <--- S_next !!!
+#else
+		  bool b_state_found = norx_hash_map_diff_state_find(S_next, &g_HMAP[iround + 1]); 
+		  if(b_state_found) {
+			 norx_trail_remove_state(&g_T, S_next, iround + 1); // remove state 1
+			 return false;
+		  } else {
+			 norx_hash_map_diff_state_add(S_next, &g_HMAP[iround + 1]);
+			 bool b_found = norx_diff_trail_search(iround + 1, 0, S_next); // <--- S_next !!!
+			 if(b_found) {
+				return true;
+			 }
+		  }
+#endif // #if !FIND_ALL_TRAILS
+		}
+		norx_trail_remove_state(&g_T, S_next, iround + 1);
+
+	 } else {
+		// counters
+		WORD_T jc[NLANES] = {0};
+		WORD_T jd[NLANES] = {0};
+		WORD_T je[NLANES] = {0};
+		WORD_T c_i = 0;
+		WORD_T d_i = 0;
+
+		/*
+		 * Best weight for the remaining (g_nrounds - iround - 2) rounds
+		 */
+		uint32_t bound_w = 0; // if last round
+		if(iround != (g_nrounds - 1)) { // not last round (g_nrounds != 2)
+		  bound_w = g_B[g_nrounds - iround - 2];
+		}
+
+		// lane 0
+		for (jc[ZERO] = 0; jc[ZERO] < g_NBITS[ZERO][C]; jc[ZERO]++) { // c
+		  for (jd[ZERO] = 0; jd[ZERO] < g_NBITS[ZERO][D]; jd[ZERO]++) { // d
+			 for (je[ZERO] = 0; je[ZERO] < 2; je[ZERO]++) { // e
+
+				norx_diff_lane_t L_zero;
+				norx_lane_init(&L_zero);
+
+				c_i = jc[ZERO];
+				d_i = jd[ZERO];
+				if(g_NBITS[ZERO][C] == 1) { // C word is fixed
+				  WORD_T c = g_T.state[iround].lane[ZERO].c;
+				  c_i = (c >> ibit) & 1; 
+				}
+				if(g_NBITS[ZERO][D] == 1) { // D word is fixed
+				  WORD_T d = g_T.state[iround].lane[ZERO].d;
+				  d_i = (d >> ibit) & 1; 
+				}
+
+				norx_lane_assign_bits_xyz(&L_zero, S.lane[ZERO], c_i, d_i, je[ZERO], ibit, iround);
+
+				assert(L_zero.a == S.lane[ZERO].a);
+				assert(L_zero.b == S.lane[ZERO].b);
+
+				if((g_T.w + L_zero.w + bound_w) <= g_Bn) { // <--- g_B[g_nrounds - iround - 1]
+
+		        // lane 1
+				  c_i = 0; 
+				  d_i = 0;
+				  for (jc[ONE] = 0; jc[ONE] < g_NBITS[ONE][C]; jc[ONE]++) { // c
+					 for (jd[ONE] = 0; jd[ONE] < g_NBITS[ONE][D]; jd[ONE]++) { // d
+						for (je[ONE] = 0; je[ONE] < 2; je[ONE]++) { // e
+
+						  norx_diff_lane_t L_one;
+						  norx_lane_init(&L_one);
+
+						  c_i = jc[ONE];
+						  d_i = jd[ONE];
+						  if(g_NBITS[ONE][C] == 1) { // C word is fixed
+							 WORD_T c = g_T.state[iround].lane[ONE].c;
+							 c_i = (c >> ibit) & 1; 
+						  }
+						  if(g_NBITS[ONE][D] == 1) { // D word is fixed
+							 WORD_T d = g_T.state[iround].lane[ONE].d;
+							 d_i = (d >> ibit) & 1; 
+						  }
+
+						  norx_lane_assign_bits_xyz(&L_one, S.lane[ONE], c_i, d_i, je[ONE], ibit, iround);
+
+						  if((g_T.w + L_zero.w + L_one.w + bound_w) <= g_Bn) {
+
+							 // lane 2
+							 c_i = 0; 
+							 d_i = 0;
+							 for (jc[TWO] = 0; jc[TWO] < g_NBITS[TWO][C]; jc[TWO]++) { // c
+								for (jd[TWO] = 0; jd[TWO] < g_NBITS[TWO][D]; jd[TWO]++) { // d
+								  for (je[TWO] = 0; je[TWO] < 2; je[TWO]++) { // e
+
+									 norx_diff_lane_t L_two;
+									 norx_lane_init(&L_two);
+
+									 c_i = jc[TWO];
+									 d_i = jd[TWO];
+									 if(g_NBITS[TWO][C] == 1) { // C word is fixed
+										WORD_T c = g_T.state[iround].lane[TWO].c;
+										c_i = (c >> ibit) & 1; 
+									 }
+									 if(g_NBITS[TWO][D] == 1) { // D word is fixed
+										WORD_T d = g_T.state[iround].lane[TWO].d;
+										d_i = (d >> ibit) & 1; 
+									 }
+
+									 norx_lane_assign_bits_xyz(&L_two, S.lane[TWO], c_i, d_i, je[TWO], ibit, iround);
+
+									 if((g_T.w + L_zero.w + L_one.w + L_two.w + bound_w) <= g_Bn) {
+
+										// lane 2
+										c_i = 0; 
+										d_i = 0;
+										for (jc[THREE] = 0; jc[THREE] < g_NBITS[THREE][C]; jc[THREE]++) { // c
+										  for (jd[THREE] = 0; jd[THREE] < g_NBITS[THREE][D]; jd[THREE]++) { // d
+											 for (je[THREE] = 0; je[THREE] < 2; je[THREE]++) { // e
+
+												norx_diff_lane_t L_three;
+												norx_lane_init(&L_three);
+
+												c_i = jc[THREE];
+												d_i = jd[THREE];
+												if(g_NBITS[THREE][C] == 1) { // C word is fixed
+												  WORD_T c = g_T.state[iround].lane[THREE].c;
+												  c_i = (c >> ibit) & 1; 
+												}
+												if(g_NBITS[THREE][D] == 1) { // D word is fixed
+												  WORD_T d = g_T.state[iround].lane[THREE].d;
+												  d_i = (d >> ibit) & 1; 
+												}
+
+												norx_lane_assign_bits_xyz(&L_three, S.lane[THREE], c_i, d_i, je[THREE], ibit, iround);
+
+												if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + bound_w) <= g_Bn) {
+												  norx_diff_state_t S_part;
+												  norx_state_init(&S_part);
+												  S_part.lane[ZERO] = L_zero;
+												  S_part.lane[ONE] = L_one;
+												  S_part.lane[TWO] = L_two;
+												  S_part.lane[THREE] = L_three;
+												  S_part.w = L_zero.w + L_one.w + L_two.w + L_three.w;
+#if FIND_ALL_TRAILS
+												  norx_diff_trail_search(iround, ibit + 1, S_part);
+#else
+												  bool b_found = norx_diff_trail_search(iround, ibit + 1, S_part);
+												  if(b_found) {
+													 return true;
+												  }
+#endif // #if !FIND_ALL_TRAILS
+												}
+											 }
+										  }
+										}
+									 }
+								  }
+								}
+							 }
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+
+	 }
+#endif // #if 1 // SECOND ROUND
+  }
+
+  /*
+	* Intermediate rounds
+	*/
+  if((iround > 1) && (iround != (g_nrounds - 1))) {
+	 //	 printf("[%s:%d] Intermediate iround %d ibit %d g_Bn %d g_T.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+	 //			  iround, ibit, g_Bn, g_T.w, g_nrounds);
+#if 1 // INTERMEDIATE ROUND
+	 if (ibit == WORD_SIZE) {
+		norx_diff_state_t S_next;
+		norx_state_init(&S_next);
+		norx_compute_next_state(&S_next, S, iround);
+		if(((iround + 1) % 4) == 0) {
+		  // printf("[%s:%d] Permute state: iround %d \n", __FILE__, __LINE__, iround);
+		  norx_state_permute(&S_next);
+		}
+		assert((g_T.w  + g_B[g_nrounds - iround - 2]) <= g_Bn);
+		norx_trail_add_state(&g_T, S_next, iround + 1);
+#if FIND_ALL_TRAILS
+		norx_diff_trail_search(iround + 1, 0, S_next);
+#else
+		bool b_state_found = norx_hash_map_diff_state_find(S_next, &g_HMAP[iround + 1]); 
+		if(b_state_found) {
+		  norx_trail_remove_state(&g_T, S_next, iround + 1); // remove state 1
+		  return false;
+		} else {
+		  norx_hash_map_diff_state_add(S_next, &g_HMAP[iround + 1]);
+		  bool b_found = norx_diff_trail_search(iround + 1, 0, S_next);
+		  if(b_found) {
+			 return true;
+		  }
+		}
+#endif // #if !FIND_ALL_TRAILS
+		norx_trail_remove_state(&g_T, S_next, iround + 1);
+	 } else {
+		WORD_T je[NLANES] = {0}; // counter
+
+		for (je[ZERO] = 0; je[ZERO] < 2; je[ZERO]++) { // e
+		  norx_diff_lane_t L_zero;
+		  norx_lane_init(&L_zero);
+		  norx_lane_assign_bit_e(&L_zero, S.lane[ZERO], je[ZERO], ibit, iround);
+
+		  if((g_T.w + L_zero.w + g_B[g_nrounds - iround - 2]) <= g_Bn) { // <-- bug! g_B[g_nrounds - iround - 1] :rounds are counted from 0
+
+			 for (je[ONE] = 0; je[ONE] < 2; je[ONE]++) { // e
+				norx_diff_lane_t L_one;
+				norx_lane_init(&L_one);
+				norx_lane_assign_bit_e(&L_one, S.lane[ONE], je[ONE], ibit, iround);
+
+				if((g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - iround - 2]) <= g_Bn) {
+
+				  for (je[TWO] = 0; je[TWO] < 2; je[TWO]++) { // e
+					 norx_diff_lane_t L_two;
+					 norx_lane_init(&L_two);
+					 norx_lane_assign_bit_e(&L_two, S.lane[TWO], je[TWO], ibit, iround);
+
+					 if((g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - iround - 2]) <= g_Bn) {
+
+						for (je[THREE] = 0; je[THREE] < 2; je[THREE]++) { // e
+						  norx_diff_lane_t L_three;
+						  norx_lane_init(&L_three);
+						  norx_lane_assign_bit_e(&L_three, S.lane[THREE], je[THREE], ibit, iround);
+
+						  if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + g_B[g_nrounds - iround - 2]) <= g_Bn) {
+							 norx_diff_state_t S_part;
+							 norx_state_init(&S_part);
+							 S_part.lane[ZERO] = L_zero;
+							 S_part.lane[ONE] = L_one;
+							 S_part.lane[TWO] = L_two;
+							 S_part.lane[THREE] = L_three;
+							 S_part.w = L_zero.w + L_one.w + L_two.w + L_three.w;
+#if FIND_ALL_TRAILS
+							 norx_diff_trail_search(iround, ibit + 1, S_part);
+#else
+							 bool b_found = norx_diff_trail_search(iround, ibit + 1, S_part);
+							 if(b_found) {
+								return true;
+							 }
+#endif // #if !FIND_ALL_TRAILS
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+
+	 }
+#endif // #if 1 // INTERMEDIATE ROUND
+  }
+
+  /*
+	* Last round
+	*/
+  if((iround > 1) && (iround == (g_nrounds - 1))) {
+	 //	 printf("[%s:%d] Last iround %d\n", __FILE__, __LINE__, iround);
+	 //	 printf("[%s:%d] Last iround %d ibit %d g_Bn %d g_T.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+	 //			  iround, ibit, g_Bn, g_T.w, g_nrounds);
+#if 1 // LAST ROUND
+#if 1 // DEBUG
+		for(uint32_t i = 0; i < NLANES; i++) {
+		  assert(g_T.state[iround].lane[i].a == S.lane[i].a);
+		  assert(g_T.state[iround].lane[i].b == S.lane[i].b);
+		  assert(g_T.state[iround].lane[i].c == S.lane[i].c);
+		  assert(g_T.state[iround].lane[i].d == S.lane[i].d);
+		  assert(g_T.state[iround].lane[i].e == 0);
+		}
+#endif // #if 1 // DEBUG
+
+	 if (ibit == WORD_SIZE) {
+
+		norx_diff_state_t S_next;
+		norx_state_init(&S_next);
+		norx_compute_next_state(&S_next, S, iround);
+#if 1
+		if(((iround + 1) % 4) == 0) {
+		  // printf("[%s:%d] Permute state: iround %d \n", __FILE__, __LINE__, iround);
+		  norx_state_permute(&S_next);
+		}
+#endif
+		norx_trail_add_state(&g_T, S_next, iround + 1);
+		assert(g_T.w <= g_Bn);
+		if(g_T.w <= g_Bn) {
+		  printf("[%s:%d] Update bound: %lld -> %lld\n", __FILE__, __LINE__, (WORD_MAX_T)g_Bn, (WORD_MAX_T)g_T.w);
+		  g_Bn = g_T.w;
+#if 0 // DEBUG
+		  norx_trail_print(g_T, iround + 1);
+#endif // #if 1 // DEBUG
+		  norx_trail_assert(g_T, iround + 1);
+#if !FIND_ALL_TRAILS
+		  return true; /* We have a winner! */
+#endif // #if !FIND_ALL_TRAILS
+		}
+		norx_trail_remove_state(&g_T, S_next, iround + 1);
+	 } else {
+		WORD_T je[NLANES] = {0}; // counter
+
+		for (je[ZERO] = 0; je[ZERO] < 2; je[ZERO]++) { // e
+		  norx_diff_lane_t L_zero;
+		  norx_lane_init(&L_zero);
+		  norx_lane_assign_bit_e(&L_zero, S.lane[ZERO], je[ZERO], ibit, iround);
+
+		  assert((g_nrounds - iround - 1) == 0);
+		  if((g_T.w + L_zero.w) <= g_Bn) {
+
+			 for (je[ONE] = 0; je[ONE] < 2; je[ONE]++) { // e
+				norx_diff_lane_t L_one;
+				norx_lane_init(&L_one);
+				norx_lane_assign_bit_e(&L_one, S.lane[ONE], je[ONE], ibit, iround);
+
+				if((g_T.w + L_zero.w + L_one.w) <= g_Bn) {
+
+				  for (je[TWO] = 0; je[TWO] < 2; je[TWO]++) { // e
+					 norx_diff_lane_t L_two;
+					 norx_lane_init(&L_two);
+					 norx_lane_assign_bit_e(&L_two, S.lane[TWO], je[TWO], ibit, iround);
+
+					 if((g_T.w + L_zero.w + L_one.w + L_two.w) <= g_Bn) {
+
+						for (je[THREE] = 0; je[THREE] < 2; je[THREE]++) { // e
+						  norx_diff_lane_t L_three;
+						  norx_lane_init(&L_three);
+						  norx_lane_assign_bit_e(&L_three, S.lane[THREE], je[THREE], ibit, iround);
+
+						  if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w) <= g_Bn) {
+							 norx_diff_state_t S_part;
+							 norx_state_init(&S_part);
+							 S_part.lane[ZERO] = L_zero;
+							 S_part.lane[ONE] = L_one;
+							 S_part.lane[TWO] = L_two;
+							 S_part.lane[THREE] = L_three;
+							 S_part.w = L_zero.w + L_one.w + L_two.w + L_three.w;
+#if FIND_ALL_TRAILS
+							 norx_diff_trail_search(iround, ibit + 1, S_part);
+#else
+							 bool b_found = norx_diff_trail_search(iround, ibit + 1, S_part);
+							 if(b_found) {
+								return true;
+							 }
+#endif // #if !FIND_ALL_TRAILS
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+
+	 }
+#endif // #if 1 // LAST ROUND
+  }
+  //  printf("[%s:%d] Exit %s() g_Bn %d\n", __FILE__, __LINE__, __FUNCTION__, g_Bn);
+  return false;
+}
+
+
+/* --- */
+bool norx_hash_map_diff_state_add(const norx_diff_state_t diff_state,
+											 boost::unordered_map<norx_diff_state_t, uint32_t, norx_diff_state_hash, norx_diff_state_equal_to>* diff_state_hash_map)
+{
+  norx_diff_state_t new_diff_state = diff_state;
+
+  boost::unordered_map<norx_diff_state_t, uint32_t, norx_diff_state_hash, norx_diff_state_equal_to>::iterator hash_map_iter = 
+	 diff_state_hash_map->find(new_diff_state);
+
+  if(hash_map_iter != diff_state_hash_map->end()) { // already added
+	 printf("[%s:%d] Hash %X exists: ", __FILE__, __LINE__, hash_map_iter->second);
+	 diff_state_hash_map->erase(hash_map_iter);
+	 new_diff_state.w = std::max(diff_state.w, hash_map_iter->first.w);
+	 printf("[%s:%d] Update weight %d -> %d\n", __FILE__, __LINE__, diff_state.w, new_diff_state.w);
+  }
+
+  // Add new hash value
+  norx_diff_state_hash diff_state_hash;  // diff state hash function
+  uint32_t new_diff_state_hash_val = diff_state_hash(new_diff_state);
+  std::pair<norx_diff_state_t, uint32_t> new_pair (new_diff_state, new_diff_state_hash_val);
+  diff_state_hash_map->insert(new_pair);
+}
+
+/* --- */
+
+#if 1 // WORD_SIZE 16 nrounds 5 INIT_N 1 INIT_NK 0 RATE 0 FULL 0
+#define NORX_TRAIL_LEN 6
+WORD_T g_norx_trail[NORX_TRAIL_LEN][NLANES][5] = {
+  { // R[ 0] abcde
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+	 {0x00008000, 0x00000000, 0x00000000, 0x00000000, 0x00008000}, // L[1]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+  }, // T.state[ 0].w =   0
+  { // R[ 1] abcde
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+	 {0x00008000, 0x00000000, 0x00000000, 0x00000080, 0x00000080}, // L[1]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+  }, // T.state[ 1].w =   0
+  { // R[ 2] abcde
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+	 {0x00008000, 0x00001000, 0x00000080, 0x00000080, 0x00009000}, // L[1]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+  }, // T.state[ 2].w =   1
+  { // R[ 3] abcde
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[0]
+	 {0x00009000, 0x00001000, 0x00000080, 0x00009080, 0x00009000}, // L[1]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[2]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}, // L[3]
+  }, // T.state[ 3].w =   1
+  //         --- Permuted state after round 4: diagonals to columns ---
+  { // R[ 4] abcde
+	 {0x00000000, 0x00000001, 0x00000000, 0x00000000, 0x00000001}, // L[0]
+	 {0x00009000, 0x00000000, 0x00000000, 0x00000000, 0x00009000}, // L[1]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00009080, 0x00000000}, // L[2]
+	 {0x00000000, 0x00000000, 0x00009000, 0x00000000, 0x00000000}, // L[3]
+  }, // T.state[ 4].w =   2
+  { // R[ 5] abcde
+	 {0x00000001, 0x00000001, 0x00000000, 0x00000100, 0x00000000}, // L[0]
+	 {0x00009000, 0x00000000, 0x00000000, 0x00000090, 0x00000000}, // L[1]
+	 {0x00000000, 0x00000000, 0x00000000, 0x00008090, 0x00000000}, // L[2]
+	 {0x00000000, 0x00000000, 0x00009000, 0x00000000, 0x00000000}, // L[3]
+  }, // T.state[ 5].w =   2
+  // T.w =   6
+};
+#endif // #if 1 // WORD_SIZE 16 nrounds 5 INIT_N 1 INIT_NK 0 RATE 0 FULL 0
+
+
+/* --- */
+	 printf("[%s:%d] BEFORE: D %X B %X A %X\n", __FILE__, __LINE__, D, B, A);
+    (A) = H(A, B); 
+	 printf("[%s:%d] AFTER: A %X\n", __FILE__, __LINE__, A);
+	 (D) ^= (A); 
+	 D = RROT(D, R0);
+
+/* --- */
+
+void norx_trail_print(const norx_diff_trail_t T, uint32_t nrounds)
+{
+  //  printf("[%s:%d] Enter %s()\n", __FILE__, __LINE__, __FUNCTION__);
+  uint32_t wtrail = 0;
+  for(uint32_t iround = 0; iround < (nrounds + 1); iround++) {
+	 uint32_t wstate = 0;
+	 if((iround > 0) && ((iround % 4) == 0)) {
+		printf("           --- Permuted state after round %d: diagonals to columns ---\n", iround);
+	 }
+#if 0 // dcbae
+	 printf("R[%2d] dcba|e \n", iround);
+#else // abcde
+	 printf("R[%2d] abcd|e \n", iround);
+#endif // #if 0 // dcbae
+	 //	 for(int ilane = (NLANES-1); ilane >= 0; ilane--) {
+	 for(uint32_t ilane = 0; ilane < NLANES; ilane++) {
+#if 0 // dcbae
+		printf("L[%d] %-16llX %-16llX %-16llX %-16llX | %-16llX\n", ilane, 
+				 (WORD_MAX_T)T.state[iround].lane[ilane].d, (WORD_MAX_T)T.state[iround].lane[ilane].c, 
+				 (WORD_MAX_T)T.state[iround].lane[ilane].b, (WORD_MAX_T)T.state[iround].lane[ilane].a,
+				 (WORD_MAX_T)T.state[iround].lane[ilane].e);
+#else // abcde
+		printf("L[%d] %-16llX %-16llX %-16llX %-16llX | %-16llX\n", ilane, 
+				 (WORD_MAX_T)T.state[iround].lane[ilane].a, (WORD_MAX_T)T.state[iround].lane[ilane].b, 
+				 (WORD_MAX_T)T.state[iround].lane[ilane].c, (WORD_MAX_T)T.state[iround].lane[ilane].d,
+				 (WORD_MAX_T)T.state[iround].lane[ilane].e);
+#endif // #if 0 // dcbae
+		wstate += T.state[iround].lane[ilane].w;
+	 }
+	 wtrail += wstate;
+	 printf(" | %d\n", T.state[iround].w);
+	 if(!(wstate == T.state[iround].w)) {
+		printf("[%s:%d] iround %d wstate %d T.state[iround].w %d\n", __FILE__, __LINE__, iround, wstate, T.state[iround].w);
+	 }
+	 assert(wstate == T.state[iround].w);
+  }
+  printf("T.w = %3d\n", T.w);
+  if(!(wtrail == T.w)) {
+	 printf("[%s:%d] wtrail %d T.w %d\n", __FILE__, __LINE__, wtrail, T.w);
+  }
+  assert(wtrail == T.w);
+  //  printf("[%s:%d]  Exit %s()\n", __FILE__, __LINE__, __FUNCTION__);
+}
+
+/* --- */
+
+void norx_encrypt(const uint32_t nsingle_rounds, WORD_T S[16])
+{
+  const uint32_t ndouble_rounds = (nsingle_rounds / 2);
+  for(uint32_t i = 0; i < ndouble_rounds; i++) {
+	 F(S);
+  }
+  if((nsingle_rounds % 2) == 1) {
+
+  }
+}
+
+
+/* --- */
+
+void norx_array_state_apply_diff(WORD_T XX[16], const WORD_T X[16], const norx_diff_state_t DX)
+{
+  // column ZERO
+  XX[0] = X[0] ^ DX.lane[ZERO].a;
+  XX[4] = X[4] ^ DX.lane[ZERO].b;
+  XX[8] = X[8] ^ DX.lane[ZERO].c;
+  XX[12] = X[12] ^ DX.lane[ZERO].d;
+
+  // column ONE
+  XX[1] = X[1] ^ DX.lane[ONE].a;
+  XX[5] = X[5] ^ DX.lane[ONE].b;
+  XX[9] = X[9] ^ DX.lane[ONE].c;
+  XX[13] = X[13] ^ DX.lane[ONE].d;
+
+  // column TWO
+  XX[2] = X[2] ^ DX.lane[TWO].a;
+  XX[6] = X[6] ^ DX.lane[TWO].b;
+  XX[10] = X[10] ^ DX.lane[TWO].c;
+  XX[14] = X[14] ^ DX.lane[TWO].d;
+
+  // column THREE
+  XX[3] = X[3] ^ DX.lane[THREE].a;
+  XX[7] = X[7] ^ DX.lane[THREE].b;
+  XX[11] = X[11] ^ DX.lane[THREE].c;
+  XX[15] = X[15] ^ DX.lane[THREE].d;
+}
+
+
+/* --- */
+
+// init_N32
+WORD_T g_norx_trail[6][4][5] = {
+  {
+	 {0,                0,                0,                0,                0},
+	 {0,                0,                0,                0,                0},
+	 {0,                0,                0,                0x80000000,       0x80000000},
+	 {0,                0,                0,                0,                0},
+  },
+  {
+	 {0,                0,                0,                0,                0},
+	 {0,                0,                0,                0,                0},
+	 {0x80,             0,                0,                0x80000000,       0x80},
+	 {0,                0,                0,                0,                0},
+  },
+  {
+	 {0,                0,                0,                0,                0},
+	 {0,                0,                0,                0,                0},
+	 {0x80,             0x80,             0x40000,          0x80000000,       0x80040000},
+	 {0,                0,                0,                0,                0},
+  },
+  {
+	 {0,                0,                0,                0,                0},
+	 {0,                0,                0,                0,                0},
+	 {0x808004,         0x80,             0x40000,          0x80040000,       0x808084},
+	 {0,                0,                0,                0,                0},
+  },
+  {
+	 {0,                0x808084,         0,                0,                0},
+	 {0x808004          0,                0,                0,                0},
+	 {0,                0,                0,                0x80040000,       0x80040000},
+	 {0,                0,                0x424042,         0,                0x424042},
+  },
+  {
+	 {0,                0x808084,         0,                0,                0},
+	 {0x80800400,       0,                0,                0,                0},
+	 {0x4000080,        0,                0,                0x80040000,       0},
+	 {0x42404200,       0,                0x424042,         0x424042,         0},
+  }
+};
+
+
+/* --- Stripped down version working --- */
+
+bool norx_diff_trail_search(const uint32_t iround, const uint32_t ibit, const norx_diff_state_t S)
+{
+  //  printf("[%s:%d] Enter %s() g_Bn %d\n", __FILE__, __LINE__, __FUNCTION__, g_Bn);
+  //  printf("[%s:%d] S.w = %d\n", __FILE__, __LINE__, S.w);
+  /*
+	* First round
+	*/
+  if(iround == 0) {
+	 //	 printf("[%s:%d] First iround %d ibit %d g_Bn %d g_T.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+	 //			  iround, ibit, g_Bn, g_T.w, g_nrounds);
+#if 1 // FIRST ROUND
+	 if (ibit == WORD_SIZE) {
+
+		if(!norx_state_is_all_zero(S)) { // skip the all-zero state
+
+		  norx_trail_add_state(&g_T, S, iround); // add state 0 (input state)
+		  assert(g_T.w == 0);
+		  norx_diff_state_t S_next;
+		  norx_state_init(&S_next);
+		  norx_compute_next_state(&S_next, S, iround);
+		  norx_trail_add_state(&g_T, S_next, iround + 1); // add state 1
+		  assert((g_T.w  + g_B[g_nrounds - 2]) <= g_Bn);
+
+		  //		  norx_diff_trail_search(iround + 1, 0, S); <------------ S_next!!!
+#if FIND_ALL_TRAILS
+		  norx_diff_trail_search(iround + 1, 0, S_next);
+#else
+		  bool b_found = norx_diff_trail_search(iround + 1, 0, S_next);
+		  if(b_found) {
+			 return true;
+		  }
+#endif // #if !FIND_ALL_TRAILS
+
+		  norx_trail_remove_state(&g_T, S_next, iround + 1); // remove state 1
+		  norx_trail_remove_state(&g_T, S, iround); // remove state 0
+		  assert(g_T.w == 0);
+		}
+
+	 } else {
+		// lane 0
+		for(uint32_t jb_zero = 0; jb_zero < 2; jb_zero++) { // b
+		  for(uint32_t je_zero = 0; je_zero < 2; je_zero++) { // e
+
+			 //				WORD_T weight_agg = g_T.w + g_B[g_nrounds - 2];
+			 norx_diff_lane_t L_zero;
+			 norx_lane_init(&L_zero);
+			 norx_lane_assign_bits_xyz(&L_zero, S.lane[ZERO], 0, jb_zero, je_zero, ibit, iround);
+#if 0 // DEBUG
+			 printf("\n[%s:%d] ibit %d jb_zero %d ie_zero %d\n", __FILE__, __LINE__, ibit, jb_zero, je_zero);
+			 norx_lane_print(S.lane[ZERO]);
+			 norx_lane_print(L_zero);
+#endif // #if 0 // DEBUG
+			 // printf("[%s:%d] g_B[g_nrounds - 2] = g_B[%d] = %d\n", __FILE__, __LINE__, g_nrounds - 2, g_B[g_nrounds - 2]);
+			 //				printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + g_B[g_nrounds - 2], g_Bn);
+			 if((g_T.w + L_zero.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+				// lane 1
+				for(uint32_t jb_one = 0; jb_one < 2; jb_one++) { // b
+				  for(uint32_t je_one = 0; je_one < 2; je_one++) { // e
+
+					 norx_diff_lane_t L_one;
+					 norx_lane_init(&L_one);
+					 norx_lane_assign_bits_xyz(&L_one, S.lane[ONE], 0, jb_one, je_one, ibit, iround);
+
+					 //						  printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - 2], g_Bn);
+					 if((g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+						// lane 2
+						for(uint32_t jb_two = 0; jb_two < 2; jb_two++) { // b
+						  for(uint32_t je_two = 0; je_two < 2; je_two++) { // e
+
+							 norx_diff_lane_t L_two;
+							 norx_lane_init(&L_two);
+							 norx_lane_assign_bits_xyz(&L_two, S.lane[TWO], 0, jb_two, je_two, ibit, iround);
+
+							 //									 printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - 2], g_Bn);
+							 if((g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+								// lane 3
+								for(uint32_t jb_three = 0; jb_three < 2; jb_three++) { // b
+								  for(uint32_t je_three = 0; je_three < 2; je_three++) { // e
+
+									 norx_diff_lane_t L_three;
+									 norx_lane_init(&L_three);
+									 norx_lane_assign_bits_xyz(&L_three, S.lane[THREE], 0, jb_three, je_three, ibit, iround);
+
+									 //												printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + g_B[g_nrounds - 2], g_Bn);
+									 if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + g_B[g_nrounds - 2]) <= g_Bn) {
+										norx_diff_state_t S_part;
+										norx_state_init(&S_part);
+										S_part.lane[ZERO] = L_zero;
+										S_part.lane[ONE] = L_one;
+										S_part.lane[TWO] = L_two;
+										S_part.lane[THREE] = L_three;
+										S_part.w = L_zero.w + L_one.w + L_two.w + L_three.w;
+										assert(S_part.w < INF);
+#if 0 // DEBUG
+										printf("[%s:%d] ibit %d calling ibit + 1 %d\n", __FILE__, __LINE__, ibit, ibit + 1);
+										printf("[%s:%d] S_part\n", __FILE__, __LINE__);
+										norx_state_print(S_part);
+										printf("[%s:%d] L_parts\n", __FILE__, __LINE__);
+										norx_lane_print(L_zero);
+										norx_lane_print(L_one);
+										norx_lane_print(L_two);
+										norx_lane_print(L_three);
+#endif // #if 0 // DEBUG
+#if FIND_ALL_TRAILS
+										norx_diff_trail_search(iround, ibit + 1, S_part);
+#else
+										bool b_found = norx_diff_trail_search(iround, ibit + 1, S_part);
+										if(b_found) {
+										  return true;
+										}
+#endif // #if !FIND_ALL_TRAILS
+									 }
+								  }
+								}
+							 }
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+	 }
+#endif // #if 1 // FIRST ROUND
+  }
+
+  /*
+	* Second round
+	*/
+  if(iround == 1) {
+	 //	 printf("[%s:%d] Second iround %d ibit %d g_Bn %d g_T.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+	 //			  iround, ibit, g_Bn, g_T.w, g_nrounds);
+#if 1 // SECOND ROUND
+	 if (ibit == WORD_SIZE) {
+
+		norx_diff_state_t S_next;
+		norx_state_init(&S_next);
+		norx_compute_next_state(&S_next, S, iround);
+		assert(S_next.w == S.w);
+
+		// Add correction to the first two states
+		for(uint32_t ilane = 0; ilane < NLANES; ilane++) {
+
+		  assert(S.lane[ilane].e == S_next.lane[ilane].c);
+
+		  g_T.state[1].lane[ilane].e = S.lane[ilane].e;
+
+		  if(g_NBITS[ilane][C] == 2) { // C word is not fixed
+			 g_T.state[0].lane[ilane].c = S.lane[ilane].c;
+			 g_T.state[1].lane[ilane].c = S.lane[ilane].c;
+		  }
+
+		  if(g_NBITS[ilane][D] == 2) { // D word is not fixed
+			 g_T.state[0].lane[ilane].d = (RROT(S.lane[ilane].d, ROTCONST[0]) ^ g_T.state[0].lane[ilane].e) & MASK;
+			 g_T.state[1].lane[ilane].d = S.lane[ilane].d;
+		  }
+
+#if 1 // DEBUG
+		  assert(S_next.lane[ilane].e == 0);
+		  assert(g_T.state[iround+1].lane[ilane].e == 0);
+#endif // #if 1 // DEBUG
+		}
+
+		norx_trail_add_state(&g_T, S_next, iround + 1);
+
+		if(iround == (g_nrounds - 1)) { // last round (g_nrounds == 2)
+		  assert(g_nrounds == 2);
+		  assert(g_B[g_nrounds - 2] == 0);
+		  assert(g_T.w <= g_Bn);
+		  if(g_T.w <= g_Bn) {
+			 printf("[%s:%d] Update bound: %lld -> %lld\n", __FILE__, __LINE__, (WORD_MAX_T)g_Bn, (WORD_MAX_T)g_T.w);
+			 g_Bn = g_T.w;
+#if 0 // DEBUG
+			 norx_trail_print(g_T, iround + 1);
+#endif // #if 1 // DEBUG
+			 norx_trail_assert(g_T, iround + 1);
+#if !FIND_ALL_TRAILS
+			 return true; /* We have a winner! */
+#endif // #if !FIND_ALL_TRAILS
+		  }
+		} else { // not last round
+		  //		  printf("[%s:%d] iround %d g_T.w = %d\n", __FILE__, __LINE__, iround, g_T.w);
+		  assert((g_T.w  + g_B[g_nrounds - iround - 2]) <= g_Bn);
+		  //		  assert(0 == 1);
+#if FIND_ALL_TRAILS
+		  norx_diff_trail_search(iround + 1, 0, S_next); // <--- S_next !!!
+#else
+		  bool b_found = norx_diff_trail_search(iround + 1, 0, S_next); // <--- S_next !!!
+		  if(b_found) {
+			 return true;
+		  }
+#endif // #if !FIND_ALL_TRAILS
+		}
+		norx_trail_remove_state(&g_T, S_next, iround + 1);
+
+	 } else {
+
+		uint32_t w_bound = 0; // if last round
+		if(iround != (g_nrounds - 1)) { // not last round (g_nrounds != 2)
+		  w_bound = g_B[g_nrounds - iround - 2];
+		  //		  printf("[%s:%d] iround %d w_bound %d = g_B[%d] %d\n", __FILE__, __LINE__, iround, w_bound, g_nrounds - iround - 2, g_B[g_nrounds - iround - 2]);
+		}
+
+
+		// lane 0
+		for(uint32_t jc_zero = 0; jc_zero < 2; jc_zero++) { // c
+		  for(uint32_t jd_zero = 0; jd_zero < 2; jd_zero++) { // d
+			 for(uint32_t je_zero = 0; je_zero < 2; je_zero++) { // e
+
+				norx_diff_lane_t L_zero;
+				norx_lane_init(&L_zero);
+				norx_lane_assign_bits_xyz(&L_zero, S.lane[ZERO], jc_zero, jd_zero, je_zero, ibit, iround);
+
+#if 0 // DEBUG
+				printf("\n[%s:%d] ibit %d jc_zero %d id_zero %d\n", __FILE__, __LINE__, ibit, jc_zero, jd_zero);
+				norx_lane_print(S.lane[ZERO]);
+				norx_lane_print(L_zero);
+#endif // #if 0 // DEBUG
+
+				assert(L_zero.a == S.lane[ZERO].a);
+				assert(L_zero.b == S.lane[ZERO].b);
+
+				// if((g_T.w + L_zero.w + g_B[g_nrounds - 2]) <= g_Bn) {
+				//				printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + g_B[g_nrounds - iround - 1], g_Bn);
+				if((g_T.w + L_zero.w + w_bound) <= g_Bn) { // <--- g_B[g_nrounds - iround - 1]
+
+		        // lane 1
+				  for(uint32_t jc_one = 0; jc_one < 2; jc_one++) { // c
+					 for(uint32_t jd_one = 0; jd_one < 2; jd_one++) { // d
+						for(uint32_t je_one = 0; je_one < 2; je_one++) { // e
+
+						  norx_diff_lane_t L_one;
+						  norx_lane_init(&L_one);
+						  norx_lane_assign_bits_xyz(&L_one, S.lane[ONE], jc_one, jd_one, je_one, ibit, iround);
+
+#if 0 // DEBUG
+						  printf("\n[%s:%d] ibit %d jc_one %d id_one %d\n", __FILE__, __LINE__, ibit, jc_one, jd_one);
+						  norx_lane_print(S.lane[ONE]);
+						  norx_lane_print(L_one);
+#endif // #if 0 // DEBUG
+						  // if((g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - 2]) <= g_Bn) {
+						  //						  printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - iround - 1], g_Bn);
+						  if((g_T.w + L_zero.w + L_one.w + w_bound) <= g_Bn) {
+
+							 // lane 2
+							 for(uint32_t jc_two = 0; jc_two < 2; jc_two++) { // c
+								for(uint32_t jd_two = 0; jd_two < 2; jd_two++) { // d
+								  for(uint32_t je_two = 0; je_two < 2; je_two++) { // e
+
+									 norx_diff_lane_t L_two;
+									 norx_lane_init(&L_two);
+									 norx_lane_assign_bits_xyz(&L_two, S.lane[TWO], jc_two, jd_two, je_two, ibit, iround);
+
+#if 0 // DEBUG
+									 printf("\n[%s:%d] ibit %d jc_two %d id_two %d\n", __FILE__, __LINE__, ibit, jc_two, jd_two);
+									 norx_lane_print(S.lane[TWO]);
+									 norx_lane_print(L_two);
+#endif // #if 0 // DEBUG
+									 // if((g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - 2]) <= g_Bn) {
+									 //									 printf("[%s:%d] %d <= %d\n", __FILE__, __LINE__, g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - iround - 1], g_Bn);
+									 if((g_T.w + L_zero.w + L_one.w + L_two.w + w_bound) <= g_Bn) {
+
+										// lane 2
+										for(uint32_t jc_three = 0; jc_three < 2; jc_three++) { // c
+										  for(uint32_t jd_three = 0; jd_three < 2; jd_three++) { // d
+											 for(uint32_t je_three = 0; je_three < 2; je_three++) { // e
+
+												norx_diff_lane_t L_three;
+												norx_lane_init(&L_three);
+												norx_lane_assign_bits_xyz(&L_three, S.lane[THREE], jc_three, jd_three, je_three, ibit, iround);
+#if 0 // DEBUG
+												printf("\n[%s:%d] ibit %d jc_three %d id_three %d\n", __FILE__, __LINE__, ibit, jc_three, jd_three);
+												norx_lane_print(S.lane[THREE]);
+												norx_lane_print(L_three);
+#endif // #if 0 // DEBUG
+												if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + w_bound) <= g_Bn) {
+												  norx_diff_state_t S_part;
+												  norx_state_init(&S_part);
+												  S_part.lane[ZERO] = L_zero;
+												  S_part.lane[ONE] = L_one;
+												  S_part.lane[TWO] = L_two;
+												  S_part.lane[THREE] = L_three;
+												  S_part.w = L_zero.w + L_one.w + L_two.w + L_three.w;
+												  //												  assert(ibit < 3);
+#if 0 // DEBUG
+												  if(ibit == 3) {
+													 printf("[%s:%d] ibit %d calling ibit + 1 %d\n", __FILE__, __LINE__, ibit, ibit + 1);
+													 printf("[%s:%d] S_part\n", __FILE__, __LINE__);
+													 norx_state_print(S_part);
+													 printf("[%s:%d] L_parts\n", __FILE__, __LINE__);
+													 norx_lane_print(L_zero);
+													 norx_lane_print(L_one);
+													 norx_lane_print(L_two);
+													 norx_lane_print(L_three);
+													 printf("[%s:%d] iround %d g_T.w + S_part.w = %d + %d = %d\n", __FILE__, __LINE__,
+															  iround, g_T.w, S_part.w, g_T.w + S_part.w);
+													 //													 assert((g_T.w + S_part.w) >= 3);
+												  }
+#endif // #if 0 // DEBUG
+												  //												  assert(0 == 1);
+#if FIND_ALL_TRAILS
+												  norx_diff_trail_search(iround, ibit + 1, S_part);
+#else
+												  bool b_found = norx_diff_trail_search(iround, ibit + 1, S_part);
+												  if(b_found) {
+													 return true;
+												  }
+#endif // #if !FIND_ALL_TRAILS
+												}
+											 }
+										  }
+										}
+									 }
+								  }
+								}
+							 }
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+
+	 }
+#endif // #if 1 // SECOND ROUND
+  }
+
+  /*
+	* Intermediate rounds
+	*/
+  if((iround > 1) && (iround != (g_nrounds - 1))) {
+	 //	 printf("[%s:%d] Intermediate iround %d ibit %d g_Bn %d g_T.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+	 //			  iround, ibit, g_Bn, g_T.w, g_nrounds);
+#if 1 // INTERMEDIATE ROUND
+	 if (ibit == WORD_SIZE) {
+		//		printf("[%s:%d] Intermediate iround %d ibit %d g_Bn %d g_T.w %d S.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+		//				 iround, ibit, g_Bn, g_T.w, S.w, g_nrounds);
+		norx_diff_state_t S_next;
+		norx_state_init(&S_next);
+		norx_compute_next_state(&S_next, S, iround);
+		if(((iround + 1) % 4) == 0) {
+		  // printf("[%s:%d] Permute state: iround %d \n", __FILE__, __LINE__, iround);
+		  norx_state_permute(&S_next);
+		}
+		//		printf("[%s:%d] S\n", __FILE__, __LINE__);
+		//		norx_state_print(S);
+		//		printf("[%s:%d] S_next\n", __FILE__, __LINE__);
+		//		norx_state_print(S_next);
+		//		assert((g_T.w  + g_B[g_nrounds - 2]) <= g_Bn);
+		assert((g_T.w  + g_B[g_nrounds - iround - 2]) <= g_Bn);
+		//		printf("[%s:%d] Trail BEFORE: \n", __FILE__, __LINE__);
+		//		norx_trail_print(g_T, iround);
+		norx_trail_add_state(&g_T, S_next, iround + 1);
+		//		printf("[%s:%d] Trail AFTER: \n", __FILE__, __LINE__);
+		//		norx_trail_print(g_T, iround + 1);
+#if FIND_ALL_TRAILS
+		norx_diff_trail_search(iround + 1, 0, S_next);
+#else
+		bool b_found = norx_diff_trail_search(iround + 1, 0, S_next);
+		if(b_found) {
+		  return true;
+		}
+#endif // #if !FIND_ALL_TRAILS
+		norx_trail_remove_state(&g_T, S_next, iround + 1);
+	 } else {
+		WORD_T je[NLANES] = {0}; // counter
+
+		for (je[ZERO] = 0; je[ZERO] < 2; je[ZERO]++) { // e
+		  norx_diff_lane_t L_zero;
+		  norx_lane_init(&L_zero);
+		  norx_lane_assign_bit_e(&L_zero, S.lane[ZERO], je[ZERO], ibit, iround);
+
+		  // if((g_T.w + L_zero.w + g_B[g_nrounds - 2]) <= g_Bn) {
+		  if((g_T.w + L_zero.w + g_B[g_nrounds - iround - 2]) <= g_Bn) {
+
+			 for (je[ONE] = 0; je[ONE] < 2; je[ONE]++) { // e
+				norx_diff_lane_t L_one;
+				norx_lane_init(&L_one);
+				norx_lane_assign_bit_e(&L_one, S.lane[ONE], je[ONE], ibit, iround);
+
+				// if((g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - 2]) <= g_Bn) {
+				if((g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - iround - 2]) <= g_Bn) {
+
+				  for (je[TWO] = 0; je[TWO] < 2; je[TWO]++) { // e
+					 norx_diff_lane_t L_two;
+					 norx_lane_init(&L_two);
+					 norx_lane_assign_bit_e(&L_two, S.lane[TWO], je[TWO], ibit, iround);
+
+					 // if((g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - 2]) <= g_Bn) {
+					 if((g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - iround - 2]) <= g_Bn) {
+
+						for (je[THREE] = 0; je[THREE] < 2; je[THREE]++) { // e
+						  norx_diff_lane_t L_three;
+						  norx_lane_init(&L_three);
+						  norx_lane_assign_bit_e(&L_three, S.lane[THREE], je[THREE], ibit, iround);
+
+						  // if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + g_B[g_nrounds - 2]) <= g_Bn) {
+						  if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + g_B[g_nrounds - iround - 2]) <= g_Bn) {
+							 norx_diff_state_t S_part;
+							 norx_state_init(&S_part);
+							 S_part.lane[ZERO] = L_zero;
+							 S_part.lane[ONE] = L_one;
+							 S_part.lane[TWO] = L_two;
+							 S_part.lane[THREE] = L_three;
+							 S_part.w = L_zero.w + L_one.w + L_two.w + L_three.w;
+#if 0 // DEBUG
+							 if(ibit == 3) {
+								printf("[%s:%d] ibit %d calling ibit + 1 %d\n", __FILE__, __LINE__, ibit, ibit + 1);
+								printf("[%s:%d] S_part\n", __FILE__, __LINE__);
+								norx_state_print(S_part);
+								printf("[%s:%d] L_parts\n", __FILE__, __LINE__);
+								norx_lane_print(L_zero);
+								norx_lane_print(L_one);
+								norx_lane_print(L_two);
+								norx_lane_print(L_three);
+							 }
+#endif // #if 0 // DEBUG
+#if FIND_ALL_TRAILS
+							 norx_diff_trail_search(iround, ibit + 1, S_part);
+#else
+							 bool b_found = norx_diff_trail_search(iround, ibit + 1, S_part);
+							 if(b_found) {
+								return true;
+							 }
+#endif // #if !FIND_ALL_TRAILS
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+
+	 }
+#endif // #if 1 // INTERMEDIATE ROUND
+  }
+
+  /*
+	* Last round
+	*/
+  if((iround > 1) && (iround == (g_nrounds - 1))) {
+	 //	 printf("[%s:%d] Last iround %d\n", __FILE__, __LINE__, iround);
+	 //	 printf("[%s:%d] Last iround %d ibit %d g_Bn %d g_T.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+	 //			  iround, ibit, g_Bn, g_T.w, g_nrounds);
+	 //	 assert(g_T.w >= 2);
+#if 1 // LAST ROUND
+#if 1 // DEBUG
+		for(uint32_t i = 0; i < NLANES; i++) {
+		  assert(g_T.state[iround].lane[i].a == S.lane[i].a);
+		  assert(g_T.state[iround].lane[i].b == S.lane[i].b);
+		  assert(g_T.state[iround].lane[i].c == S.lane[i].c);
+		  assert(g_T.state[iround].lane[i].d == S.lane[i].d);
+		  assert(g_T.state[iround].lane[i].e == 0);
+		}
+#endif // #if 1 // DEBUG
+
+		//		printf("[%s:%d] S.w = %d ibit = %d\n", __FILE__, __LINE__, S.w, ibit);
+
+	 if (ibit == WORD_SIZE) {
+
+		//		printf("[%s:%d] S.w = %d\n", __FILE__, __LINE__, S.w);
+
+		//		printf("[%s:%d] Last iround %d ibit %d g_Bn %d g_T.w %d S.w %d g_nrounds %d\n", __FILE__, __LINE__, 
+		//				 iround, ibit, g_Bn, g_T.w, S.w, g_nrounds);
+
+		//		norx_state_print(S);
+
+		//		printf("[%s:%d] iround %d g_T.w = %d S.w = %d\n", __FILE__, __LINE__, iround, g_T.w, S.w);
+
+		norx_diff_state_t S_next;
+		norx_state_init(&S_next);
+		norx_compute_next_state(&S_next, S, iround);
+		assert(S_next.w == S.w);
+
+#if 1
+		if(((iround + 1) % 4) == 0) {
+		  //		  printf("[%s:%d] Permute state: iround %d \n", __FILE__, __LINE__, iround);
+		  norx_state_permute(&S_next);
+		}
+#endif
+		norx_trail_add_state(&g_T, S_next, iround + 1);
+		assert(g_T.w <= g_Bn);
+		if(g_T.w <= g_Bn) {
+		  printf("[%s:%d] Update bound: %lld -> %lld\n", __FILE__, __LINE__, (WORD_MAX_T)g_Bn, (WORD_MAX_T)g_T.w);
+		  g_Bn = g_T.w;
+#if 0 // DEBUG
+		  norx_trail_print(g_T, iround + 1);
+#endif // #if 1 // DEBUG
+		  norx_trail_assert(g_T, iround + 1);
+#if !FIND_ALL_TRAILS
+		  return true; /* We have a winner! */
+#endif // #if !FIND_ALL_TRAILS
+		}
+		norx_trail_remove_state(&g_T, S_next, iround + 1);
+	 } else {
+		WORD_T je[NLANES] = {0}; // counter
+
+		for (je[ZERO] = 0; je[ZERO] < 2; je[ZERO]++) { // e
+		  norx_diff_lane_t L_zero;
+		  norx_lane_init(&L_zero);
+		  norx_lane_assign_bit_e(&L_zero, S.lane[ZERO], je[ZERO], ibit, iround);
+
+		  // if((g_T.w + L_zero.w + g_B[g_nrounds - 2]) <= g_Bn) {
+		  //		  if((g_T.w + L_zero.w + g_B[g_nrounds - iround - 1]) <= g_Bn) {
+		  assert((g_nrounds - iround - 1) == 0);
+		  if((g_T.w + L_zero.w) <= g_Bn) {
+
+			 for (je[ONE] = 0; je[ONE] < 2; je[ONE]++) { // e
+				norx_diff_lane_t L_one;
+				norx_lane_init(&L_one);
+				norx_lane_assign_bit_e(&L_one, S.lane[ONE], je[ONE], ibit, iround);
+
+				// if((g_T.w + L_zero.w + L_one.w + g_B[g_nrounds - 2]) <= g_Bn) {
+				if((g_T.w + L_zero.w + L_one.w) <= g_Bn) {
+
+				  for (je[TWO] = 0; je[TWO] < 2; je[TWO]++) { // e
+					 norx_diff_lane_t L_two;
+					 norx_lane_init(&L_two);
+					 norx_lane_assign_bit_e(&L_two, S.lane[TWO], je[TWO], ibit, iround);
+
+					 // if((g_T.w + L_zero.w + L_one.w + L_two.w + g_B[g_nrounds - 2]) <= g_Bn) {
+					 if((g_T.w + L_zero.w + L_one.w + L_two.w) <= g_Bn) {
+
+						for (je[THREE] = 0; je[THREE] < 2; je[THREE]++) { // e
+						  norx_diff_lane_t L_three;
+						  norx_lane_init(&L_three);
+						  norx_lane_assign_bit_e(&L_three, S.lane[THREE], je[THREE], ibit, iround);
+
+						  // if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w + g_B[g_nrounds - 2]) <= g_Bn) {
+						  if((g_T.w + L_zero.w + L_one.w + L_two.w + L_three.w) <= g_Bn) {
+							 norx_diff_state_t S_part;
+							 norx_state_init(&S_part);
+							 S_part.lane[ZERO] = L_zero;
+							 S_part.lane[ONE] = L_one;
+							 S_part.lane[TWO] = L_two;
+							 S_part.lane[THREE] = L_three;
+							 S_part.w = L_zero.w + L_one.w + L_two.w + L_three.w;
+#if 0 // DEBUG
+							 if(ibit == 4) {
+								printf("[%s:%d] ibit %d calling ibit + 1 %d\n", __FILE__, __LINE__, ibit, ibit + 1);
+								printf("[%s:%d] S_part\n", __FILE__, __LINE__);
+								norx_state_print(S_part);
+								printf("[%s:%d] L_parts\n", __FILE__, __LINE__);
+								norx_lane_print(L_zero);
+								norx_lane_print(L_one);
+								norx_lane_print(L_two);
+								norx_lane_print(L_three);
+								printf("[%s:%d] iround %d g_T.w + S_part.w = %d + %d = %d\n", __FILE__, __LINE__,
+										 iround, g_T.w, S_part.w, g_T.w + S_part.w);
+								//													 assert((g_T.w + S_part.w) >= 3);
+							 }
+#endif // #if 0 // DEBUG
+#if FIND_ALL_TRAILS
+							 norx_diff_trail_search(iround, ibit + 1, S_part);
+#else
+							 //							 if(ibit == 4) {
+							 //								printf("[%s:%d] S_part.w = %d ibit = %d\n", __FILE__, __LINE__, S_part.w, ibit);
+							 //							 }
+							 bool b_found = norx_diff_trail_search(iround, ibit + 1, S_part);
+							 if(b_found) {
+								return true;
+							 }
+#endif // #if !FIND_ALL_TRAILS
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+
+	 }
+#endif // #if 1 // LAST ROUND
+  }
+  //  printf("[%s:%d] S.w = %d\n", __FILE__, __LINE__, S.w);
+  //  printf("[%s:%d] Exit %s() g_Bn %d\n", __FILE__, __LINE__, __FUNCTION__, g_Bn);
+  return false;
+}
+
+/* --- */
+
+#if 0
+		  WORD_T bb = XORROT(T.state[iround_prev].lane[ilane].b, T.state[iround_prev].lane[ilane].e, ROTCONST[iround_prev % 4]); // bb = (b ^ c) <<< r1,r3
+		  assert(T.state[iround].lane[ilane].b == bb);
+		  assert(T.state[iround].lane[ilane].c == T.state[iround_prev].lane[ilane].e);
+		  assert(T.state[iround].lane[ilane].d == T.state[iround_prev].lane[ilane].d);
+		  uint32_t weight = 
+			 xdp_h(T.state[iround_prev].lane[ilane].c, T.state[iround_prev].lane[ilane].d, T.state[iround_prev].lane[ilane].e, WORD_SIZE); // c,d->e
+		  assert(weight == T.state[iround].lane[ilane].w);
+#endif
+#if 0 // DEBUG
+		  printf("[%s:%d] ilane = %d\n", __FILE__, __LINE__, ilane);
+		  printf("[%s:%d] assert T.state[%d].lane[%d].b %d == bb %d\n", __FILE__, __LINE__, 
+					iround, (ilane - B) % 4, T.state[iround].lane[(ilane - B) % 4].b, bb);
+		  printf("[%s:%d] assert T.state[%d].lane[%d].c %d == T.state[%d].lane[%d].e %d\n", __FILE__, __LINE__, 
+					iround, (ilane - C) % 4, T.state[iround].lane[(ilane - C) % 4].c, 
+					iround_prev, ilane, T.state[iround_prev].lane[ilane].e);
+		  printf("[%s:%d] assert T.state[%d].lane[%d].d %d == T.state[%d].lane[%d].d %d\n", __FILE__, __LINE__, 
+					iround, ((ilane - D) % 4), T.state[iround].lane[((ilane - D) % 4)].d, 
+					iround_prev, ilane, T.state[iround_prev].lane[ilane].d);
+		  assert(T.state[iround].lane[(ilane - B) % 4].b == bb);
+		  assert(T.state[iround].lane[(ilane - C) % 4].c == T.state[iround_prev].lane[ilane].e);
+		  assert(T.state[iround].lane[(ilane - D) % 4].d == T.state[iround_prev].lane[ilane].d);
+#endif // #if 1 // DEBUG
+
+/* --- */
+
+#if 1
+		  printf("[%s:%d] Previous state T[%d].state:\n", __FILE__, __LINE__, iround_prev);
+		  norx_state_print(T->state[iround_prev]);
+		  printf("[%s:%d] R0123 %d %d %d %d\n", __FILE__, __LINE__, R0, R1, R2, R3);
+		  printf("[%s:%d] lane i = %d (i + B - C) mod 4 = %d + %d - %dmod 4 = %d\n", __FILE__, __LINE__, i, i, B, C, (i + B - C) % 4);
+		  printf("[%s:%d] assert S.lane[%d].b %X == bb %X == T->state[%d].lane[%d].b %X ^ S.lane[%d].c %X\n", __FILE__, __LINE__, 
+					i, S.lane[i].b, bb,
+					iround_prev, (i + B) % 4, T->state[iround_prev].lane[(i + B) % 4].b, 
+					(i + B - C) % 4, S.lane[(i + B - C) % 4].c);
+		  printf("[%s:%d] assert T->state[%d].lane[%d].c %d == T->state[%d].lane[%d].e %d\n", __FILE__, __LINE__, 
+					iround, i, S.lane[i].c, 
+					iround_prev, (i + C) % 4, T->state[iround_prev].lane[i].e);
+		  printf("[%s:%d] assert T->state[%d].lane[%d].d %d == T->state[%d].lane[%d].d %d\n", __FILE__, __LINE__, 
+					iround, i, S.lane[i].d, 
+					iround_prev, (i + D) % 4, T->state[iround_prev].lane[i].d);
+#endif // #if 1 // DEBUG
+
+
+/* --- */
+
+/*
+ * Add a new state to the trail.
+ *
+ * If (iround % 4) == 0, then the state \p S has been permuted
+ * according to the NORX permutation (\see norx_state_permute). This
+ * is taken into account when adding the new state. 
+ *
+ * If \p i is the index of word X \in \{A, B, C, D\} from the state
+ * *after* the permutation, then the corresponding index of the word
+ * *before* the permutation is \p (i + X). 
+ *
+ * Similarly if \p i is the index *before* the permutation then \p (i
+ * - X) is the corresponding index *after* the permutation.
+ */
+void norx_trail_add_state(norx_diff_trail_t* T, const norx_diff_state_t S, const uint32_t iround)
+{
+  assert(iround < NROUNDS_MAX);
+  //  printf("[%s:%d] Enter %s()\n", __FILE__, __LINE__, __FUNCTION__);
+
+  WORD_T wstate = 0; // for DEBUG
+  for(uint32_t i = 0; i < NLANES; i++) {
+
+#if 1 // DEBUG
+	 assert(T->state[iround].lane[i].a == 0);
+	 assert(T->state[iround].lane[i].b == 0);
+	 assert(T->state[iround].lane[i].c == 0);
+	 assert(T->state[iround].lane[i].d == 0);
+	 assert(T->state[iround].lane[i].e == 0);
+	 assert(S.lane[i].w < INF);
+	 assert(S.lane[i].w >= 0);
+#endif // #if 1 // DEBUG
+
+	 if(iround == 0) {
+		assert(T->state[iround].lane[i].w == 0);
+		T->state[iround].lane[i].w = 0; // the initial state has
+		wstate += T->state[iround].lane[i].w;
+		// probability 1 == weight 0
+	 } else {
+		if((iround % 4) != 0) { // no permutation
+		  assert(T->state[iround].lane[i].w == 0);
+		  T->state[iround].lane[i].w = S.lane[i].w;
+		  wstate += T->state[iround].lane[i].w;
+		} else {
+		  assert(T->state[iround].lane[(i + B) % 4].w == 0);
+		  T->state[iround].lane[(i + B) % 4].w = S.lane[(i + B) % 4].w;
+		  wstate += T->state[iround].lane[(i + B) % 4].w;
+		}
+	 }
+
+	 T->state[iround].lane[i].a = S.lane[i].a;
+	 T->state[iround].lane[i].b = S.lane[i].b;
+	 T->state[iround].lane[i].c = S.lane[i].c;
+	 T->state[iround].lane[i].d = S.lane[i].d;
+	 T->state[iround].lane[i].e = S.lane[i].e;
+
+	 if(iround == 0) {
+		continue;
+	 }
+
+	 uint32_t iround_prev = (iround - 1);
+	 if((iround_prev & 1) == 0) { // prev round is even
+		assert((iround % 4) != 0);
+		if(iround >= 3) {
+		  assert(T->state[iround_prev].lane[i].e == 0); // must be unassigned
+		  T->state[iround_prev].lane[i].e = T->state[iround].lane[i].a; // e = aa
+		}
+#if 1 // DEBUG
+		assert(T->state[iround].lane[i].a == T->state[iround_prev].lane[i].e);
+		assert(T->state[iround].lane[i].b == T->state[iround_prev].lane[i].b);
+		assert(T->state[iround].lane[i].c == T->state[iround_prev].lane[i].c);
+		WORD_T dd = XORROT(T->state[iround_prev].lane[i].d, T->state[iround_prev].lane[i].e, ROTCONST[(iround_prev % 4)]); // dd = (d ^ e) <<< r0,r2
+		assert(T->state[iround].lane[i].d == dd);
+		uint32_t weight = 
+		  xdp_h(T->state[iround_prev].lane[i].a, T->state[iround_prev].lane[i].b, T->state[iround_prev].lane[i].e, WORD_SIZE); // a,b->e
+		assert(weight == T->state[iround].lane[i].w);
+#endif // #if 1 // DEBUG
+	 }
+	 if((iround_prev & 1) == 1) { // prev round is odd
+		assert(T->state[iround].lane[i].a == T->state[iround_prev].lane[i].a);
+		if(iround >= 3) {
+		  if((iround % 4) != 0) { // no permutation
+			 assert(T->state[iround_prev].lane[i].e == 0); // must be unassigned
+			 T->state[iround_prev].lane[i].e = T->state[iround].lane[i].c; // e = cc
+		  } else { // permutation
+			 assert(T->state[iround_prev].lane[(i + B) % 4].e == 0); // must be unassigned
+			 T->state[iround_prev].lane[(i + B) % 4].e = S.lane[(i + B - C) % 4].c;
+		  }
+		}
+#if 1 // DEBUG
+		if((iround % 4) != 0) { // no permutation
+		  WORD_T bb = XORROT(T->state[iround_prev].lane[i].b, T->state[iround_prev].lane[i].e, ROTCONST[iround_prev % 4]); // bb = (b ^ c) <<< r1,r3
+		  assert(T->state[iround].lane[i].b == bb);
+		  assert(T->state[iround].lane[i].c == T->state[iround_prev].lane[i].e);
+		  assert(T->state[iround].lane[i].d == T->state[iround_prev].lane[i].d);
+		  uint32_t weight = 
+			 xdp_h(T->state[iround_prev].lane[i].c, T->state[iround_prev].lane[i].d, T->state[iround_prev].lane[i].e, WORD_SIZE); // c,d->e
+		  assert(weight == T->state[iround].lane[i].w);
+		} else { // permutation
+		  WORD_T bb = XORROT(T->state[iround_prev].lane[(i + B) % 4].b, S.lane[(i + B - C) % 4].c, ROTCONST[iround_prev % 4]); // bb = (b ^ c) <<< r1,r3
+		  //		  WORD_T bb = XORROT(T->state[iround_prev].lane[(i + B) % 4].b, T->state[iround_prev].lane[(i + C) % 4].e, ROTCONST[iround_prev % 4]); // bb = (b ^ c) <<< r1,r3
+#if 1
+		  printf("[%s:%d] Previous state T[%d].state:\n", __FILE__, __LINE__, iround_prev);
+		  norx_state_print(T->state[iround_prev]);
+		  //		  printf("[%s:%d] Next state T[%d].state:\n", __FILE__, __LINE__, iround);
+		  //		  norx_state_print(T->state[iround]);
+		  //		  printf("[%s:%d] Next state iround = %d:\n", __FILE__, __LINE__, iround);
+		  //		  norx_state_print(S);
+		  printf("[%s:%d] R0123 %d %d %d %d\n", __FILE__, __LINE__, R0, R1, R2, R3);
+		  //		  printf("[%s:%d] i = %d T->state[%d].lane[%d].b %d != bb %d\n", __FILE__, __LINE__, i, iround, (i + B) % 4, S.lane[(i + B) % 4].b, bb);
+		  //		  printf("[%s:%d] i %d (i + D) %d (i + B) %d (i + C) %d\n", __FILE__, __LINE__, i, (i+D) % 4, (i+B) % 4, (i+C) % 4);
+#endif 
+
+#if 1 // DEBUG
+		  printf("[%s:%d] lane i = %d (i + B - C) mod 4 = %d + %d - %dmod 4 = %d\n", __FILE__, __LINE__, i, i, B, C, (i + B - C) % 4);
+		  //		  printf("[%s:%d] lane i = %d\n", __FILE__, __LINE__, i);
+		  printf("[%s:%d] assert S.lane[%d].b %X == bb %X == T->state[%d].lane[%d].b %X ^ S.lane[%d].c %X\n", __FILE__, __LINE__, 
+					i, S.lane[i].b, bb,
+					iround_prev, (i + B) % 4, T->state[iround_prev].lane[(i + B) % 4].b, 
+					(i + B - C) % 4, S.lane[(i + B - C) % 4].c);
+		  //					iround_prev, (i + C) % 4, T->state[iround_prev].lane[(i + C) % 4].e);
+		  printf("[%s:%d] assert T->state[%d].lane[%d].c %d == T->state[%d].lane[%d].e %d\n", __FILE__, __LINE__, 
+					iround, i, S.lane[i].c, 
+					iround_prev, (i + C) % 4, T->state[iround_prev].lane[i].e);
+		  printf("[%s:%d] assert T->state[%d].lane[%d].d %d == T->state[%d].lane[%d].d %d\n", __FILE__, __LINE__, 
+					iround, i, S.lane[i].d, 
+					iround_prev, (i + D) % 4, T->state[iround_prev].lane[i].d);
+#endif // #if 1 // DEBUG
+		  assert(S.lane[i].b == bb);
+		  assert(S.lane[(i + B - C) % 4].c == T->state[iround_prev].lane[(i + B) % 4].e);
+		  assert(S.lane[i].d == T->state[iround_prev].lane[(i + D) % 4].d);
+		  //		  assert(S.lane[(i - B) % 4].b == bb);
+		  //		  assert(S.lane[(i - C) % 4].c == T->state[iround_prev].lane[i].e);
+		  //		  assert(S.lane[(i - D) % 4].d == T->state[iround_prev].lane[i].d);
+		  uint32_t weight = 
+			 xdp_h(T->state[iround_prev].lane[(i + B) % 4].c, T->state[iround_prev].lane[(i + B) % 4].d, T->state[iround_prev].lane[(i + B) % 4].e, WORD_SIZE); // c,d->e
+		  if(!(weight == T->state[iround].lane[(i + B) % 4].w)) {
+			 printf("[%s:%d] weight %d T->[%d][%d].w %d\n", __FILE__, __LINE__, weight, iround, (i + B) % 4, T->state[iround].lane[(i + B) % 4].w);
+		  }
+		  assert(weight == T->state[iround].lane[(i + B) % 4].w);
+		} 
+#endif // #if 1 // DEBUG
+	 }
+  }
+
+  T->state[iround].w = wstate; // state weight
+  T->w += wstate; // update trail weight
+
+  if(iround == 0) {
+	 assert(T->w == 0);
+  } else {
+	 assert(wstate == S.w); // DEBUG
+  }
+  if(!(wstate == T->state[iround].w)) {
+	 printf("[%s:%d] wstate %lld S.w %lld\n", __FILE__, __LINE__, (WORD_MAX_T)wstate, (WORD_MAX_T)S.w);
+  }
+  assert(wstate == T->state[iround].w);
+#if 1 // DEBUG
+  //  printf("[%s:%d] BEFORE iround %d\n", __FILE__, __LINE__, iround);
+  //  norx_trail_print(*T, iround);
+  norx_trail_assert(*T, iround);
+  //  printf("[%s:%d]  AFTER iround %d\n", __FILE__, __LINE__, iround);
+#endif // #if 1 // DEBUG
+}
+
+/* --- */
+
+			 //			 T->state[iround_prev].lane[i].e = T->state[iround].lane[i].c; // e = cc
+			 //			 T->state[iround_prev].lane[i].e = T->state[iround].lane[(i - C) % 4].c; // e = cc
+			 //			 printf("[%s:%d] Set T->state[%d].lane[%d].e %d to T->state[%d].lane[%d].c %d\n", __FILE__, __LINE__,
+			 //					  iround_prev, i, T->state[iround_prev].lane[i].e, iround, i, T->state[iround].lane[i].c);
+			 //			 T->state[iround_prev].lane[i].e = T->state[iround].lane[i].c; // e = cc
+			 //			 printf("[%s:%d] Set T->state[%d].lane[%d].e %d to T->state[%d].lane[%d].c %d\n", __FILE__, __LINE__,
+			 //					  iround_prev, i, T->state[iround_prev].lane[i].e, iround, (i - C) % 4, T->state[iround].lane[(i - C) % 4].c);
+			 //			 T->state[iround_prev].lane[i].e = T->state[iround].lane[(i - C) % 4].c; // e = cc
+			 //			 printf("[%s:%d] Set T->state[%d].lane[%d].e %d to T->state[%d].lane[%d].c %d\n", __FILE__, __LINE__,
+			 //					  iround_prev, i, T->state[iround_prev].lane[(i + C) % 4].e, iround, i, T->state[iround].lane[(i - C) % 4].c);
+			 //			 T->state[iround_prev].lane[(i + B) % 4].e = T->state[iround].lane[i].c; // e = cc
+
+/* --- */
+
+void norx_trail_add_state(norx_diff_trail_t* T, const norx_diff_state_t S, const uint32_t iround)
+{
+  assert(iround < NROUNDS_MAX);
+  printf("[%s:%d] Enter %s()\n", __FILE__, __LINE__, __FUNCTION__);
+
+  WORD_T wstate = 0; // for DEBUG
+  for(uint32_t i = 0; i < NLANES; i++) {
+#if 1 // DEBUG
+	 assert(T->state[iround].lane[i].w == 0);
+	 assert(T->state[iround].lane[i].a == 0);
+	 assert(T->state[iround].lane[i].b == 0);
+	 assert(T->state[iround].lane[i].c == 0);
+	 assert(T->state[iround].lane[i].d == 0);
+	 assert(T->state[iround].lane[i].e == 0);
+	 assert(S.lane[i].w < INF);
+	 assert(S.lane[i].w >= 0);
+#endif // #if 1 // DEBUG
+
+	 if(iround == 0) {
+		T->state[iround].lane[i].w = 0; // the initial state has
+												  // probability 1 == weight 0
+	 } else {
+		T->state[iround].lane[i].w = S.lane[i].w;
+	 }
+	 wstate += T->state[iround].lane[i].w;
+
+	 T->state[iround].lane[i].a = S.lane[i].a;
+	 T->state[iround].lane[i].b = S.lane[i].b;
+	 T->state[iround].lane[i].c = S.lane[i].c;
+	 T->state[iround].lane[i].d = S.lane[i].d;
+	 T->state[iround].lane[i].e = S.lane[i].e;
+
+	 if(iround == 0) {
+		continue;
+	 }
+
+	 uint32_t iround_prev = (iround - 1);
+	 if((iround_prev & 1) == 0) { // prev round is even
+		assert((iround % 4) != 0);
+		if(iround >= 3) {
+		  assert(T->state[iround_prev].lane[i].e == 0); // must be unassigned
+		  T->state[iround_prev].lane[i].e = T->state[iround].lane[i].a; // e = aa
+		}
+	 }
+	 if((iround_prev & 1) == 1) { // prev round is odd
+		assert(T->state[iround].lane[i].a == T->state[iround_prev].lane[i].a);
+		if(iround >= 3) {
+		  assert(T->state[iround_prev].lane[i].e == 0); // must be unassigned
+		  if((iround % 4) != 0) { // no permutation
+			 T->state[iround_prev].lane[i].e = T->state[iround].lane[i].c; // e = cc
+		  } else { // permutation
+			 T->state[iround_prev].lane[i].e = T->state[iround].lane[(i - C) % 4].c; // e = cc
+		  }
+		}
+	 }
+  }
+
+  T->state[iround].w = wstate; // state weight
+  T->w += wstate; // update trail weight
+
+  if(iround == 0) {
+	 assert(T->w == 0);
+  } else {
+	 assert(wstate == S.w); // DEBUG
+  }
+  if(!(wstate == T->state[iround].w)) {
+	 printf("[%s:%d] wstate %lld S.w %lld\n", __FILE__, __LINE__, (WORD_MAX_T)wstate, (WORD_MAX_T)S.w);
+  }
+  assert(wstate == T->state[iround].w);
+#if 1 // DEBUG
+  printf("[%s:%d] BEFORE iround %d\n", __FILE__, __LINE__, iround);
+  norx_trail_print(*T, iround);
+  norx_trail_assert(*T, iround);
+  printf("[%s:%d]  AFTER iround %d\n", __FILE__, __LINE__, iround);
+#endif // #if 1 // DEBUG
+}
+
+/* --- */
+
+void norx_trail_add_state(norx_diff_trail_t* T, const norx_diff_state_t S, const uint32_t iround)
+{
+  assert(iround < NROUNDS_MAX);
+  printf("[%s:%d] Enter %s()\n", __FILE__, __LINE__, __FUNCTION__);
+
+  WORD_T wstate = 0; // for DEBUG
+  for(uint32_t i = 0; i < NLANES; i++) {
+#if 1 // DEBUG
+	 assert(T->state[iround].lane[i].w == 0);
+	 assert(T->state[iround].lane[i].a == 0);
+	 assert(T->state[iround].lane[i].b == 0);
+	 assert(T->state[iround].lane[i].c == 0);
+	 assert(T->state[iround].lane[i].d == 0);
+	 assert(T->state[iround].lane[i].e == 0);
+	 assert(S.lane[i].w < INF);
+	 assert(S.lane[i].w >= 0);
+#endif // #if 1 // DEBUG
+
+	 if(iround == 0) {
+		T->state[iround].lane[i].w = 0; // the initial state has
+												  // probability 1 == weight 0
+	 } else {
+		T->state[iround].lane[i].w = S.lane[i].w;
+	 }
+	 wstate += T->state[iround].lane[i].w;
+
+	 T->state[iround].lane[i].a = S.lane[i].a;
+	 T->state[iround].lane[i].b = S.lane[i].b;
+	 T->state[iround].lane[i].c = S.lane[i].c;
+	 T->state[iround].lane[i].d = S.lane[i].d;
+	 T->state[iround].lane[i].e = S.lane[i].e;
+
+	 if(iround == 0) {
+		continue;
+	 }
+
+	 uint32_t iround_prev = (iround - 1);
+	 if((iround_prev & 1) == 0) { // prev round is even
+		assert((iround % 4) != 0);
+		if(iround >= 3) {
+		  assert(T->state[iround_prev].lane[i].e == 0); // must be unassigned
+		  T->state[iround_prev].lane[i].e = T->state[iround].lane[i].a; // e = aa
+		}
+#if 1 // DEBUG
+		assert(T->state[iround].lane[i].a == T->state[iround_prev].lane[i].e);
+		assert(T->state[iround].lane[i].b == T->state[iround_prev].lane[i].b);
+		assert(T->state[iround].lane[i].c == T->state[iround_prev].lane[i].c);
+		WORD_T dd = XORROT(T->state[iround_prev].lane[i].d, T->state[iround_prev].lane[i].e, ROTCONST[(iround_prev % 4)]); // dd = (d ^ e) <<< r0,r2
+		assert(T->state[iround].lane[i].d == dd);
+		uint32_t weight = 
+		  xdp_h(T->state[iround_prev].lane[i].a, T->state[iround_prev].lane[i].b, T->state[iround_prev].lane[i].e, WORD_SIZE); // a,b->e
+		assert(weight == T->state[iround].lane[i].w);
+#endif // #if 1 // DEBUG
+	 }
+	 if((iround_prev & 1) == 1) { // prev round is odd
+		assert(T->state[iround].lane[i].a == T->state[iround_prev].lane[i].a);
+		if(iround >= 3) {
+		  assert(T->state[iround_prev].lane[i].e == 0); // must be unassigned
+		  if((iround % 4) != 0) { // no permutation
+			 T->state[iround_prev].lane[i].e = T->state[iround].lane[i].c; // e = cc
+		  } else { // permutation
+			 T->state[iround_prev].lane[i].e = T->state[iround].lane[(i - C) % 4].c; // e = cc
+		  }
+		}
+#if 1 // DEBUG
+		WORD_T bb = XORROT(T->state[iround_prev].lane[i].b, T->state[iround_prev].lane[i].e, ROTCONST[iround_prev % 4]); // bb = (b ^ c) <<< r1,r3
+		if((iround % 4) != 0) { // no permutation
+		  assert(T->state[iround].lane[i].b == bb);
+		  assert(T->state[iround].lane[i].c == T->state[iround_prev].lane[i].e);
+		  assert(T->state[iround].lane[i].d == T->state[iround_prev].lane[i].d);
+		} else { // permutation
+
+#if 1
+		  printf("[%s:%d] Previous state T[%d].state:\n", __FILE__, __LINE__, iround_prev);
+		  norx_state_print(T->state[iround_prev]);
+		  printf("[%s:%d] Next state T[%d].state:\n", __FILE__, __LINE__, iround);
+		  norx_state_print(T->state[iround]);
+		  printf("[%s:%d] Next state iround = %d:\n", __FILE__, __LINE__, iround);
+		  norx_state_print(S);
+
+		  printf("[%s:%d] R0123 %d %d %d %d\n", __FILE__, __LINE__, R0, R1, R2, R3);
+		  printf("[%s:%d] i = %d T->state[%d].lane[%d].b %d != bb %d\n", __FILE__, __LINE__, i, iround, (i + B) % 4, T->state[iround].lane[(i + B) % 4].b, bb);
+		  printf("[%s:%d] i %d (i + D) %d (i + B) %d (i + C) %d\n", __FILE__, __LINE__, i, (i+D) % 4, (i+B) % 4, (i+C) % 4);
+#endif 
+
+#if 1 // DEBUG
+		  printf("[%s:%d] i = %d\n", __FILE__, __LINE__, i);
+		  printf("[%s:%d] assert T->state[%d].lane[%d].b %d == bb %d\n", __FILE__, __LINE__, 
+					iround, (i - B) % 4, T->state[iround].lane[(i - B) % 4].b, bb);
+		  printf("[%s:%d] assert T->state[%d].lane[%d].c %d == T->state[%d].lane[%d].e %d\n", __FILE__, __LINE__, 
+					iround, (i - C) % 4, T->state[iround].lane[(i - C) % 4].c, 
+					iround_prev, i, T->state[iround_prev].lane[i].e);
+		  printf("[%s:%d] assert T->state[%d].lane[%d].d %d == T->state[%d].lane[%d].d %d\n", __FILE__, __LINE__, 
+					iround, (i - D) % 4, T->state[iround].lane[(i - D) % 4].d, 
+					iround_prev, i, T->state[iround_prev].lane[i].d);
+#endif // #if 1 // DEBUG
+		  assert(T->state[iround].lane[(i - B) % 4].b == bb);
+		  assert(T->state[iround].lane[(i - C) % 4].c == T->state[iround_prev].lane[i].e);
+		  assert(T->state[iround].lane[(i - D) % 4].d == T->state[iround_prev].lane[i].d);
+		}		  
+		uint32_t weight = 
+		  xdp_h(T->state[iround_prev].lane[i].c, T->state[iround_prev].lane[i].d, T->state[iround_prev].lane[i].e, WORD_SIZE); // c,d->e
+		assert(weight == T->state[iround ].lane[i].w);
+#endif // #if 1 // DEBUG
+	 }
+  }
+
+  T->state[iround].w = wstate; // state weight
+  T->w += wstate; // update trail weight
+
+  if(iround == 0) {
+	 assert(T->w == 0);
+  } else {
+	 assert(wstate == S.w); // DEBUG
+  }
+  if(!(wstate == T->state[iround].w)) {
+	 printf("[%s:%d] wstate %lld S.w %lld\n", __FILE__, __LINE__, (WORD_MAX_T)wstate, (WORD_MAX_T)S.w);
+  }
+  assert(wstate == T->state[iround].w);
+#if 1 // DEBUG
+  printf("[%s:%d] BEFORE iround %d\n", __FILE__, __LINE__, iround);
+  norx_trail_print(*T, iround);
+  norx_trail_assert(*T, iround);
+  printf("[%s:%d]  AFTER iround %d\n", __FILE__, __LINE__, iround);
+#endif // #if 1 // DEBUG
+}
+
+/* --- */
+
+/**
+ * Convert diagonals to columns.
+ */
+void norx_state_permute(norx_diff_state_t* S)
+{
+  WORD_T x[16] = {0};
+
+  // extract columns
+  x[0 ] = S->lane[ZERO].a;
+  x[4 ] = S->lane[ZERO].b;
+  x[8 ] = S->lane[ZERO].c;
+  x[12] = S->lane[ZERO].d;
+
+  x[1 ] = S->lane[ONE].a;
+  x[5 ] = S->lane[ONE].b;
+  x[9 ] = S->lane[ONE].c;
+  x[13] = S->lane[ONE].d;
+
+  x[2 ] = S->lane[TWO].a;
+  x[6 ] = S->lane[TWO].b;
+  x[10] = S->lane[TWO].c;
+  x[14] = S->lane[TWO].d;
+
+  x[3 ] = S->lane[THREE].a;
+  x[7 ] = S->lane[THREE].b;
+  x[11] = S->lane[THREE].c;
+  x[15] = S->lane[THREE].d;
+
+  // transform diagonals to columns
+  S->lane[ZERO].a = x[ 0];
+  S->lane[ZERO].b = x[ 5];
+  S->lane[ZERO].c = x[10];
+  S->lane[ZERO].d = x[15];
+
+  S->lane[ONE].a = x[ 1];
+  S->lane[ONE].b = x[ 6];
+  S->lane[ONE].c = x[11];
+  S->lane[ONE].d = x[12];
+
+  S->lane[TWO].a = x[ 2];
+  S->lane[TWO].b = x[ 7];
+  S->lane[TWO].c = x[ 8];
+  S->lane[TWO].d = x[13];
+
+  S->lane[THREE].a = x[ 3];
+  S->lane[THREE].b = x[ 4];
+  S->lane[THREE].c = x[ 9];
+  S->lane[THREE].d = x[14];
+
+}
+
+/**
+ * Convert columns to diagonals.
+ */
+void norx_state_permute_invert(norx_diff_state_t* S)
+{
+  WORD_T x[16] = {0};
+
+  // extract diagonals
+  x[ 0] = S->lane[ZERO].a;
+  x[ 5] = S->lane[ZERO].b;
+  x[10] = S->lane[ZERO].c;
+  x[15] = S->lane[ZERO].d;
+
+  x[ 1] = S->lane[ONE].a;
+  x[ 6] = S->lane[ONE].b;
+  x[11] = S->lane[ONE].c;
+  x[12] = S->lane[ONE].d;
+
+  x[ 2] = S->lane[TWO].a;
+  x[ 7] = S->lane[TWO].b;
+  x[ 8] = S->lane[TWO].c;
+  x[13] = S->lane[TWO].d;
+
+  x[ 3] = S->lane[THREE].a;
+  x[ 4] = S->lane[THREE].b;
+  x[ 9] = S->lane[THREE].c;
+  x[14] = S->lane[THREE].d;
+
+
+  // transform columns to diagonals
+  S->lane[ZERO].a = x[0 ];
+  S->lane[ZERO].b = x[4 ];
+  S->lane[ZERO].c = x[8 ];
+  S->lane[ZERO].d = x[12];
+
+  S->lane[ONE].a = x[1 ];
+  S->lane[ONE].b = x[5 ];
+  S->lane[ONE].c = x[9 ];
+  S->lane[ONE].d = x[13];
+
+  S->lane[TWO].a = x[2 ];
+  S->lane[TWO].b = x[6 ];
+  S->lane[TWO].c = x[10];
+  S->lane[TWO].d = x[14];
+
+  S->lane[THREE].a = x[3 ];
+  S->lane[THREE].b = x[7 ];
+  S->lane[THREE].c = x[11];
+  S->lane[THREE].d = x[15];
+}
+
+/* --- */
+void norx_trail_add_state(norx_diff_trail_t* T, const norx_diff_state_t S, const uint32_t iround)
+{
+  assert(iround < NROUNDS_MAX);
+  norx_diff_state_t S_trans = S;
+  if((iround > 1) && (iround != (g_nrounds - 1)) && ((iround % 4) == 0)) {
+	 norx_state_col_to_dia(&S_trans); // invert the permutation for debugging
+  }
+
+  WORD_T wstate = 0; // for DEBUG
+  for(uint32_t i = 0; i < NLANES; i++) {
+#if 1 // DEBUG
+	 assert(T->state[iround].lane[i].w == 0);
+	 assert(T->state[iround].lane[i].a == 0);
+	 assert(T->state[iround].lane[i].b == 0);
+	 assert(T->state[iround].lane[i].c == 0);
+	 assert(T->state[iround].lane[i].d == 0);
+	 assert(T->state[iround].lane[i].e == 0);
+	 assert(S.lane[i].w < INF);
+	 assert(S.lane[i].w >= 0);
+#endif // #if 1 // DEBUG
+
+	 if(iround == 0) {
+		T->state[iround].lane[i].w = 0; // the initial state has
+												  // probability 1 == weight 0
+	 } else {
+		T->state[iround].lane[i].w = S.lane[i].w;
+	 }
+	 wstate += T->state[iround].lane[i].w;
+
+	 T->state[iround].lane[i].a = S.lane[i].a;
+	 T->state[iround].lane[i].b = S.lane[i].b;
+	 T->state[iround].lane[i].c = S.lane[i].c;
+	 T->state[iround].lane[i].d = S.lane[i].d;
+	 T->state[iround].lane[i].e = S.lane[i].e;
+
+	 if(iround == 0) {
+		continue;
+	 }
+
+	 uint32_t iround_prev = (iround - 1);
+	 if((iround_prev & 1) == 0) { // prev round is even
+		if(iround >= 3) {
+		  assert(T->state[iround_prev].lane[i].e == 0); // must be unassigned
+		  //		  T->state[iround_prev].lane[i].e = S.lane[i].a; // e = aa
+		  T->state[iround_prev].lane[i].e = S_trans.lane[i].a; // e = aa
+		}
+#if 1 // DEBUG
+		assert(S_trans.lane[i].a == T->state[iround_prev].lane[i].e);
+		assert(S_trans.lane[i].b == T->state[iround_prev].lane[i].b);
+		assert(S_trans.lane[i].c == T->state[iround_prev].lane[i].c);
+		WORD_T dd = XORROT(T->state[iround_prev].lane[i].d, T->state[iround_prev].lane[i].e, ROTCONST[(iround_prev % 4)]); // dd = (d ^ e) <<< r0,r2
+		assert(S_trans.lane[i].d == dd);
+		uint32_t weight = 
+		  xdp_h(T->state[iround_prev].lane[i].a, T->state[iround_prev].lane[i].b, T->state[iround_prev].lane[i].e, WORD_SIZE); // a,b->e
+		assert(weight == S_trans.lane[i].w);
+#endif // #if 1 // DEBUG
+	 }
+	 if((iround_prev & 1) == 1) { // prev round is odd
+		assert(S.lane[i].a == T->state[iround_prev].lane[i].a);
+		if(iround >= 3) {
+		  assert(T->state[iround_prev].lane[i].e == 0); // must be unassigned
+		  //		  T->state[iround_prev].lane[i].e = S.lane[i].c; // e = cc
+		  T->state[iround_prev].lane[i].e = S_trans.lane[i].c; // e = cc
+		}
+#if 1 // DEBUG
+		WORD_T bb = XORROT(T->state[iround_prev].lane[i].b, T->state[iround_prev].lane[i].e, ROTCONST[iround_prev % 4]); // bb = (b ^ c) <<< r1,r3
+		assert(S_trans.lane[i].b == bb);
+		assert(S_trans.lane[i].c == T->state[iround_prev].lane[i].e);
+		assert(S_trans.lane[i].d == T->state[iround_prev].lane[i].d);
+		uint32_t weight = 
+		  xdp_h(T->state[iround_prev].lane[i].c, T->state[iround_prev].lane[i].d, T->state[iround_prev].lane[i].e, WORD_SIZE); // c,d->e
+		assert(weight == S_trans.lane[i].w);
+#endif // #if 1 // DEBUG
+	 }
+  }
+
+  T->state[iround].w = wstate; // state weight
+  T->w += wstate; // update trail weight
+
+  if(iround == 0) {
+	 assert(T->w == 0);
+  } else {
+	 assert(wstate == S.w); // DEBUG
+  }
+  if(!(wstate == T->state[iround].w)) {
+	 printf("[%s:%d] wstate %lld S.w %lld\n", __FILE__, __LINE__, (WORD_MAX_T)wstate, (WORD_MAX_T)S.w);
+  }
+  assert(wstate == T->state[iround].w);
+}
+
+/* --- */
+		if(!((g_T.w  + g_B[g_nrounds - 2]) <= g_Bn)) {
+		  printf("[%s:%d] (g_T.w  + g_B[g_nrounds - 2]) %d g_Bn %d\n", __FILE__, __LINE__, g_T.w, g_Bn);
+		}
+
+/* --- */
+
+		  printf("[%s:%d] AFTER 2: S_next.w %d g_T.w %d\n", __FILE__, __LINE__, S_next.w, g_T.w);
+
+		  if(!((g_T.w  + g_B[g_nrounds - 2]) <= g_Bn)) {
+			 printf("[%s:%d] (g_T.w  + g_B[%d]) = %d + %d = %d != g_Bn %d\n", __FILE__, __LINE__, (g_nrounds - 2), g_T.w, g_B[g_nrounds - 2], (g_T.w  + g_B[g_nrounds - 2]), g_Bn);
+		  }
+
+/* --- */
+
+#if 1 // DEBUG
+		norx_trail_print(g_T, iround);
+		norx_state_print(S);
+#endif // #if 1 // DEBUG
+
+#if 1 // DEBUG
+		for(uint32_t i = 0; i < NLANES; i++) {
+		  if(!(g_T.state[iround].lane[i].a == S.lane[i].a)) {
+			 printf("[%s:%d] lane %d T.a =  %X S.a = %X\n", __FILE__, __LINE__, i, g_T.state[iround].lane[i].a, S.lane[i].a);
+		  }
+		  norx_diff_lane_t L = S.lane[i];
+		  printf("%llX %llX %llX %llX | %llX %lld (dcba|ew)\n", 
+					(WORD_MAX_T)L.d, (WORD_MAX_T)L.c, (WORD_MAX_T)L.b, (WORD_MAX_T)L.a, (WORD_MAX_T)L.e, (WORD_MAX_T)L.w);
+
+		  norx_diff_lane_t LL = g_T.state[iround].lane[i];
+		  printf("%llX %llX %llX %llX | %llX %lld (dcba|ew)\n", 
+					(WORD_MAX_T)LL.d, (WORD_MAX_T)LL.c, (WORD_MAX_T)LL.b, (WORD_MAX_T)LL.a, (WORD_MAX_T)LL.e, (WORD_MAX_T)LL.w);
+
+		  assert(g_T.state[iround].lane[i].a == S.lane[i].a);
+		  //		  assert(g_T.state[iround].lane[i].b == S.lane[i].b);
+		  //		  assert(g_T.state[iround].lane[i].c == S.lane[i].c);
+		  //		  assert(g_T.state[iround].lane[i].d == S.lane[i].d);
+		}
+#endif // #if 1 // DEBUG
+
+/* --- */
+
+#if 0
+#if(WORD_SIZE <= 32)
+	const WORD_T mask = (0xffffffffUL >> (32 - (word_size - 1)));
+#else // #if(WORD_SIZE <= 32)
+	const WORD_T mask = (0xffffffffffffffffULL >> (64 - (word_size - 1)));
+#endif // #if(WORD_SIZE <= 32)
+#endif
+
+
+/* --- */
+
+  //  bool b_prob_iszero = (zero_cond != 0);
+  printf("[%s:%d] zero_cond %X %d: %X %X -> %X\n", __FILE__, __LINE__, zero_cond, zero_cond, da, db, dc);
+  //  printf("[%s:%d] b_prob_iszero %d\n", __FILE__, __LINE__, b_prob_iszero);
+  //  if(b_prob_iszero) {
+
+/* --- */
+
+
+	 for(uint32_t ilane = 0; ilane < NLANES; ilane++) {
+		assert(S.lane[ilane].a == g_T.state[1].lane[ilane].a);
+		assert(S.lane[ilane].b == g_T.state[1].lane[ilane].b);
+	 }
+
+
+/* --- */
+
+		printf("[%s:%d] S\n", __FILE__, __LINE__);
+		norx_state_print(S);
+		printf("[%s:%d] T[0]\n", __FILE__, __LINE__);
+		norx_state_print(g_T.state[iround-1]);
+		printf("[%s:%d] T[1]\n", __FILE__, __LINE__);
+		norx_state_print(g_T.state[iround]);
+		//		norx_state_print(S_next);
+
+/* --- */
+
+		  // --- check 0 vs 1
+		  assert(g_T.state[1].lane[ilane].a == g_T.state[0].lane[ilane].e);
+		  assert(g_T.state[1].lane[ilane].b == g_T.state[0].lane[ilane].b);
+		  assert(g_T.state[1].lane[ilane].c == g_T.state[0].lane[ilane].c);
+		  WORD_T dd = XORROT(g_T.state[0].lane[ilane].d, g_T.state[0].lane[ilane].e, ROTCONST[(0 % 4)]); // dd = (d ^ e) <<< r0,r2
+		  assert(g_T.state[1].lane[ilane].d == dd);
+		  uint32_t weight = 
+			 xdp_h(g_T.state[0].lane[ilane].a, g_T.state[0].lane[ilane].b, g_T.state[0].lane[ilane].e, WORD_SIZE); // a,b->e
+		  assert(weight == g_T.state[1].lane[ilane].w);
+
+		  // --- check 1 vs 2
+		  assert(g_T.state[0].lane[ilane].e == g_T.state[1].lane[ilane].a);
+
+		  assert(S_next.lane[ilane].a == S.lane[ilane].a);
+
+		  assert(S.lane[ilane].a == g_T.state[1].lane[ilane].a);
+		  assert(S.lane[ilane].b == g_T.state[1].lane[ilane].b);
+		  assert(S.lane[ilane].e == g_T.state[1].lane[ilane].e);
+		  assert(S_next.lane[ilane].d == S.lane[ilane].d);
+		  assert(S.lane[ilane].d == g_T.state[1].lane[ilane].d);
+
+		  assert(S_next.lane[ilane].a == g_T.state[1].lane[ilane].a);
+		  WORD_T bb = XORROT(g_T.state[1].lane[ilane].b, g_T.state[1].lane[ilane].e, ROTCONST[1 % 4]); // bb = (b ^ c) <<< r1,r3
+		  assert(S_next.lane[ilane].b == bb);
+		  assert(S_next.lane[ilane].c == g_T.state[1].lane[ilane].e);
+		  assert(S_next.lane[ilane].d == g_T.state[1].lane[ilane].d);
+		  weight = 
+			 xdp_h(g_T.state[1].lane[ilane].c, g_T.state[1].lane[ilane].d, g_T.state[1].lane[ilane].e, WORD_SIZE); // c,d->e
+		  uint32_t weight_tmp = 
+			 xdp_h(S.lane[ilane].c, S.lane[ilane].d, S.lane[ilane].e, WORD_SIZE); // c,d->e
+		  assert(weight == weight_tmp);
+		  assert(S.lane[ilane].c == g_T.state[1].lane[ilane].c);
+		  assert(S.lane[ilane].d == g_T.state[1].lane[ilane].d);
+		  assert(S.lane[ilane].e == g_T.state[1].lane[ilane].e);
+		  assert(weight == S_next.lane[ilane].w);
+
+/* --- */
+
+  if(iround == 0) {
+#if 1 // FIRST ROUND
+	 printf("[%s:%d] First iround %d\n", __FILE__, __LINE__, iround);
+
+	 if (ibit == WORD_SIZE) {
+
+		norx_trail_add_state(&g_T, S, 0); // add input state
+		norx_diff_state_t S_next;
+		norx_state_init(&S_next);
+		norx_compute_next_state(&S_next, S, iround);
+		norx_trail_add_state(&g_T, S_next, iround + 1);
+		assert(g_T.w <= g_Bn);
+		norx_diff_trail_search(iround + 1, 0, S);
+		norx_trail_remove_state(&g_T, S_next, iround + 1);
+
+	 } else {
+		// counters
+		WORD_T ja[NLANES] = {0};
+		WORD_T jb[NLANES] = {0};
+		WORD_T je[NLANES] = {0};
+
+		// lane 0
+		for (ja[ZERO] = 0; ja[ZERO] < g_NBITS[ZERO][A]; ja[ZERO]++) { // a
+		  for (jb[ZERO] = 0; jb[ZERO] < g_NBITS[ZERO][B]; jb[ZERO]++) { // b
+			 for (je[ZERO] = 0; je[ZERO] < 2; je[ZERO]++) { // e
+
+				norx_diff_state_t S_part; // partial state
+				norx_state_init(&S_part);
+
+				printf("[%s:%d] S_part.w %d\n", __FILE__, __LINE__, S_part.w);
+
+				norx_lane_assign_bit(&S_part.lane[ZERO], S.lane[ZERO], ja[ZERO], jb[ZERO], je[ZERO], ibit, iround);
+				S_part.w += S_part.lane[ZERO].w; // aggregate prob of state
+
+				printf("[%s:%d] %d %d %d %d %d\n", __FILE__, __LINE__, ja[ZERO], jb[ZERO], je[ZERO], S_part.lane[ZERO].w, S_part.w);
+
+				if((S_part.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+				  printf("[%s:%d] CHECKPOINT\n", __FILE__, __LINE__);
+
+				  // lane 1
+				  for (ja[ONE] = 0; ja[ONE] < g_NBITS[ONE][A]; ja[ONE]++) { // a
+					 for (jb[ONE] = 0; jb[ONE] < g_NBITS[ONE][B]; jb[ONE]++) { // b
+						for (je[ONE] = 0; je[ONE] < 2; je[ONE]++) { // e
+
+						  norx_lane_assign_bit(&S_part.lane[ONE], S.lane[ONE], ja[ONE], jb[ONE], je[ONE], ibit, iround);
+						  S_part.w += S_part.lane[ONE].w; // aggregate prob of state
+						  assert(S_part.lane[ONE].w < INF);
+
+						  if((S_part.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+				          // lane 2
+							 for (ja[TWO] = 0; ja[TWO] < g_NBITS[TWO][A]; ja[TWO]++) { // a
+								for (jb[TWO] = 0; jb[TWO] < g_NBITS[TWO][B]; jb[TWO]++) { // b
+								  for (je[TWO] = 0; je[TWO] < 2; je[TWO]++) { // e
+
+									 norx_lane_assign_bit(&S_part.lane[TWO], S.lane[TWO], ja[TWO], jb[TWO], je[TWO], ibit, iround);
+									 S_part.w += S_part.lane[TWO].w; // aggregate prob of state
+									 assert(S_part.lane[TWO].w < INF);
+
+									 if((S_part.w + g_B[g_nrounds - 2]) <= g_Bn) {
+
+				                  // lane 3
+										for (ja[THREE] = 0; ja[THREE] < g_NBITS[THREE][A]; ja[THREE]++) { // a
+										  for (jb[THREE] = 0; jb[THREE] < g_NBITS[THREE][B]; jb[THREE]++) { // b
+											 for (je[THREE] = 0; je[THREE] < 2; je[THREE]++) { // e
+
+												norx_lane_assign_bit(&S_part.lane[THREE], S.lane[THREE], ja[THREE], jb[THREE], je[THREE], ibit, iround);
+												S_part.w += S_part.lane[THREE].w; // aggregate prob of state
+												assert(S_part.lane[THREE].w < INF);
+
+												if((S_part.w + g_B[g_nrounds - 2]) <= g_Bn) {
+												  norx_diff_trail_search(iround, ibit + 1, S_part);
+												}
+											 }
+										  }
+										}
+									 }
+								  }
+								}
+							 }
+						  }
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+	 }
+#endif // #if 1 // FIRST ROUND
+  }
+
+/* --- */
+
+#if 1 // DEBUG
+	 if(!(L_ext->w >= 0)) {
+		printf("[%s:%d] abe %X %X %X ibit %d w %d\n", __FILE__, __LINE__, L_ext->a, L_ext->b, L_ext->e, ibit, L_ext->w);
+	 }
+#endif // #if 1 // DEBUG
+
+
+/* --- */
+int xdp_h(WORD_T da, WORD_T db, WORD_T dc)
+{
+  bool b_prob_iszero = ((((da ^ db ^ dc) & (~((da | db) << 1))) & MASK) != 0);
+  if(b_prob_iszero) {
+	 return INF;
+  }
+  int res = hamming_weight(((da | db) << 1) & MASK);
+  return res;
+}
+
+/*
+ * The XOR DP of H
+ */
+double xdp_h_exper(WORD_T da, WORD_T db, WORD_T dc)
+{
+  assert(WORD_SIZE <= 10);
+  double p = 0.0;
+#if(WORD_SIZE <= 10)
+  WORD_T cnt = 0;
+  for(WORD_T x = 0; x < ALL_WORDS; x++) {
+	 for(WORD_T y = 0; y < ALL_WORDS; y++) {
+		WORD_T xx = (x ^ da) & MASK;
+		WORD_T yy = (y ^ db) & MASK;
+		WORD_T z = H(x, y) & MASK;
+		WORD_T zz = H(xx, yy) & MASK;
+		WORD_T dz = (z ^ zz)  & MASK;
+		if(dz == dc) {
+		  cnt++;
+		}
+	 }
+  }
+  p = (double)cnt / (double)(ALL_WORDS * ALL_WORDS);
+#endif // #if(WORD_SIZE <= 10)
+  return p;
+}
+
+
+/* --- */
+
+bool xdp_h_iszero(WORD_T da, WORD_T db, WORD_T dc, uint32_t word_size)
+{
+#if (WORD_SIZE <= 32)
+  WORD_T mask =  ~(0xffffffffUL << word_size);
+#else
+  WORD_T mask =  ~(0xffffffffffffffffULL << word_size);
+#endif
+  WORD_T c = ((da ^ db ^ dc) & (~((da | db) << 1))) & mask;
+  return (c != 0);
+}
+
+/* --- */
+
+bool xdp_h_iszero(WORD_T da, WORD_T db, WORD_T dc)
+{
+  WORD_T c = ((da ^ db ^ dc) & (~((da | db) << 1))) & MASK;
+  bool b_iszero = (c != 0);
+  return b_iszero;
+}
+
+
+/* --- */
+
+bool xdp_h_iszero(WORD_T da, WORD_T db, WORD_T dc)
+{
+  WORD_T c = ((da ^ db ^ dc) & (~((da | db) << 1))) & MASK;
+  return (c != 0);
+}
+
+int xdp_h(WORD_T da, WORD_T db, WORD_T dc)
+{
+  if(xdp_h_iszero(da, db, dc)) {
+	 return INF;
+  }
+  int hw = hamming_weight(((da | db) << 1) & MASK);
+  return hw;
+}
+
+
+/* --- */
+
+bool xdp_h_iszero(uint32_t da, uint32_t db, uint32_t dc)
+{
+
+  uint32_t c_orig = ((da ^ db ^ dc) & (~((da | db) << 1))) & MASK;
+  uint32_t c = (((da >> 1) ^ (db >> 1) ^ dc) & (~((da | db) << 1))) & MASK;
+  uint32_t a_orig = (da ^ db ^ dc);
+  uint32_t a = ((da << 1) ^ (db << 1) ^ dc);
+  uint32_t t = (~((da | db) << 1))& MASK;
+  uint32_t x = 1 & t;
+  uint32_t y = 2 & t;
+  printf("[%s:%d] t %X x %X y %X\n", __FILE__, __LINE__, t, x, y);
+  //  printf("[%s:%d] %X %X %X c %X %X c_orig %X %X\n", __FILE__, __LINE__, da, db, dc, c, a, c_orig, a_orig);
+  bool b_xdp_h_iszero = !(c == 0);
+  return b_xdp_h_iszero;
+}
+
+
+/* --- */
+
+/* 
+
+LAX16: linear
+
+vpv@mazirat:~/skcrypto/trunk/work/src/yaarx$ ./bin/lax-best-linear-search-tests
+#--- [./tests/lax-best-linear-search-tests.cc:620] Tests, WORD_SIZE  8 g_bn 5
+-- g_nRounds = 2
+-- g_Bn =  +0 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: 0 -> 0
+trail found! [0 s] {648 nodes -> nan nodes/s}
+ 0: M_LR        0       D7   +0
+ 1: M_LR        1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR       79       79   +0  | a b c        1        1        1 c 2^  +0 1.00
+corr_trail 2^+0
+-- g_nRounds = 3
+-- g_Bn =  +0 ... no trail found! [0 s] {1554 nodes -> nan nodes/s}
+-- g_Bn =  -1 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -1 -> -1
+trail found! [0 s] {2927 nodes -> nan nodes/s}
+ 0: M_LR        1        1   +0
+ 1: M_LR        0       79   +0  | a b c        1        1        1 c 2^  +0 1.00
+ 2: M_LR        2        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 3: M_LR       F2       F2   -1  | a b c        2        2        2 c 2^  -1 0.50
+corr_trail 2^-1
+-- g_nRounds = 4
+-- g_Bn =  -1 ... no trail found! [0 s] {5826 nodes -> nan nodes/s}
+-- g_Bn =  -2 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -2 -> -2
+trail found! [0 s] {343 nodes -> nan nodes/s}
+ 0: M_LR        0        6   +0
+ 1: M_LR       C1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR        C        C   -1  | a b c       C1       C1       C1 c 2^  -1 0.50
+ 3: M_LR        0       55   -1  | a b c        C        C        C c 2^  -1 0.50
+ 4: M_LR       18        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+corr_trail 2^-2
+-- g_nRounds = 5
+-- g_Bn =  -2 ... no trail found! [0 s] {6894 nodes -> nan nodes/s}
+-- g_Bn =  -3 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -3 -> -3
+trail found! [0 s] {624 nodes -> nan nodes/s}
+ 0: M_LR        0        6   +0
+ 1: M_LR       C1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR        C        C   -1  | a b c       C1       C1       C1 c 2^  -1 0.50
+ 3: M_LR        0       55   -1  | a b c        C        C        C c 2^  -1 0.50
+ 4: M_LR       18        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 5: M_LR       CC       CC   -1  | a b c       18       10       10 c 2^  -1 0.50
+corr_trail 2^-3
+-- g_nRounds = 6
+-- g_Bn =  -3 ... no trail found! [0 s] {7182 nodes -> nan nodes/s}
+-- g_Bn =  -4 ... no trail found! [0 s] {254722 nodes -> nan nodes/s}
+-- g_Bn =  -5 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -5 -> -5
+trail found! [0 s] {1067 nodes -> nan nodes/s}
+ 0: M_LR        0        1   +0
+ 1: M_LR       79        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR        2        2   -2  | a b c       79       79       79 c 2^  -2 0.25
+ 3: M_LR        0       F2   -1  | a b c        2        2        2 c 2^  -1 0.50
+ 4: M_LR        4        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 5: M_LR       C1       33   -1  | a b c        4        6        4 c 2^  -1 0.50
+ 6: M_LR       9A       92   -1  | a b c       C1       81       81 c 2^  -1 0.50
+corr_trail 2^-5
+
+
+ */
+
+
+/* ------------- */
+/* 
+
+LAX32: diff: (bound on 2R = -6)
+
+ 1:  +0
+ 2:  -2
+ 3:  -6    -6
+ 4:  -9
+ 5: -11
+ 6: -16   -12
+ 7:
+ 8:
+ 9:
+
+ */
+
+/* 
+
+LAX32: differential
+
+vpv@mazirat:~/skcrypto/trunk/work/src/yaarx$ make lax-best-diff-search-tests
+g++ -O3 -std=c++11 -Wall -c -I./include/ ./src/xdp-add.cc -o ./obj/xdp-add.o
+g++ -O3 -std=c++11 -Wall -c -I./include/ ./tests/lax-best-diff-search-tests.cc -o ./obj/lax-best-diff-search-tests.o
+g++  ./obj/common.o ./obj/xdp-add.o ./obj/lax-cipher.o ./obj/lax-best-diff-search-tests.o -o ./bin/lax-best-diff-search-tests -lgsl -lgslcblas -lgmpxx -lgmp
+vpv@mazirat:~/skcrypto/trunk/work/src/yaarx$ ./bin/lax-best-diff-search-tests
+#--- [./tests/lax-best-diff-search-tests.cc:654] Tests, WORD_SIZE  16 g_bn 8
+-- g_nRounds = 2
+-- g_Bn =  +0 ... no trail found! [0 s]
+-- g_Bn =  -1 ... no trail found! [0 s]
+-- g_Bn =  -2 ... # Update bound: -2 -> -2
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     E000     F000 ->     F000 0.00 -1
+ 1:     F000     F000 ->     E000 0.00 -1
+log2p_trail -2
+trail found! [0 s]
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     E000     F000 ->     F000 0.00 -1
+ 1:     F000     F000 ->     E000 0.00 -1
+log2p_trail -2
+-- g_nRounds = 3
+-- g_Bn =  -2 ... no trail found! [0 s]
+-- g_Bn =  -3 ... no trail found! [0 s]
+-- g_Bn =  -4 ... no trail found! [0 s]
+-- g_Bn =  -5 ... no trail found! [0 s]
+-- g_Bn =  -6 ... # Update bound: -6 -> -6
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     8000     8000 ->        0 0.00 0
+ 1:     8536        0 ->     8536 0.00 -6
+ 2:        0     8000 ->     8000 0.00 0
+log2p_trail -6
+trail found! [0 s]
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     8000     8000 ->        0 0.00 0
+ 1:     8536        0 ->     8536 0.00 -6
+ 2:        0     8000 ->     8000 0.00 0
+log2p_trail -6
+-- g_nRounds = 4
+-- g_Bn =  -6 ... no trail found! [0 s]
+-- g_Bn =  -7 ... no trail found! [0 s]
+-- g_Bn =  -8 ... no trail found! [0 s]
+-- g_Bn =  -9 ... # Update bound: -9 -> -9
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     FC00     FE00 ->     FE00 0.00 -1
+ 1:     5B93     5B93 ->     FF00 0.00 -6
+ 2:     FE00     FF00 ->     FF00 0.00 -1
+ 3:     FF00     FF00 ->     FE00 0.00 -1
+log2p_trail -9
+trail found! [0 s]
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     FC00     FE00 ->     FE00 0.00 -1
+ 1:     5B93     5B93 ->     FF00 0.00 -6
+ 2:     FE00     FF00 ->     FF00 0.00 -1
+ 3:     FF00     FF00 ->     FE00 0.00 -1
+log2p_trail -9
+-- g_nRounds = 5
+-- g_Bn =  -9 ... no trail found! [0 s]
+-- g_Bn = -10 ... no trail found! [0 s]
+-- g_Bn = -11 ... # Update bound: -11 -> -11
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     E000     F000 ->     F000 0.00 -1
+ 1:     F000     F000 ->        0 0.00 -3
+ 2:     F000        0 ->     F000 0.00 -3
+ 3:        0     F000 ->     F000 0.00 -3
+ 4:     F000     F000 ->     E000 0.00 -1
+log2p_trail -11
+trail found! [0 s]
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     E000     F000 ->     F000 0.00 -1
+ 1:     F000     F000 ->        0 0.00 -3
+ 2:     F000        0 ->     F000 0.00 -3
+ 3:        0     F000 ->     F000 0.00 -3
+ 4:     F000     F000 ->     E000 0.00 -1
+log2p_trail -11
+-- g_nRounds = 6
+-- g_Bn = -11 ... no trail found! [0 s]
+-- g_Bn = -12 ... no trail found! [0 s]
+-- g_Bn = -13 ... no trail found! [0 s]
+-- g_Bn = -14 ... no trail found! [0 s]
+-- g_Bn = -15 ... no trail found! [3 s]
+-- g_Bn = -16 ... # Update bound: -16 -> -16
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     1000        0 ->     F000 0.00 -3
+ 1:        0     F000 ->     F000 0.00 -3
+ 2:     F000     F000 ->        0 0.00 -3
+ 3:     F000        0 ->     F000 0.00 -3
+ 4:        0     F000 ->     F000 0.00 -3
+ 5:     F000     F000 ->     E000 0.00 -1
+log2p_trail -16
+trail found! [0 s]
+[./tests/lax-best-diff-search-tests.cc:153] lax_print_diff_trail_log2()
+ 0:     1000        0 ->     F000 0.00 -3
+ 1:        0     F000 ->     F000 0.00 -3
+ 2:     F000     F000 ->        0 0.00 -3
+ 3:     F000        0 ->     F000 0.00 -3
+ 4:        0     F000 ->     F000 0.00 -3
+ 5:     F000     F000 ->     E000 0.00 -1
+log2p_trail -16
+
+
+ */
+
+/* 
+
+LAX32: linear
+
+vpv@mazirat:~/skcrypto/trunk/work/src/yaarx$ make lax-best-linear-search-tests
+g++ -O3 -std=c++11 -Wall -c -I./include/ ./src/common.cc -o ./obj/common.o
+g++ -O3 -std=c++11 -Wall -c -I./include/ ./src/xlp-add.cc -o ./obj/xlp-add.o
+g++ -O3 -std=c++11 -Wall -c -I./include/ ./src/lax-cipher.cc -o ./obj/lax-cipher.o
+g++ -O3 -std=c++11 -Wall -c -I./include/ ./tests/lax-best-linear-search-tests.cc -o ./obj/lax-best-linear-search-tests.o
+g++  ./obj/common.o ./obj/xlp-add.o ./obj/lax-cipher.o ./obj/lax-best-linear-search-tests.o -o ./bin/lax-best-linear-search-tests -lgsl -lgslcblas -lgmpxx -lgmp
+vpv@mazirat:~/skcrypto/trunk/work/src/yaarx$ ./bin/lax-best-linear-search-tests
+#--- [./tests/lax-best-linear-search-tests.cc:620] Tests, WORD_SIZE  16 g_bn 8
+-- g_nRounds = 2
+-- g_Bn =  +0 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: 0 -> 0
+trail found! [0 s] {76445 nodes -> nan nodes/s}
+ 0: M_LR        0     6358   +0
+ 1: M_LR        1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR     6358     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+corr_trail 2^+0
+-- g_nRounds = 3
+-- g_Bn =  +0 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: 0 -> 0
+trail found! [0 s] {196647 nodes -> nan nodes/s}
+ 0: M_LR        1        1   +0
+ 1: M_LR        0     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+ 2: M_LR        1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 3: M_LR     6358     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+corr_trail 2^+0
+-- g_nRounds = 4
+-- g_Bn =  +0 ... no trail found! [0 s] {393254 nodes -> nan nodes/s}
+-- g_Bn =  -1 ... no trail found! [2 s] {25037422 nodes -> 1.25187e+07 nodes/s}
+-- g_Bn =  -2 ... no trail found! [54 s] {752835798 nodes -> 1.39414e+07 nodes/s}
+-- g_Bn =  -3 ... no trail found! [1106 s] {14235781126 nodes -> 1.28714e+07 nodes/s}
+-- g_Bn =  -4 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -4 -> -4
+trail found! [0 s] {9746 nodes -> nan nodes/s}
+ 0: M_LR        0        F   +0
+ 1: M_LR        F        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR        F     6357   -2  | a b c        F        F        E c 2^  -2 0.25
+ 3: M_LR        1     9C5D   -2  | a b c        F        F        B c 2^  -2 0.25
+ 4: M_LR     6353     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+corr_trail 2^-4
+-- g_nRounds = 5
+-- g_Bn =  -4 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -4 -> -4
+trail found! [9 s] {35863933 nodes -> 3.98488e+06 nodes/s}
+ 0: M_LR        0     C61B   +0
+ 1: M_LR     6378        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR        1        1   -4  | a b c     6378     6358     6358 c 2^  -4 0.06
+ 3: M_LR        0     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+ 4: M_LR        1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 5: M_LR     6358     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+corr_trail 2^-4
+-- g_nRounds = 6
+-- g_Bn =  -4 ... no trail found! [0 s] {395253 nodes -> nan nodes/s}
+-- g_Bn =  -5 ... no trail found! [1 s] {25398070 nodes -> 2.53981e+07 nodes/s}
+-- g_Bn =  -6 ... no trail found! [60 s] {774754140 nodes -> 1.29126e+07 nodes/s}
+-- g_Bn =  -7 ... no trail found! [1317 s] {15071748850 nodes -> 1.1444e+07 nodes/s}
+-- g_Bn =  -8 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -8 -> -8
+trail found! [0 s] {230110 nodes -> nan nodes/s}
+ 0: M_LR        0        F   +0
+ 1: M_LR        F        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR        F        F   -2  | a b c        F        F        F c 2^  -2 0.25
+ 3: M_LR        0     9C5D   -2  | a b c        F        F        B c 2^  -2 0.25
+ 4: M_LR        B        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 5: M_LR        F     FF05   -2  | a b c        B        F        A c 2^  -2 0.25
+ 6: M_LR     FF0F     FF05   -2  | a b c        F        A        A c 2^  -2 0.25
+corr_trail 2^-8
+-- g_nRounds = 7
+-- g_Bn =  -8 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -8 -> -8
+trail found! [0 s] {29772 nodes -> nan nodes/s}
+ 0: M_LR        0        F   +0
+ 1: M_LR        F        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR        F        F   -2  | a b c        F        F        F c 2^  -2 0.25
+ 3: M_LR        0     9C5D   -2  | a b c        F        F        B c 2^  -2 0.25
+ 4: M_LR        B        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 5: M_LR        F        F   -2  | a b c        B        F        F c 2^  -2 0.25
+ 6: M_LR        0     9C5D   -2  | a b c        F        F        B c 2^  -2 0.25
+ 7: M_LR        B        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+corr_trail 2^-8
+-- g_nRounds = 8
+-- g_Bn =  -8 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -8 -> -8
+trail found! [0 s] {77766 nodes -> nan nodes/s}
+ 0: M_LR        0     6358   +0
+ 1: M_LR        1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR     6358     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+ 3: M_LR        0     C61B   -4  | a b c     6358     6358     6378 c 2^  -4 0.06
+ 4: M_LR     6378        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 5: M_LR        1        1   -4  | a b c     6378     6358     6358 c 2^  -4 0.06
+ 6: M_LR        0     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+ 7: M_LR        1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 8: M_LR     6358     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+corr_trail 2^-8
+-- g_nRounds = 9
+-- g_Bn =  -8 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -8 -> -8
+trail found! [0 s] {197968 nodes -> nan nodes/s}
+ 0: M_LR        1        1   +0
+ 1: M_LR        0     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+ 2: M_LR        1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 3: M_LR     6358     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+ 4: M_LR        0     C61B   -4  | a b c     6358     6358     6378 c 2^  -4 0.06
+ 5: M_LR     6378        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 6: M_LR        1        1   -4  | a b c     6378     6358     6358 c 2^  -4 0.06
+ 7: M_LR        0     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+ 8: M_LR        1        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 9: M_LR     6358     6358   +0  | a b c        1        1        1 c 2^  +0 1.00
+corr_trail 2^-8
+-- g_nRounds = 10
+-- g_Bn =  -8 ... no trail found! [1 s] {393254 nodes -> 393254 nodes/s}
+-- g_Bn =  -9 ... no trail found! [1 s] {25037422 nodes -> 2.50374e+07 nodes/s}
+-- g_Bn = -10 ... no trail found! [57 s] {752835798 nodes -> 1.32076e+07 nodes/s}
+-- g_Bn = -11 ... no trail found! [1121 s] {14235781126 nodes -> 1.26992e+07 nodes/s}
+-- g_Bn = -12 ... [./tests/lax-best-linear-search-tests.cc:450] Update bound: -12 -> -12
+trail found! [0 s] {31422 nodes -> nan nodes/s}
+ 0: M_LR        0        F   +0
+ 1: M_LR        F        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 2: M_LR        F        F   -2  | a b c        F        F        F c 2^  -2 0.25
+ 3: M_LR        0     9C5D   -2  | a b c        F        F        B c 2^  -2 0.25
+ 4: M_LR        B        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 5: M_LR        F        F   -2  | a b c        B        F        F c 2^  -2 0.25
+ 6: M_LR        0     9C5D   -2  | a b c        F        F        B c 2^  -2 0.25
+ 7: M_LR        B        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+ 8: M_LR        F        F   -2  | a b c        B        F        F c 2^  -2 0.25
+ 9: M_LR        0     9C5D   -2  | a b c        F        F        B c 2^  -2 0.25
+10: M_LR        B        0   +0  | a b c        0        0        0 c 2^  +0 1.00
+corr_trail 2^-12
+
+
+ */
+
+/* --- */
+void test_lax_matrix_vector_multiply_one_table()
+{
+  const std::array<std::array<bool, WORD_SIZE>, WORD_SIZE> L = g_L;
+  std::array<std::array<uint32_t, (ALL_WORDS / NTABLES)>, NTABLES> M;
+  lax_build_mvtable_one(L, &M);
+  for(WORD_T x = 0; x < ALL_WORDS; x++) {
+	 WORD_T y = 0;
+	 matrix_vector_multiply(&y, L, x);
+	 WORD_T yy = lax_matrix_vector_multiply_one_table(L, M, x);
+	 printf("%8X %8X\n", y, yy);
+	 assert(y == yy);
+  }
+}
+
+void test_lax_matrix_vector_multiply_two_table()
+{
+  const std::array<std::array<bool, WORD_SIZE>, WORD_SIZE> L = g_L;
+  std::array<std::array<uint32_t, (ALL_WORDS / NTABLES)>, NTABLES> M;
+  lax_build_mvtable_two(L, &M);
+  for(WORD_T x = 0; x < ALL_WORDS; x++) {
+	 WORD_T y = 0;
+	 matrix_vector_multiply(&y, L, x);
+	 WORD_T yy = lax_matrix_vector_multiply_two_table(L, M, x);
+	 printf("%8X %8X\n", y, yy);
+	 assert(y == yy);
+  }
+}
+
+
+
+/* --- */
+
+void test_lax_two_rounds()
+{
+  for(WORD_T a = 0; a < ALL_WORDS; a++) {
+	 for(WORD_T b = 0; b < ALL_WORDS; b++) {
+		if((a == 0) && (b == 0))
+		  continue;
+		for(WORD_T c = 0; c < ALL_WORDS; c++) {
+		  double p1 = xdp_add_lm(a, b, c);
+		  if(p1 != 0.0) {
+			 WORD_T d = 0;
+			 matrix_vector_multiply(&d, g_L, a);
+			 WORD_T e = 0;
+			 matrix_vector_multiply(&e, g_L, c);
+			 for(WORD_T f = 0; f < ALL_WORDS; f++) {
+				double p2 = xdp_add_lm(d, e, f);
+				if(p2 != 0.0) {
+				  double p_tot = p1 * p2;
+				  if((uint32_t)std::abs(log2(p_tot)) < (g_bn - 2)) {
+					 printf("(%X %X -> %X) * (%X %X -> %X) = ", a, b, c, d, e, f);
+					 printf("%4.2f + %4.2f = %4.2f\n", log2(p1), log2(p2), log2(p_tot));
+				  //					 return;
+				  }
+				}
+			 }
+		  }
+		}
+	 }
+  }
+}
+
+void test_lax_three_rounds()
+{
+  for(WORD_T a = 0; a < ALL_WORDS; a++) {
+	 for(WORD_T b = 0; b < ALL_WORDS; b++) {
+		if((a == 0) && (b == 0))
+		  continue;
+		for(WORD_T c = 0; c < ALL_WORDS; c++) {
+		  double p1 = xdp_add_lm(a, b, c);
+		  if(p1 != 0.0) {
+			 WORD_T la = 0;
+			 matrix_vector_multiply(&la, g_L, a);
+
+			 WORD_T lc = 0;
+			 matrix_vector_multiply(&lc, g_L, c);
+
+			 for(WORD_T d = 0; d < ALL_WORDS; d++) {
+				double p2 = xdp_add_lm(la, lc, d);
+
+				if(p2 != 0.0) {
+
+				  for(WORD_T e = 0; e < ALL_WORDS; e++) {
+
+					 WORD_T lla = 0;
+					 matrix_vector_multiply(&lla, g_L, la);
+
+					 WORD_T ld = 0;
+					 matrix_vector_multiply(&ld, g_L, d);
+
+					 double p3 = xdp_add_lm(lla, ld, e);
+
+					 if(p3 != 0.0) {
+
+						double p_tot = p1 * p2 * p3;
+						if((uint32_t)std::abs(log2(p_tot)) < (g_bn - 1)) {
+						  printf("(%X %X -> %X) * (%X %X -> %X) * (%X %X -> %X) = ", a, b, c, la, lc, d, lla, ld, e);
+						  printf("%4.2f + %4.2f + %4.2f = %4.2f\n", log2(p1), log2(p2), log2(p2), log2(p_tot));
+						  //					 return;
+						}
+					 }
+				  }
+				}
+			 }
+		  }
+		}
+	 }
+  }
+}
 
 /* --- */
 

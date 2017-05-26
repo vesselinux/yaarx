@@ -93,6 +93,8 @@ void test_xdp_and_all()
 
 		  double p1 = xdp_and(A, da, db, dc);
 		  double p2 = xdp_and_exper(da, db, dc);
+		  int w = xdp_and_closed(da, db, dc);
+		  double p3 = std::pow(2, w);
 
 		  assert((p1 >= 0.0) && (p1 <= 1.0));
 		  assert((p2 >= 0.0) && (p2 <= 1.0));
@@ -101,8 +103,11 @@ void test_xdp_and_all()
 					__FILE__, __LINE__, da, db, dc, p1);
 		  printf("[%s:%d] XDP_AND_EX[(%8X,%8X)->%8X] = %6.5f\n", 
 					__FILE__, __LINE__, da, db, dc, p2);
+		  printf("[%s:%d] XDP_AND_CL[(%8X,%8X)->%8X] = %6.5f\n\n", 
+					__FILE__, __LINE__, da, db, dc, p3);
 
 		  assert(p1 == p2);
+		  assert(p1 == p3);
 		}
 	 }
   }
@@ -161,12 +166,12 @@ int main()
   srandom(time(NULL));
 
   // {--- MORUS tests ---
-  test_anddp_and_all();
+  //  test_anddp_and_all();
   // --- MORUS tests ---}
 
   //test_xdp_and();
   //  test_xdp_and_fbool();
   //  test_xdp_and_sf();
-  //  test_xdp_and_all();
+  test_xdp_and_all();
   return 0;
 }

@@ -57,11 +57,12 @@ void test_xdp_add()
   xdp_add_alloc_matrices(A);
   xdp_add_sf(A);
   xdp_add_normalize_matrices(A);
-  //  uint32_t h = 16;
+  //uint32_t h = 2;
+  // 7E FF 7F | -1
   // (80810301,AC000098)->12C810399
-  WORD_T da = 0xffffffff;//xrandom() & MASK;//gen_sparse(h, WORD_SIZE);//0x8081a0301;
-  WORD_T db = 0xffffffff;//xrandom() & MASK;//gen_sparse(h, WORD_SIZE);//xrandom() & MASK;//0xAC000098;
-  WORD_T dc = 0;//ADD(da, db);//xrandom() & MASK;//0x12C810399;
+  WORD_T da = 0x7ffffffe;//gen_sparse(h, WORD_SIZE);//0x8081a0301;
+  WORD_T db = 0xffffffff;//gen_sparse(h, WORD_SIZE);//xrandom() & MASK;//0xAC000098;
+  WORD_T dc = 0x7fffffff;//da ^ db;//gen_sparse(h, WORD_SIZE);//ADD(da, db);//xrandom() & MASK;//0x12C810399;
   double p0 = xdp_add_lm(da, db, dc);
   double p1 = xdp_add(A, da, db, dc);
   assert((p1 >= 0.0) && (p1 <= 1.0));
@@ -277,6 +278,54 @@ void test_xdp_add_lm()
   assert(p == p_part);
 }
 
+void test_xdp_add_sort()
+{
+  printf("[%s:%d] %s()\n", __FILE__, __LINE__, __FUNCTION__);
+  assert(WORD_SIZE < 10);
+  std::vector<differential_3d_t> diff_vec;
+  for(WORD_T da = 0; da < ALL_WORDS; da++) {
+	 for(WORD_T db = 0; db < ALL_WORDS; db++) {
+		for(WORD_T dc = 0; dc < ALL_WORDS; dc++) {
+		  double p = xdp_add_lm(da, db, dc);
+		  differential_3d_t diff;
+		  diff.dx = da;
+		  diff.dy = db;
+		  diff.dz = dc;
+		  diff.p = p;
+		  diff_vec.push_back(diff);
+		}
+	 }
+  }
+  std::sort(diff_vec.begin(), diff_vec.end(), sort_comp_diff_3d_p);
+
+  double p_prev = 1.0;
+  uint32_t cnt = 0;
+  for(std::vector<differential_3d_t>::iterator vec_iter = diff_vec.begin(); vec_iter != diff_vec.end(); vec_iter++) {
+	 differential_3d_t diff = *vec_iter;
+	 WORD_T da = diff.dx;
+	 WORD_T db = diff.dy;
+	 WORD_T dc = diff.dz;
+	 double p = diff.p;
+	 if(p != p_prev) {
+		printf("ndiffs = %d 2^%4.2f\n", cnt, log2(cnt));
+		printf("----------------------------------------------------------------\n");
+		p_prev = p;
+		cnt = 0;
+	 }
+	 cnt++;
+	 if(p != 0.0) {
+		print_binary(da); printf("\n");
+		print_binary(db); printf("\n");
+		print_binary(dc); printf("\n");
+		printf(" %X %X %X | %2.0f\n", da, db, dc, log2(p));
+	 }
+  }
+  printf("impossible diffs = %d 2^%4.2f\n", cnt, log2(cnt));
+  printf("----------------------------------------------------------------\n");
+  printf("[%s:%d] vec size: %d 2^%4.2f\n", __FILE__, __LINE__, (uint32_t)diff_vec.size(), log2(diff_vec.size()));
+}
+
+
 /**
  * Main function of XDP-ADD tests.
  */
@@ -285,14 +334,15 @@ int main()
   printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   srandom(time(NULL));
 
+  // test_xdp_add_sort();
   //  test_xdp_add_partition();
-  //  test_xdp_add();
+  test_xdp_add();
   //  assert(WORD_SIZE <= 10);
   //  test_xdp_add_print_matrices_sage();
   //  test_cap();
   //  test_aop();
   //  test_xdp_add_matrices();
-  test_xdp_add_all();
+  //  test_xdp_add_all();
   //  test_xdp_add_vs_lm_all();
   //  test_xdp_add_lm();
   return 0;

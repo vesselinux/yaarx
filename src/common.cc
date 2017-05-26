@@ -297,8 +297,8 @@ void print_set(const std::set<differential_t, struct_comp_diff_dx_dy> diff_set_d
 void print_mset(const std::multiset<differential_t, struct_comp_diff_p> diff_mset_p)
 {
   uint32_t cnt_elms = 0;
-  std::set<differential_t, struct_comp_diff_p>::iterator set_iter;
-  for(set_iter = diff_mset_p.begin(); set_iter != diff_mset_p.end(); set_iter++, cnt_elms++) {
+  //std::set<differential_t, struct_comp_diff_p>::iterator set_iter;
+  for(auto set_iter = diff_mset_p.begin(); set_iter != diff_mset_p.end(); set_iter++, cnt_elms++) {
 		uint32_t dx = set_iter->dx;
 		uint32_t dy = set_iter->dy;
 		double p = set_iter->p;

@@ -92,10 +92,10 @@ void test_tea_f_add_pddt_vs_full_ddt()
   adp_xor3_normalize_matrices(A);
 
   uint32_t key[4];
-  key[0] = xrandom() & MASK;
-  key[1] = xrandom() & MASK;
-  key[2] = xrandom() & MASK;
-  key[3] = xrandom() & MASK;
+  key[0] = random32() & MASK;
+  key[1] = random32() & MASK;
+  key[2] = random32() & MASK;
+  key[3] = random32() & MASK;
 
   uint32_t k0 = 0;
   uint32_t k1 = 0;
@@ -153,7 +153,7 @@ void test_tea_f_add_pddt_vs_full_ddt()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
   srandom(time(NULL));
   test_tea_f_add_pddt_vs_full_ddt();
   return 0;

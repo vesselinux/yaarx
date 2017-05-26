@@ -56,18 +56,18 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
   assert(word_size <= WORD_SIZE);
   assert(word_size > 0);
 
-#if 0 // DEBUG
+#if 1 // DEBUG
   printf("[%s:%d] Enter %s() %X %X %X %d\n", __FILE__, __LINE__, __FUNCTION__, 
 			ma, mb, mc, word_size);
 #endif // #if 1 // DEBUG
 
-#if 0 // DEBUG
+#if 1 // DEBUG
   printf("ma = ");
-  print_binary(ma);
+  print_binary(ma, word_size);
   printf("\nmb = ");
-  print_binary(mb);
+  print_binary(mb, word_size);
   printf("\nmc = ");
-  print_binary(mc);
+  print_binary(mc, word_size);
   printf("\n");
 #endif // #if 1 // DEBUG
 
@@ -82,15 +82,16 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
 	 const WORD_T index = ibit; // index of S
 	 WORD_T cnt_b7 = 0; // counting 7-states
 
-#if 0 // DEBUG
-	 if(!(get_masks_rev_ibit(ma, mb, mc, word_size, index) == S[index])) {
-		WORD_T word = get_masks_rev_ibit(ma, mb, mc, word_size, index);
-		printf("[%s:%d] ibit %d masks %X %X %X | word %X S %X\n", __FILE__, __LINE__, index, ma, mb, mc, word, S[index]);
-	 }
-	 assert(get_masks_rev_ibit(ma, mb, mc, word_size, index) == S[index]);
-#endif // #if 0 // DEBUG
-
 	 WORD_T S_index = get_masks_rev_ibit(ma, mb, mc, word_size, index);
+
+#if 1 // DEBUG
+	 printf("[%s:%d] %2d S_index %2d\n", __FILE__, __LINE__, ibit, S_index);
+	 if(!(get_masks_rev_ibit(ma, mb, mc, word_size, index) == S_index)) {
+		WORD_T word = get_masks_rev_ibit(ma, mb, mc, word_size, index);
+		printf("[%s:%d] ibit %d masks %X %X %X | word %X S %X\n", __FILE__, __LINE__, index, ma, mb, mc, word, S_index);
+	 }
+	 assert(get_masks_rev_ibit(ma, mb, mc, word_size, index) == S_index);
+#endif // #if 0 // DEBUG
 
 	 if(S_index == 7) {
 
@@ -100,8 +101,8 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
 		  cnt_b7++; // count 7-block
 		  ibit++; // move to next bit
 		}
-		//		w = w + (cnt_b7 / 2); // increase exponent by the number of 7-block tuples
-		w = w + (cnt_b7 >> 1); // increase exponent by the number of 7-block tuples
+		//		w = w + (cnt_b7 / 2); // increase exponent by the number of 7-blocks divided by 2 (floor i.e. 1/2 = 1)
+		w = w + (cnt_b7 >> 1); // increase exponent by the number of 7-blocks divided by 2 (floor i.e. 1/2 = 1)
 		if(cnt_b7 & 1) { // if odd number of 7-blocks - change state from 0/1 tp 1/0
 		  if(state == 1) {
 			 w++;
@@ -109,7 +110,7 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
 		  state = 1 - state; // switch state
 		  assert((state == 0) || (state == 1));
 		}
-		//		printf("[%s:%d] cnt_b7 = %d (cnt_b7 / 2) = %d state %d w %d\n", __FILE__, __LINE__, cnt_b7, cnt_b7 / 2, state, w);
+		printf("[%s:%d] cnt_b7 = %d (cnt_b7 / 2) = %d state %d w %d\n", __FILE__, __LINE__, cnt_b7, cnt_b7 / 2, state, w);
 	 }
 
 	 if(S_index == 0) {
@@ -154,9 +155,9 @@ inline double xlc_add(const WORD_T ma, const WORD_T mb, const WORD_T mc, const W
 	 corr_abs = (double) 1.0 / (double)(1ULL << w); // efficient pow(2, w)
   }
 
-#if 0 // DEBUG
-  printf("[%s:%d]  Exit %s() %X %X %X %d %4.2f\n", __FILE__, __LINE__, __FUNCTION__, 
-			ma, mb, mc, word_size, corr_abs);
+#if 1 // DEBUG
+  printf("[%s:%d]  Exit %s() %X %X %X %d %4.2f w %2d\n", __FILE__, __LINE__, __FUNCTION__, 
+			ma, mb, mc, word_size, corr_abs, w);
 #endif // #if 1 // DEBUG
 
   //  printf("Exit corr_abs %4.2f w %d\n", corr_abs, w);
@@ -245,7 +246,7 @@ inline int xlc_add_log2(const uint32_t ma, const uint32_t mb, const uint32_t mc,
 				w = w - (cnt_b7 >> 1); /* increase exponent by the number of 7-block tuples */
 				if (cnt_b7 & 1)
 				{
-					/* if odd number of 7-blocks - change state from 0/1 tp 1/0 */
+					/* if odd number of 7-blocks - change state from 0/1 to 1/0 */
 					if (state == 1)
 					{
 						w = w - 1;

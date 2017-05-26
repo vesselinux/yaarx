@@ -124,8 +124,8 @@ const double g_best_B[NROUNDS_MAX] = {
  * If UPDATE_BOUND is false then the algorithm will find ALL trails
  * with probability (g_Bn * EPS) or higher.
  */
-#define UPDATE_BOUND false
-#define EPS (1.0 / (double)(1ULL <<  2))
+#define UPDATE_BOUND true//false
+#define EPS (1.0 / (double)(1ULL <<  0))
 double g_Bn = g_best_B[NROUNDS - 1] * EPS; // underestimated bound for round n
 differential_3d_t g_T[NROUNDS] = {{0, 0, 0, 0.0, LOG0}}; // trail
 differential_3d_t g_best_T[NROUNDS] = {{0, 0, 0, 0.0, LOG0}}; // best trail
@@ -307,7 +307,7 @@ void speck_add_diff_to_trail(differential_3d_t T[NROUNDS], const uint32_t i, con
   assert(T[i].p == 0.0);
   assert(T[i].log2p == LOG0);
 
-#if 1 // DEBUG
+#if 0 // DEBUG
   double p = xdp_add_lm(new_diff.dx, new_diff.dy, new_diff.dz);
   assert(p == new_diff.p);
 #endif // #if 0
@@ -335,7 +335,7 @@ void speck_remove_diff_from_trail(differential_3d_t T[NROUNDS], const uint32_t i
 }
 
 /**
- * Print the trail T
+ * Init the trail T
  */
 void speck_init_diff_trail(differential_3d_t T[NROUNDS])
 {
@@ -1071,8 +1071,8 @@ void speck_best_diff_search_log2()
 #if 0
   speck_print_diff_trail_log2(g_best_T);
   speck_print_diff_trail_cstyle_log2(g_best_T);
-#endif // #if 0
   speck_print_diff_trail_latex_log2(g_best_T);
+#endif // #if 0
 #endif // #if (NROUNDS == 4)
 }
 
@@ -1258,9 +1258,9 @@ int main()
 
   srandom(time(NULL));
 
-  speck_best_diff_search();
+  //  speck_best_diff_search();
   //  test_speck_best_diff_search_full();
-  //  speck_best_diff_search_log2();
+  speck_best_diff_search_log2();
   //  test_xdp_add_lm();
   //  test_speck_convert_diff_trail_to_differentials();
   //  test_xdp_add_monotonous_decrease();

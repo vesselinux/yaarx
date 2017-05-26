@@ -56,9 +56,9 @@ uint32_t adp_xor_ddt_exper(std::multiset<differential_3d_t, struct_comp_diff_3d_
 		  double p = adp_xor(A, da, db, dc);
 		  if(p >= p_thres) {
 			 differential_3d_t i_diff;
-			 i_diff.dx = da;
-			 i_diff.dy = db;
-			 i_diff.dz = dc;
+			 i_diff.da = da;
+			 i_diff.db = db;
+			 i_diff.dc = dc;
 			 i_diff.p = p;
 			 diff_set->insert(i_diff);
 			 cnt++;
@@ -127,9 +127,9 @@ void adp_xor_pddt_i(const uint32_t k, const uint32_t n, const double p_thres,
 	 assert(*p >= p_thres);
 #if 1									  // store the difference
 	 differential_3d_t i_diff;
-	 i_diff.dx = *da;
-	 i_diff.dy = *db;
-	 i_diff.dz = *dc;
+	 i_diff.da = *da;
+	 i_diff.db = *db;
+	 i_diff.dc = *dc;
 	 i_diff.p = *p;
 	 diff_set->insert(i_diff);
 #endif  // #if 0									  // do not store the difference
@@ -204,10 +204,10 @@ void adp_xor_ddt(uint32_t n, double p_thres)
   std::multiset<differential_3d_t, struct_comp_diff_3d_p>::iterator set_iter;
   for(set_iter = diff_set.begin(); set_iter != diff_set.end(); set_iter++) {
 	 differential_3d_t i_diff = *set_iter;
-	 double p_the = adp_xor(A, i_diff.dx, i_diff.dy, i_diff.dz);
+	 double p_the = adp_xor(A, i_diff.da, i_diff.db, i_diff.dc);
 #if 0									  // print all
 	 printf("[%s:%d] %4d: ADP_XOR_THRES[(%8X,%8X)->%8X] = %6.5f\n", 
-			  __FILE__, __LINE__, cnt, i_diff.dx, i_diff.dy, i_diff.dz, i_diff.p);
+			  __FILE__, __LINE__, cnt, i_diff.da, i_diff.db, i_diff.dc, i_diff.p);
 #endif				 // #if 0
 	 assert(p_the == i_diff.p);
 	 cnt++;

@@ -33,9 +33,9 @@
 
 void test_adp_lrot()
 {
-  WORD_T da = 0;//0x80000000;//xrandom() & MASK;
-  WORD_T db = 0;//0xffffffff;//xrandom() & MASK;
-  WORD_T r = 0;//xrandom() % WORD_SIZE;
+  WORD_T da = 0xffffffff;//0x80000000;//xrandom() & MASK;
+  WORD_T db = 0xffffffff;//xrandom() & MASK;
+  WORD_T r = xrandom() % WORD_SIZE;
   double p_th = adp_lrot(da, db, r);
   printf("[%s:%d] ADP_LROT_TH(%2lld | %16llX -> %16llX) %f (2^%f)\n", __FILE__, __LINE__, 
 			(WORD_MAX_T)r, (WORD_MAX_T)da, (WORD_MAX_T)db, p_th, log2(p_th));
@@ -257,10 +257,10 @@ int main()
   srandom(time(NULL));
   printf("[%s:%d] WORD_SIZE %2d\n", __FILE__, __LINE__, WORD_SIZE);
   //  test_adp_lrot2();
-  //  test_adp_lrot();
+  test_adp_lrot();
   //  test_adp_lrot_all();
   //  test_adp_lrot_rand();
-  test_rc5_dp_ddrot();
+  //  test_rc5_dp_ddrot();
   return 0;
 }
 

@@ -45,10 +45,10 @@ void test_tea_add_trail_search()
   double B[NROUNDS] = {0.0};
   differential_t trail[NROUNDS] = {{0, 0, 0, 0.0}};
   uint32_t key[4];
-  key[0] = xrandom() & MASK;
-  key[1] = xrandom() & MASK;
-  key[2] = xrandom() & MASK;
-  key[3] = xrandom() & MASK;
+  key[0] = random32() & MASK;
+  key[1] = random32() & MASK;
+  key[2] = random32() & MASK;
+  key[3] = random32() & MASK;
 
   // EBFC4336 D0D3E14E E11CB47B 2FFCBD53
 #if 0									  // ok
@@ -360,13 +360,13 @@ key[3] = 0xBCB300A3;*/
   for(uint32_t n = 0; n < N; n++) {
 
 	 // cnt_good = [1024 / 1024] if k2 and k3 are fixed
-	 //	 key[0] = xrandom() & MASK;
+	 //	 key[0] = random32() & MASK;
 	 //	 key[1] = k1 + key[0] - k0;
 	 //	 key[3] = k3 + key[2] - k2;
-	 key[0] = xrandom() & MASK;
-	 key[1] = xrandom() & MASK;
-	 key[2] = xrandom() & MASK;
-	 key[3] = xrandom() & MASK;
+	 key[0] = random32() & MASK;
+	 key[1] = random32() & MASK;
+	 key[2] = random32() & MASK;
+	 key[3] = random32() & MASK;
 
 	 uint32_t x = 9;//10;
 	 uint32_t mask_1 = 0xFFFFFFFF << x;

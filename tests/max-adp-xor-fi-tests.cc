@@ -41,8 +41,8 @@ void test_max_adp_xor_fixed_input()
   adp_xor_fixed_input_alloc_matrices(A);
   adp_xor_fixed_input_sf(A);
   adp_xor_fixed_input_normalize_matrices(A);
-  uint32_t a = xrandom() & MASK;
-  uint32_t db = xrandom() & MASK;
+  uint32_t a = random32() & MASK;
+  uint32_t db = random32() & MASK;
   uint32_t dc = 0;
   double p1 = max_adp_xor_fixed_input(A, a, db, &dc);
   assert((p1 >= 0.0) && (p1 <= 1.0));

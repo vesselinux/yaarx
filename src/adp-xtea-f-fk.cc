@@ -116,7 +116,7 @@ double adp_xtea_f_approx(const uint32_t ninputs,
 
   for(uint32_t i = 0; i < N; i++) {
 
-	 uint32_t a1 = xrandom() & MASK;
+	 uint32_t a1 = random32() & MASK;
 	 uint32_t a2 = ADD(a1, da);
 
 	 uint32_t b1 = xtea_f(a1, k, delta, lsh_const, rsh_const);
@@ -250,7 +250,7 @@ double adp_xtea_f_lxr_approx(const uint32_t ninputs, const uint32_t da, const ui
 
   for(uint32_t i = 0; i < N; i++) {
 
-	 uint32_t a1 = xrandom() & MASK;
+	 uint32_t a1 = random32() & MASK;
 	 uint32_t a2 = ADD(a1, da);
 
 	 uint32_t b1 = xtea_f_lxr(a1, lsh_const, rsh_const);

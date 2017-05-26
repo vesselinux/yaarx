@@ -46,9 +46,9 @@ void test_max_adp_xor3_rec()
   gsl_vector* C = gsl_vector_calloc(ADP_XOR3_MSIZE);
   gsl_vector_set(C, ADP_XOR3_ISTATE, 1.0);
 
-  uint32_t da = xrandom() & MASK;
-  uint32_t db = xrandom() & MASK;
-  uint32_t dc = xrandom() & MASK;
+  uint32_t da = random32() & MASK;
+  uint32_t db = random32() & MASK;
+  uint32_t dc = random32() & MASK;
   uint32_t dd_max = 0;
 
   max_adp_xor3_rec(A, C, da, db, dc, &dd_max);
@@ -134,7 +134,7 @@ void test_max_adp_xor3_is_max()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
   if(WORD_SIZE <= 5) {
 	 test_max_adp_xor3_is_max();
 	 test_max_adp_xor3_rec();

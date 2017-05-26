@@ -95,6 +95,9 @@ void xdp_and_bf(uint32_t A[2][2][2])
  */
 double xdp_and(uint32_t A[2][2][2], uint32_t da, uint32_t db, uint32_t dc)
 {
+  assert(WORD_SIZE < 64);
+  double p = 0.0;
+#if(WORD_SIZE < 64)
   uint32_t cnt = 1;
   for(int pos = 0; pos < WORD_SIZE; pos++) {
 	 uint32_t i = (da >> pos) & 1;
@@ -105,7 +108,8 @@ double xdp_and(uint32_t A[2][2][2], uint32_t da, uint32_t db, uint32_t dc)
 #if 0									  // DEBUG
   printf("[%s:%d] cnt %d\n", __FILE__, __LINE__, cnt);
 #endif
-  double p = (double)cnt / (double)(ALL_WORDS * ALL_WORDS);
+  p = (double)cnt / (double)(ALL_WORDS * ALL_WORDS);
+#endif // #if(WORD_SIZE < 64)
   return p;
 }
 
@@ -121,6 +125,8 @@ bool xdp_and_is_nonzero(uint32_t da, uint32_t db, uint32_t dc)
 double xdp_and_exper(uint32_t da, uint32_t db, uint32_t dc)
 {
   assert(WORD_SIZE <= 10);
+  double p = 0.0;
+#if (WORD_SIZE <= 10)
   uint32_t cnt = 0;
   for(uint32_t x = 0; x < ALL_WORDS; x++) {
 	 for(uint32_t y = 0; y < ALL_WORDS; y++) {
@@ -134,6 +140,27 @@ double xdp_and_exper(uint32_t da, uint32_t db, uint32_t dc)
 		}
 	 }
   }
-  double p = (double)cnt / (double)(ALL_WORDS * ALL_WORDS);
+  p = (double)cnt / (double)(ALL_WORDS * ALL_WORDS);
+#endif // #if (WORD_SIZE <= 10)
   return p;
 }
+
+bool xdp_and_is_zero(uint32_t da, uint32_t db, uint32_t dc)
+{
+  uint32_t c = ((da ^ db ^ dc) & (~(da | db))) & MASK;
+  bool b_xdp_and_iszero = !(c == 0);
+  return b_xdp_and_iszero;
+}
+
+// closed formula
+int xdp_and_closed(uint32_t da, uint32_t db, uint32_t dc)
+{
+  int res = LOG0;
+  //  if(!xdp_and_is_nonzero(da, db, dc)) {
+  if(xdp_and_is_zero(da, db, dc)) {
+	 return res;
+  }
+  res = -hamming_weight((da | db) & MASK);
+  return res;
+}
+
