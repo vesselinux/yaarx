@@ -37,7 +37,8 @@
 void test_adp_xor_ddt()
 {
   uint32_t n = WORD_SIZE;
-  double p_thres = 0.05;
+  //double p_thres = 0.05;
+  double p_thres = 0.1;
   adp_xor_ddt(n, p_thres);
 }
 
@@ -46,8 +47,8 @@ void test_adp_xor_ddt()
  */
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
-  assert(WORD_SIZE <= 10);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  //  assert(WORD_SIZE <= 10);
   srandom(time(NULL));
   test_adp_xor_ddt();
   return 0;

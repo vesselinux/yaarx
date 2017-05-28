@@ -877,13 +877,13 @@ $(OBJ_PATH)xdp-add-pddt-tests.o: $(TESTS_PATH)xdp-add-pddt-tests.cc
 
 ADP_XOR_PDDT_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-pddt.o $(OBJ_PATH)adp-xor-pddt-tests.o
 
-adp-xor-pddt-tests: common.o adp-xor.o adp-xor-pddt.o adp-xor-pddt-tests.o
+adp-xor-pddt-tests: $(OBJ_PATH)common.o $(OBJ_PATH)adp-xor.o $(OBJ_PATH)adp-xor-pddt.o $(OBJ_PATH)adp-xor-pddt-tests.o
 	$(CC) $(LFLAGS) $(ADP_XOR_PDDT_TESTS_OBJ) -o $(BIN_PATH)adp-xor-pddt-tests $(LIBS)
 
-adp-xor-pddt.o: 
+$(OBJ_PATH)adp-xor-pddt.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(SOURCE_PATH)adp-xor-pddt.cc -o $(OBJ_PATH)adp-xor-pddt.o
 
-adp-xor-pddt-tests.o: 
+$(OBJ_PATH)adp-xor-pddt-tests.o: 
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(TESTS_PATH)adp-xor-pddt-tests.cc -o $(OBJ_PATH)adp-xor-pddt-tests.o
 
 # --- ADP-ARX ---

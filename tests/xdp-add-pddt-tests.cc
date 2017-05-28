@@ -38,7 +38,8 @@ void test_xdp_add_pddt()
 {
   uint32_t n = WORD_SIZE;
   double p_thres = 0.1;
-  uint32_t max_size = (1ULL << 20);
+  //  uint32_t max_size = (1ULL << 20);
+  uint64_t max_size = (1ULL << 32); // Maximum number of elements stored in the pDDT
 
   // init A
   gsl_matrix* A[2][2][2];
@@ -69,11 +70,13 @@ void test_xdp_add_pddt()
 	 assert(p_the == i_diff.p);
 	 cnt++;
   }
+#if (WORD_SIZE < 10)  
   std::multiset<differential_3d_t, struct_comp_diff_3d_p> diff_mset_p_exper;
   xdp_add_pddt_exper(&diff_mset_p_exper, p_thres);
   printf("[%s:%d] THE #%d, EXP #%d\n", __FILE__, __LINE__, diff_mset_p.size(), diff_mset_p_exper.size());
   assert(diff_mset_p.size() == diff_mset_p_exper.size());
-
+#endif // #if (WORD_SIZE < 10)  
+  
   gsl_vector_free(C);
   xdp_add_free_matrices(A);
 }
@@ -83,8 +86,8 @@ void test_xdp_add_pddt()
  */
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
-  assert(WORD_SIZE <= 10);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
+  //  assert(WORD_SIZE <= 10);
   srandom(time(NULL));
   test_xdp_add_pddt();
   return 0;
