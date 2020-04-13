@@ -104,7 +104,7 @@ void test_adp_xor_fixed_input_print_matrices_sage()
 
 int main()
 {
-  printf("# [%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("# [%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   srandom(time(NULL));
 
   test_adp_xor_fixed_input();

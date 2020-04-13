@@ -540,7 +540,7 @@ uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t
   print_mset(diff_mset_p);
 #endif
 
-  printf("Initial set sizes: Dp %d, Dxy %d\n", diff_mset_p->size(), diff_set_dx_dy->size());
+  printf("Initial set sizes: Dp %d, Dxy %d\n", (uint32_t)diff_mset_p->size(), (uint32_t)diff_set_dx_dy->size());
   assert(diff_set_dx_dy->size() == diff_mset_p->size());
   assert(diff_set_dx_dy->size() != 0);
 
@@ -557,7 +557,7 @@ uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t
   do {
 	 nrounds++;
 
-	 printf("[%s:%d] nrounds = %d, Bn_init = 2^%f, Dp %d Dxy %d\n", __FILE__, __LINE__, nrounds, log2(Bn_init), diff_mset_p->size(), diff_set_dx_dy->size());
+	 printf("[%s:%d] nrounds = %d, Bn_init = 2^%f, Dp %d Dxy %d\n", __FILE__, __LINE__, nrounds, log2(Bn_init), (uint32_t)diff_mset_p->size(), (uint32_t)diff_set_dx_dy->size());
 
 	 double Bn = Bn_init;		  // initial bound
 	 B[nrounds - 1] = Bn_init;
@@ -585,7 +585,7 @@ uint32_t xtea_xor_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t
 		}
 		printf("\n");
 	 }
-	 printf("pDDT sizes: Dp %d, Dxy %d\n", diff_mset_p->size(), diff_set_dx_dy->size());
+	 printf("pDDT sizes: Dp %d, Dxy %d\n", (uint32_t)diff_mset_p->size(), (uint32_t)diff_set_dx_dy->size());
 	 assert(diff_mset_p->size() == diff_set_dx_dy->size());
 #endif
 #if 1									  // INFO
@@ -662,7 +662,7 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 #endif  // #if XTEA_P_ADJUST_APPROX
 
 #if 1									  // DEBUG
-		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
+		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, (uint32_t)diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
 		fflush(stdout);
 #endif
 		if((pn >= *Bn) && (pn != 0.0)) { // discard zero probability
@@ -752,7 +752,7 @@ void xtea_xor_threshold_search_full(const int n, const int nrounds, const uint32
 	 if(cnt_new != 0) {
 #if 1									  // DEBUG
 		printf("\r[%s:%d] [%2d / %2d]: Added %d new country roads: p_min = %f (2^%f). New sizes: Dp %d Dxy %d.", 
-				 __FILE__, __LINE__, n, NROUNDS, cnt_new, p_min, log2(p_min), diff_mset_p->size(), diff_set_dx_dy->size());
+				 __FILE__, __LINE__, n, NROUNDS, cnt_new, p_min, log2(p_min), (uint32_t)diff_mset_p->size(), (uint32_t)diff_set_dx_dy->size());
 		fflush(stdout);
 #endif
 	 }
@@ -1033,7 +1033,7 @@ uint32_t xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uin
 #endif
 #endif  // #if 0
 
-  printf("Initial set sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+  printf("Initial set sizes: Dp %d, Dxy %d\n", (uint32_t)diff_mset_p.size(), (uint32_t)diff_set_dx_dy.size());
   assert(diff_set_dx_dy.size() == diff_mset_p.size());
 
   // initial bound
@@ -1083,7 +1083,7 @@ uint32_t xtea_xor_trail_search_full(uint32_t key[4], uint32_t round_key[64], uin
 		}
 		printf("\n");
 	 }
-	 printf("pDDT sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+	 printf("pDDT sizes: Dp %d, Dxy %d\n", (uint32_t)diff_mset_p.size(), (uint32_t)diff_set_dx_dy.size());
 #endif
 #if 1									  // INFO
 	 double p_tot = 1.0;

@@ -199,7 +199,7 @@ void adp_xor_ddt(uint32_t n, double p_thres)
   adp_xor_pddt_i(k, n, p_thres, A, C, &da, &db, &dc, &p, &diff_set);
 
   printf("[%s:%d] p_thres = %f (2^%f), n = %d, #diffs = %d\n", __FILE__, __LINE__, 
-			p_thres, log2(p_thres), WORD_SIZE, diff_set.size());
+	 p_thres, log2(p_thres), WORD_SIZE, (WORD_T)diff_set.size());
   uint32_t cnt = 0;
   std::multiset<differential_3d_t, struct_comp_diff_3d_p>::iterator set_iter;
   for(set_iter = diff_set.begin(); set_iter != diff_set.end(); set_iter++) {

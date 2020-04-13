@@ -362,7 +362,7 @@ void test_max_adp_arx_is_max_all()
  */
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   srandom(time(NULL));
 
 #if 1									  // MAX-ADP-ARX

@@ -242,7 +242,7 @@ void test_nz_xdp_xtea_f()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X ", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX ", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   printf("XTEA_LSH_CONST = %d, XTEA_RSH_CONST = %d\n", TEA_LSH_CONST, TEA_RSH_CONST);
   srandom(time(NULL));
 

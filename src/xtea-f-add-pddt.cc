@@ -170,7 +170,7 @@ void xtea_f_add_pddt_i(const uint32_t k, const uint32_t n, const uint32_t key, c
 #if 1									  // DEBUG
 		  bool b_found = (diff_set_dx_dy->find(diff) != diff_set_dx_dy->end());
 		  if(!b_found) {
-			 printf("[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d\n", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), diff_set_dx_dy->size());
+		    printf("[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d\n", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), (WORD_T)diff_set_dx_dy->size());
 		  }
 #endif
 		  diff_set_dx_dy->insert(diff);

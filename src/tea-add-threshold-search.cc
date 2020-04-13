@@ -601,7 +601,7 @@ void tea_add_threshold_search_full(const int n, const int nrounds, const uint32_
 		pn = tea_add_diff_adjust_to_key(npairs, n, dx, dy, key); // adjust the probability to the fixed round key
 #endif // #if 0 
 #if 1									  // DEBUG
-		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
+		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, (uint32_t)diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
 		fflush(stdout);
 #endif
 		if((pn >= *Bn) && (pn != 0.0)) {
@@ -752,7 +752,7 @@ void tea_add_threshold_search_full(const int n, const int nrounds, const uint32_
 		if(cnt_new != 0) {
 #if 1									  // DEBUG
 		  printf("\r[%s:%d] [%2d / %2d]: Added %d new country roads: p_min = %f (2^%f). New sizes: Dxy %d, Dp %d (cnt_lp %d / %d).", 
-					__FILE__, __LINE__, n, NROUNDS, cnt_new, p_min, log2(p_min), croads_diff_set_dx_dy->size(), croads_diff_mset_p->size(), cnt_lp, max_lp);
+					__FILE__, __LINE__, n, NROUNDS, cnt_new, p_min, log2(p_min), (uint32_t)croads_diff_set_dx_dy->size(), (uint32_t)croads_diff_mset_p->size(), cnt_lp, max_lp);
 		  fflush(stdout);
 #endif
 		}
@@ -1057,7 +1057,7 @@ uint32_t tea_add_trail_search(uint32_t key[4], double B[NROUNDS], differential_t
   print_mset(diff_mset_p);
 #endif
 
-  printf("Initial set sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+  printf("Initial set sizes: Dp %d, Dxy %d\n", (uint32_t)diff_mset_p.size(), (uint32_t)diff_set_dx_dy.size());
   assert(diff_set_dx_dy.size() == diff_mset_p.size());
 
   double p_rand = 1.0 / (double)(1ULL << ((2 * WORD_SIZE) - 1));
@@ -1095,7 +1095,7 @@ uint32_t tea_add_trail_search(uint32_t key[4], double B[NROUNDS], differential_t
 		}
 		printf("\n");
 	 }
-	 printf("pDDT sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+	 printf("pDDT sizes: Dp %d, Dxy %d\n", (uint32_t)diff_mset_p.size(), (uint32_t)diff_set_dx_dy.size());
 #endif
 #if 1									  // DEBUG
 	 double p_tot = 1.0;
@@ -1235,7 +1235,7 @@ uint32_t tea_add_trail_search_full(uint32_t key[4], double BB[NROUNDS], differen
   tea_f_add_pddt_adjust_to_key(num_rounds, npairs, key, p_thres, &diff_set_dx_dy);
   tea_f_add_pddt_dxy_to_dp(&diff_mset_p, diff_set_dx_dy);
 
-  printf("Initial set sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+  printf("Initial set sizes: Dp %d, Dxy %d\n", (uint32_t)diff_mset_p.size(), (uint32_t)diff_set_dx_dy.size());
   assert(diff_set_dx_dy.size() == diff_mset_p.size());
 
   double p_rand = 1.0 / (double)(1ULL << ((2 * WORD_SIZE) - 1));
@@ -1318,7 +1318,7 @@ uint32_t tea_add_trail_search_full(uint32_t key[4], double BB[NROUNDS], differen
 		printf("\n");
 	 }
 	 //	 printf("pDDT sizes: Dp %d, Dxy %d | Cp %d, Cxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size(), croads_diff_mset_p.size(), croads_diff_set_dx_dy.size());
-	 printf("pDDT sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+	 printf("pDDT sizes: Dp %d, Dxy %d\n", (WORD_T)diff_mset_p.size(), (WORD_T)diff_set_dx_dy.size());
 #endif
 #if 1									  // DEBUG
 	 double p_tot = 1.0;

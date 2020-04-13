@@ -134,7 +134,7 @@ void test_max_adp_xor3_is_max()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   if(WORD_SIZE <= 5) {
 	 test_max_adp_xor3_is_max();
 	 test_max_adp_xor3_rec();

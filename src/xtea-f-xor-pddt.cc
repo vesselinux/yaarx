@@ -107,7 +107,7 @@ void xtea_f_xor_pddt_i(const uint32_t k, const uint32_t n,
 		  bool b_found = (diff_set_dx_dy->find(diff) != diff_set_dx_dy->end());
 		  if(!b_found) {
 			 //			 printf("[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d\n", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), diff_set_dx_dy->size());
-			 printf("\r[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), diff_set_dx_dy->size());
+			 printf("\r[%s:%d] Dxy add %8X -> %8X  | %f = 2^%4.2f | %15d", __FILE__, __LINE__, diff.dx, diff.dy, diff.p, log2(diff.p), (uint32_t)diff_set_dx_dy->size());
 			 fflush(stdout);
 		  }
 #endif

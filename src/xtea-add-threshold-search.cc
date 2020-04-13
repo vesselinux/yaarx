@@ -444,7 +444,7 @@ void xtea_add_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t rou
 
   xtea_add_pddt_dxy_to_dp(&diff_mset_p, diff_set_dx_dy);
 
-  printf("Initial set sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+  printf("Initial set sizes: Dp %d, Dxy %d\n", (WORD_T)diff_mset_p.size(), (WORD_T)diff_set_dx_dy.size());
   assert(diff_set_dx_dy.size() == diff_mset_p.size());
 
   // initial bound
@@ -479,7 +479,7 @@ void xtea_add_trail_search(uint32_t key[4], uint32_t round_key[64], uint32_t rou
 		}
 		printf("\n");
 	 }
-	 printf("pDDT sizes: Dp %d, Dxy %d\n", diff_mset_p.size(), diff_set_dx_dy.size());
+	 printf("pDDT sizes: Dp %d, Dxy %d\n", (WORD_T)diff_mset_p.size(), (WORD_T)diff_set_dx_dy.size());
 #endif
 #if 1									  // INFO
 	 double p_tot = 1.0;

@@ -55,7 +55,7 @@ void test_xdp_add_pddt()
   std::set<differential_3d_t, struct_comp_diff_3d_dx_dy_dz> diff_set_dx_dy_dz;
   xdp_add_pddt(n, p_thres, max_size, &diff_set_dx_dy_dz, &diff_mset_p);
   printf("[%s:%d] p_thres = %f (2^%f), n = %d, #diffs = %d %d\n", __FILE__, __LINE__, 
-			p_thres, log2(p_thres), WORD_SIZE, diff_set_dx_dy_dz.size(), diff_mset_p.size());
+	 p_thres, log2(p_thres), WORD_SIZE, (WORD_T)diff_set_dx_dy_dz.size(), (WORD_T)diff_mset_p.size());
   assert(diff_set_dx_dy_dz.size() == diff_mset_p.size());
   uint32_t cnt = 0;
 

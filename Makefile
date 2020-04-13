@@ -15,7 +15,8 @@ COMPILE_WITH_CODING_TOOL_LIB = 1
 #CFLAGS = -O2 -std=c++0x -Wall -c 
 #CFLAGS = -O1 -std=c++0x -Wall -c 
 #CFLAGS = -O3 -std=c++11 -Wall -DNDEBUG -c
-CFLAGS = -O3 -std=c++11 -Wall -c
+#CFLAGS = -O3 -std=c++11 -Wall -c
+CFLAGS = -std=c++11 -Wall -c
 #CFLAGS = -ggdb -std=c++11 -Wall -c
 #CFLAGS = -O3 -Wall -std=c++11 -pg -c # profiling with gprof
 #CFLAGS = -ggdb -Wall -Wextra -pedantic -std=c++11 -Wshadow -Wformat=2 -Wfloat-equal -Wconversion -Wlogical-op -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2 -fstack-protector -c # codeforces tricks

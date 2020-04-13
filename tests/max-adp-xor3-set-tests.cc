@@ -196,7 +196,7 @@ void test_max_adp_xor3_set_is_max_rand()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X, ADP_XOR3_SET_SIZE = %d\n", __FILE__, __LINE__, WORD_SIZE, MASK, ADP_XOR3_SET_SIZE);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX, ADP_XOR3_SET_SIZE = %d\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK, ADP_XOR3_SET_SIZE);
   test_max_adp_xor3_set();
   if((WORD_SIZE <= 4) && (ADP_XOR3_SET_SIZE == 2)) {
 	 test_max_adp_xor3_set_is_max_all();

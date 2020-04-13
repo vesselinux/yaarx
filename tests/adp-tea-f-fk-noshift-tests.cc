@@ -148,7 +148,7 @@ void test_adp_f_op_noshift_exper()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X ", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX ", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   printf("TEA_LSH_CONST = %d, TEA_RSH_CONST = %d\n", TEA_LSH_CONST, TEA_RSH_CONST);
   srandom(time(NULL));
 

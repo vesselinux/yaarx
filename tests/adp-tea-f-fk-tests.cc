@@ -582,7 +582,7 @@ void test_max_dx_dy_adp_f_fk_vs_exper_all()
 
 int main()
 {
-  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X ", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("[%s:%d] Tests, WORD_SIZE  = %d, MASK = %llX\n", __FILE__, __LINE__, WORD_SIZE, (WORD_MAX_T)MASK);
   printf("TEA_LSH_CONST = %d, TEA_RSH_CONST = %d\n", TEA_LSH_CONST, TEA_RSH_CONST);
   srandom(time(NULL));
 
