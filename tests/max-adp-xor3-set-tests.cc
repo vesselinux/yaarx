@@ -43,11 +43,11 @@ void test_max_adp_xor3_set()
   adp_xor3_sf(A);
   adp_xor3_normalize_matrices(A);
 
-  uint32_t da = random32() & MASK;
-  uint32_t db = random32() & MASK;
+  uint32_t da = xrandom() & MASK;
+  uint32_t db = xrandom() & MASK;
   uint32_t dc[ADP_XOR3_SET_SIZE] = {0};
   for(uint32_t j = 0; j < ADP_XOR3_SET_SIZE; j++) {
-	 dc[j] = random32() & MASK;
+	 dc[j] = xrandom() & MASK;
   }
   double p_dc[ADP_XOR3_SET_SIZE];
   for(uint32_t j = 0; j < ADP_XOR3_SET_SIZE; j++) {
@@ -93,7 +93,7 @@ void test_max_adp_xor3_set_is_max_all()
 
 			 uint32_t dc[ADP_XOR3_SET_SIZE] = {0};
 			 for(uint32_t j = 0; j < ADP_XOR3_SET_SIZE; j++) {
-				dc[j] = random32() & MASK;
+				dc[j] = xrandom() & MASK;
 			 }
 			 dc[0] = dx;
 			 dc[1] = dy;
@@ -152,11 +152,11 @@ void test_max_adp_xor3_set_is_max_rand()
 
   for(uint32_t i = 0; i < N; i++) {
 
-	 uint32_t da = random32() & MASK;
-	 uint32_t db = random32() & MASK;
+	 uint32_t da = xrandom() & MASK;
+	 uint32_t db = xrandom() & MASK;
 	 uint32_t dc[ADP_XOR3_SET_SIZE] = {0};
 	 for(uint32_t j = 0; j < ADP_XOR3_SET_SIZE; j++) {
-		dc[j] = random32() & MASK;
+		dc[j] = xrandom() & MASK;
 	 }
 	 double p_dc[ADP_XOR3_SET_SIZE];
 	 for(uint32_t j = 0; j < ADP_XOR3_SET_SIZE; j++) {

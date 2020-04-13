@@ -170,14 +170,14 @@
 #define LOG0 -10000
 
 #ifndef XOR
-#define XOR(x,y) ((x ^ y) & MASK) /**< The XOR operation on words of size \ref WORD_SIZE */
+#define XOR(x,y) ((x ^ y) & (WORD_T)MASK) /**< The XOR operation on words of size \ref WORD_SIZE */
 #endif
 #ifndef ADD
-#define ADD(x,y) ((x + y) & MASK) /**< The ADD operation on words of size \ref WORD_SIZE */
+#define ADD(x,y) ((x + y) & (WORD_T)MASK) /**< The ADD operation on words of size \ref WORD_SIZE */
 #endif
 #ifndef SUB
 #if(WORD_SIZE < 64)
-#define SUB(x,y) ((WORD_T)(x - y + MOD) & MASK) /**< The modular subtraction (SUB) operation on words of size \ref WORD_SIZE */
+#define SUB(x,y) ((WORD_T)(x - y + MOD) & (WORD_T)MASK) /**< The modular subtraction (SUB) operation on words of size \ref WORD_SIZE */
 #else // #if(WORD_SIZE == 64)
 #define SUB(x,y) ((WORD_T)(x - y)) /**< The modular subtraction (SUB) operation on words of size 64-bit */
 #endif // #if(WORD_SIZE < 64)

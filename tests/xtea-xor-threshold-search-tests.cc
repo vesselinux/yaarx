@@ -39,10 +39,10 @@ void test_xtea_xor_trail_search()
   uint32_t round_key[64] = {0};
   uint32_t round_delta[64] = {0};
   uint32_t key[4];
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
   // Key from the paper (Table 4)
   //  0xE15C838, 0xDC8DBE76, 0xB3BB0110, 0xFFBB0440
 #if 0

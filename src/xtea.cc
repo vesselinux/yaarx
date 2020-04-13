@@ -304,14 +304,14 @@ double xtea_one_round_xor_differential_exper(uint64_t npairs, int round_idx,
   // Encrypt many chosen-plaintext pairs {aa1, aa2}
   for(uint64_t i = 0; i < npairs; i++) {
 
-	 uint32_t aa1 = random32() & MASK;
+	 uint32_t aa1 = xrandom() & MASK;
 	 uint32_t aa2 = XOR(aa1, daa);
 
 	 // Encrypt many chosen-plaintext pairs {a1, a2}
 	 for(uint64_t j = 0; j < npairs; j++) {
-		//	 uint32_t a1[2] = {random32() & MASK, random32() & MASK}; 
+		//	 uint32_t a1[2] = {xrandom() & MASK, xrandom() & MASK}; 
 		//	 uint32_t a2[2] = {ADD(a1[0], da[0]), ADD(a1[1], da[1])};
-		uint32_t a1 = random32() & MASK;
+		uint32_t a1 = xrandom() & MASK;
 		uint32_t a2 = XOR(a1, da);
 		uint32_t v1, lv1, rv1, new_v0;
 
@@ -378,9 +378,9 @@ double xtea_one_round_add_differential_exper(uint64_t npairs, int round_idx,
 
   // Encrypt many chosen-plaintext pairs {a1, a2}
   for(uint64_t j = 0; j < npairs; j++) {
-	 //	 uint32_t a1[2] = {random32() & MASK, random32() & MASK}; 
+	 //	 uint32_t a1[2] = {xrandom() & MASK, xrandom() & MASK}; 
 	 //	 uint32_t a2[2] = {ADD(a1[0], da[0]), ADD(a1[1], da[1])};
-	 uint32_t a1 = random32() & MASK;
+	 uint32_t a1 = xrandom() & MASK;
 	 uint32_t a2 = ADD(a1, da);
 	 uint32_t v1, lv1, rv1, new_v0;
 
@@ -442,7 +442,7 @@ double xtea_xor_differential_exper_v2(uint64_t npairs, int r,
   uint32_t k[4] = {key[0], key[1], key[2], key[3]}; // !!!
 
   for(uint64_t j = 0; j < npairs; j++) {
-	 uint32_t a1[2] = {random32() & MASK, random32() & MASK}; 
+    uint32_t a1[2] = {xrandom() & (WORD_T)MASK, xrandom() & (WORD_T)MASK}; 
 	 uint32_t a2[2] = {XOR(a1[0], da[0]), XOR(a1[1], da[1])};
 
 	 // Encrypt the pair {a1, a2}
@@ -488,7 +488,7 @@ double xtea_add_differential_exper_v2(uint64_t npairs, int r,
   uint32_t k[4] = {key[0], key[1], key[2], key[3]};
 
   for(uint64_t j = 0; j < npairs; j++) {
-	 uint32_t a1[2] = {random32() & MASK, random32() & MASK}; 
+	 uint32_t a1[2] = {xrandom() & (WORD_T)MASK, xrandom() & (WORD_T)MASK}; 
 	 uint32_t a2[2] = {ADD(a1[0], da[0]), ADD(a1[1], da[1])};
 
 	 // Encrypt the pair {a1, a2}

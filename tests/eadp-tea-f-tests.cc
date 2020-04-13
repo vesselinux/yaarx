@@ -120,8 +120,8 @@ void test_eadp_tea_f()
   adp_xor3_sf(A);
   adp_xor3_normalize_matrices(A);
 
-  uint32_t dx = random32() & MASK;
-  uint32_t dy = random32() & MASK;
+  uint32_t dx = xrandom() & MASK;
+  uint32_t dy = xrandom() & MASK;
 
   double p = eadp_tea_f(A, dx, dy, &p, lsh_const, rsh_const);
 #if DEBUG_EADP_TEA_F_TESTS
