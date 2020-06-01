@@ -839,216 +839,216 @@ void speck_best_diff_search()
  * \see speck_best_trail_search_i
  */
 void speck_best_diff_search_log2_i (const uint32_t iround,	// current round
-												 const uint32_t ibit,	// current bit position
-												 const WORD_T alpha_in,	// input difference to the addition of round iround
-												 const WORD_T beta_in,	// input difference to the addition of round iround
-												 const WORD_T gamma_in)	// output difference from the addition of round iround
+				    const uint32_t ibit,	// current bit position
+				    const WORD_T alpha_in,	// input difference to the addition of round iround
+				    const WORD_T beta_in,	// input difference to the addition of round iround
+				    const WORD_T gamma_in)	// output difference from the addition of round iround
 {
 #if 0							// DEBUG
-	printf ("Enter iround:%02u ibit:%02u diffs:0x%016X 0x%016X 0x%016X\n", iround, ibit, alpha_in, beta_in, gamma_in);
+  printf ("Enter iround:%02u ibit:%02u diffs:0x%016X 0x%016X 0x%016X\n", iround, ibit, alpha_in, beta_in, gamma_in);
 #endif // #if 1 // DEBUG
 
-	if ((iround == 1) && (iround != NROUNDS))
+  if ((iround == 1) && (iround != NROUNDS))
+    {
+
+      if (ibit == WORD_SIZE)
+	{
+	  if (!((alpha_in == 0) && (beta_in == 0)))
+	    {					// discard zero input diff
+	      const int p = xdp_add_lm_log2(alpha_in, beta_in, gamma_in);
+	      const differential_3d_t new_diff = { alpha_in, beta_in, gamma_in, 0.0, p};
+	      speck_add_diff_to_trail (g_T, iround - 1, new_diff);
+
+	      // input differences for next round
+	      const WORD_T alpha_next = RROT (gamma_in, g_r1);
+	      const WORD_T beta_next = XOR (gamma_in, LROT (beta_in, g_r2));
+	      const WORD_T gamma_next = 0;
+
+#if 0 // DEBUG
+	      printf ("[%s:%d] Add to trail dx = 0x%X dy = 0x%X dz = 0x%X p = %d\n", __FILE__,
+		      __LINE__, new_diff.dx, new_diff.dy, new_diff.dz, (new_diff.log2p));
+	      printf ("[%s:%d] iround_next %d alpha_next beta_next %X %X\n", __FILE__, __LINE__, iround + 1, alpha_next, beta_next);
+#endif // #if 0 // DEBUG
+
+	      speck_best_diff_search_log2_i (iround + 1, 0, alpha_next, beta_next, gamma_next);
+	      speck_remove_diff_from_trail (g_T, iround - 1);
+	    }
+
+	}
+      else
+	{
+	  const WORD_T word_size = ibit + 1;	// partial word size
+
+	  for (WORD_T w = 0; w < 8; w++)
+	    {
+
+	      const WORD_T alpha_i = (w >> 0) & 1;
+	      const WORD_T beta_i = (w >> 1) & 1;
+	      const WORD_T gamma_i = (w >> 2) & 1;
+	      // set the ibit of the differences (partial differences)
+	      const WORD_T alpha_part = alpha_in | (alpha_i << ibit);
+	      const WORD_T beta_part = beta_in | (beta_i << ibit);
+	      const WORD_T gamma_part = gamma_in | (gamma_i << ibit);
+	      int p_part = xdp_add_lm_log2(alpha_part, beta_part, gamma_part, word_size);	// partial prob.
+	      int p_est = p_part + g_best_B_log2[NROUNDS - 2];
+#if 0 // DEBUG
+	      printf ("word_size %2d %8X %8X -> %8X %d\n", word_size, alpha_part, beta_part, gamma_part, p_part);
+	      printf ("ibit %d %X %X %X | ", ibit, alpha_part, beta_part, gamma_part);
+	      printf ("p_est %d = p_part %d + g_best_B_log2[%d] %d\n", p_est, p_part, NROUNDS - 2, g_best_B_log2[NROUNDS - 2]);
+	      printf ("g_Bn_log2 = %d\n", g_Bn_log2);
+#endif // #if 0 // DEBUG
+	      if (p_est >= g_Bn_log2)
+		{
+		  speck_best_diff_search_log2_i (iround, ibit + 1, alpha_part, beta_part, gamma_part);
+		}
+	    }
+	}
+    }							// ((iround == 1) && (iround != NROUNDS))
+
+  if ((iround > 1) && (iround != NROUNDS))
+    {
+
+      if (ibit == WORD_SIZE)
 	{
 
-		if (ibit == WORD_SIZE)
-		{
-			if (!((alpha_in == 0) && (beta_in == 0)))
-			{					// discard zero input diff
-				const int p = xdp_add_lm_log2(alpha_in, beta_in, gamma_in);
-				const differential_3d_t new_diff = { alpha_in, beta_in, gamma_in, 0.0, p};
-				speck_add_diff_to_trail (g_T, iround - 1, new_diff);
+	  const int p = xdp_add_lm_log2(alpha_in, beta_in, gamma_in);
+	  const differential_3d_t new_diff = { alpha_in, beta_in, gamma_in, 0.0, p };
+	  speck_add_diff_to_trail (g_T, iround - 1, new_diff);
 
-				// input differences for next round
-				const WORD_T alpha_next = RROT (gamma_in, g_r1);
-				const WORD_T beta_next = XOR (gamma_in, LROT (beta_in, g_r2));
-				const WORD_T gamma_next = 0;
+	  // input differences for next round
+	  const WORD_T alpha_next = RROT (gamma_in, g_r1);
+	  const WORD_T beta_next = XOR (gamma_in, LROT (beta_in, g_r2));
+	  const WORD_T gamma_next = 0;
 
 #if 0 // DEBUG
-				printf ("[%s:%d] Add to trail dx = 0x%X dy = 0x%X dz = 0x%X p = %d\n", __FILE__,
-						__LINE__, new_diff.dx, new_diff.dy, new_diff.dz, (new_diff.log2p));
-				printf ("[%s:%d] iround_next %d alpha_next beta_next %X %X\n", __FILE__, __LINE__, iround + 1, alpha_next, beta_next);
+	  printf ("[%s:%d] iround %d add to trail %X %X %X %d\n",
+		  __FILE__, __LINE__, iround, new_diff.dx, new_diff.dy, new_diff.dz, new_diff.p);
+	  printf ("[%s:%d] iround_next %d alpha_next beta_next %X %X\n", __FILE__, __LINE__, iround + 1, alpha_next, beta_next);
 #endif // #if 0 // DEBUG
 
-				speck_best_diff_search_log2_i (iround + 1, 0, alpha_next, beta_next, gamma_next);
-				speck_remove_diff_from_trail (g_T, iround - 1);
-			}
+	  speck_best_diff_search_log2_i (iround + 1, 0, alpha_next, beta_next, gamma_next);
+	  speck_remove_diff_from_trail (g_T, iround - 1);
 
-		}
-		else
-		{
-			const WORD_T word_size = ibit + 1;	// partial word size
-
-			for (WORD_T w = 0; w < 8; w++)
-			{
-
-				const WORD_T alpha_i = (w >> 0) & 1;
-				const WORD_T beta_i = (w >> 1) & 1;
-				const WORD_T gamma_i = (w >> 2) & 1;
-				// set the ibit of the differences (partial differences)
-				const WORD_T alpha_part = alpha_in | (alpha_i << ibit);
-				const WORD_T beta_part = beta_in | (beta_i << ibit);
-				const WORD_T gamma_part = gamma_in | (gamma_i << ibit);
-				int p_part = xdp_add_lm_log2(alpha_part, beta_part, gamma_part, word_size);	// partial prob.
-				int p_est = p_part + g_best_B_log2[NROUNDS - 2];
-#if 0 // DEBUG
-				printf ("word_size %2d %8X %8X -> %8X %d\n", word_size, alpha_part, beta_part, gamma_part, p_part);
-				printf ("ibit %d %X %X %X | ", ibit, alpha_part, beta_part, gamma_part);
-				printf ("p_est %d = p_part %d + g_best_B_log2[%d] %d\n", p_est, p_part, NROUNDS - 2, g_best_B_log2[NROUNDS - 2]);
-				printf ("g_Bn_log2 = %d\n", g_Bn_log2);
-#endif // #if 0 // DEBUG
-				if (p_est >= g_Bn_log2)
-				{
-					speck_best_diff_search_log2_i (iround, ibit + 1, alpha_part, beta_part, gamma_part);
-				}
-			}
-		}
-	}							// ((iround == 1) && (iround != NROUNDS))
-
-	if ((iround > 1) && (iround != NROUNDS))
+	}
+      else
 	{
+	  const WORD_T word_size = ibit + 1;	// partial word size
+	  const WORD_MAX_T mask_lsb = (~0ULL >> (64 - word_size));	// masks word_size LS bits
+	  const WORD_T alpha_part = alpha_in & mask_lsb;
+	  const WORD_T beta_part = beta_in & mask_lsb;
 
-		if (ibit == WORD_SIZE)
-		{
+	  int p_iround = 0;
 
-			const int p = xdp_add_lm_log2(alpha_in, beta_in, gamma_in);
-			const differential_3d_t new_diff = { alpha_in, beta_in, gamma_in, 0.0, p };
-			speck_add_diff_to_trail (g_T, iround - 1, new_diff);
+	  // p[0] p[1] ... p[iround - 2] => first (iround - 1) rounds
+	  for (uint32_t i = 0; i < (iround - 1); i++)
+	    {
+	      int p_i = g_T[i].log2p;
+	      p_iround += p_i;
+	    }
 
-			// input differences for next round
-			const WORD_T alpha_next = RROT (gamma_in, g_r1);
-			const WORD_T beta_next = XOR (gamma_in, LROT (beta_in, g_r2));
-			const WORD_T gamma_next = 0;
+	  for (uint32_t w = 0; w < 2; w++)
+	    {
 
-#if 0 // DEBUG
-			printf ("[%s:%d] iround %d add to trail %X %X %X %d\n",
-					__FILE__, __LINE__, iround, new_diff.dx, new_diff.dy, new_diff.dz, new_diff.p);
-			printf ("[%s:%d] iround_next %d alpha_next beta_next %X %X\n", __FILE__, __LINE__, iround + 1, alpha_next, beta_next);
-#endif // #if 0 // DEBUG
-
-			speck_best_diff_search_log2_i (iround + 1, 0, alpha_next, beta_next, gamma_next);
-			speck_remove_diff_from_trail (g_T, iround - 1);
-
-		}
-		else
-		{
-			const WORD_T word_size = ibit + 1;	// partial word size
-			const WORD_MAX_T mask_lsb = (~0ULL >> (64 - word_size));	// masks word_size LS bits
-			const WORD_T alpha_part = alpha_in & mask_lsb;
-			const WORD_T beta_part = beta_in & mask_lsb;
-
-			int p_iround = 0;
-
-			// p[0] p[1] ... p[iround - 2] => first (iround - 1) rounds
-			for (uint32_t i = 0; i < (iround - 1); i++)
-			  {
-				 int p_i = g_T[i].log2p;
-				 p_iround += p_i;
-			  }
-
-			for (uint32_t w = 0; w < 2; w++)
-			{
-
-				const WORD_T gamma_i = (w >> 0) & 1;	// <-- (w >> 2) bug!
-				const WORD_T gamma_part = gamma_in | (gamma_i << ibit);
-				int p_part = xdp_add_lm_log2(alpha_part, beta_part, gamma_part, word_size);	// partial prob.
+	      const WORD_T gamma_i = (w >> 0) & 1;	// <-- (w >> 2) bug!
+	      const WORD_T gamma_part = gamma_in | (gamma_i << ibit);
+	      int p_part = xdp_add_lm_log2(alpha_part, beta_part, gamma_part, word_size);	// partial prob.
 #if 0							// DEBUG
-				printf
-					("[%s:%d] iround %2d ibit %2d | p_est * p_part * g_best_B_log2[%2d] = %d + %d + %d <> %d\n",
-					 __FILE__, __LINE__, iround, ibit, (NROUNDS - iround - 1), p_est, p_part, g_best_B_log2[NROUNDS - iround - 1], g_Bn_log2);
+	      printf
+		("[%s:%d] iround %2d ibit %2d | p_est * p_part * g_best_B_log2[%2d] = %d + %d + %d <> %d\n",
+		 __FILE__, __LINE__, iround, ibit, (NROUNDS - iround - 1), p_est, p_part, g_best_B_log2[NROUNDS - iround - 1], g_Bn_log2);
 #endif // #if 0 // DEBUG
 
-				// p[0] p[1] ... p[iround - 2] (p_part = p[iround - 1]) => first iround rounds
-				const int p_est = p_iround + p_part + g_best_B_log2[NROUNDS - iround - 1];
+	      // p[0] p[1] ... p[iround - 2] (p_part = p[iround - 1]) => first iround rounds
+	      const int p_est = p_iround + p_part + g_best_B_log2[NROUNDS - iround - 1];
 
 
-				if (p_est >= g_Bn_log2)
-				{
-					speck_best_diff_search_log2_i (iround, ibit + 1, alpha_in, beta_in, gamma_part);	// <-- bug! alpha_part, beta_part
-				}
-			}
-		}
-	}							// ((iround > 1) && (iround != NROUNDS))
-
-
-	if (iround == NROUNDS)
-	{
-
-		if (ibit == WORD_SIZE)
+	      if (p_est >= g_Bn_log2)
 		{
-			const int p = xdp_add_lm_log2(alpha_in, beta_in, gamma_in);
-			const differential_3d_t new_diff = { alpha_in, beta_in, gamma_in, 0.0, p };
-			speck_add_diff_to_trail (g_T, iround - 1, new_diff);
+		  speck_best_diff_search_log2_i (iround, ibit + 1, alpha_in, beta_in, gamma_part);	// <-- bug! alpha_part, beta_part
+		}
+	    }
+	}
+    }							// ((iround > 1) && (iround != NROUNDS))
+
+
+  if (iround == NROUNDS)
+    {
+
+      if (ibit == WORD_SIZE)
+	{
+	  const int p = xdp_add_lm_log2(alpha_in, beta_in, gamma_in);
+	  const differential_3d_t new_diff = { alpha_in, beta_in, gamma_in, 0.0, p };
+	  speck_add_diff_to_trail (g_T, iround - 1, new_diff);
 
 #if 0							// DEBUG
-			printf ("[%s:%d] iround %d add to trail %X %X %X %d\n",
-					__FILE__, __LINE__, iround, new_diff.dx, new_diff.dy, new_diff.dz, new_diff.p);
+	  printf ("[%s:%d] iround %d add to trail %X %X %X %d\n",
+		  __FILE__, __LINE__, iround, new_diff.dx, new_diff.dy, new_diff.dz, new_diff.p);
 #endif // #if 0 // DEBUG
 
-			// p[0] p[1] ... p[iround - 1] => first (iround) rounds
-			int p_trail = 0;
-			for (uint32_t i = 0; i < iround; i++)
-			{
-				int p_i = g_T[i].log2p;
-				p_trail += p_i;
-			}
+	  // p[0] p[1] ... p[iround - 1] => first (iround) rounds
+	  int p_trail = 0;
+	  for (uint32_t i = 0; i < iround; i++)
+	    {
+	      int p_i = g_T[i].log2p;
+	      p_trail += p_i;
+	    }
 
-			if (p_trail >= g_Bn_log2)
-			{
-				printf ("# Update bound: %d -> %d\n", g_Bn_log2, p_trail);
-				g_Bn_log2 = p_trail;
-				speck_copy_diff_trail (g_T, g_best_T);
+	  if (p_trail >= g_Bn_log2)
+	    {
+	      printf ("# Update bound: %d -> %d\n", g_Bn_log2, p_trail);
+	      g_Bn_log2 = p_trail;
+	      speck_copy_diff_trail (g_T, g_best_T);
 #if 1
-				speck_print_diff_trail_cstyle_log2(g_T);
+	      speck_print_diff_trail_cstyle_log2(g_T);
 #endif
 #if 0
-				speck_print_diff_trail_log2(g_T);
+	      speck_print_diff_trail_log2(g_T);
 #endif
 #if 0
-				speck_print_diff_trail_latex_log2(g_T);
+	      speck_print_diff_trail_latex_log2(g_T);
 #endif
-			}
+	    }
 
-			speck_remove_diff_from_trail (g_T, iround - 1);
+	  speck_remove_diff_from_trail (g_T, iround - 1);
 
-		}
-		else
+	}
+      else
+	{
+
+	  const WORD_T word_size = ibit + 1;	// partial word size
+	  const WORD_MAX_T mask_lsb = (~0ULL >> (64 - word_size));	// masks word_size LS bits
+	  const WORD_T alpha_part = alpha_in & mask_lsb;
+	  const WORD_T beta_part = beta_in & mask_lsb;
+
+	  int p_iround = 0;
+
+	  // p[0] p[1] ... p[iround - 2] => first (iround - 1) rounds
+	  for (uint32_t i = 0; i < (iround - 1); i++)
+	    {
+	      int p_i = g_T[i].log2p;
+	      p_iround += p_i;
+	    }
+
+	  for (uint32_t w = 0; w < 2; w++)
+	    {
+
+	      const WORD_T gamma_i = (w >> 0) & 1;	// <-- (w >> 2) bug!
+	      const WORD_T gamma_part = gamma_in | (gamma_i << ibit);
+	      int p_part = xdp_add_lm_log2(alpha_part, beta_part, gamma_part, word_size);	// partial prob.
+
+	      // p[0] p[1] ... p[iround - 2] (p_part = p[iround - 1]) => first iround rounds
+	      const int p_est = p_iround + p_part;
+
+	      if (p_est >= g_Bn_log2)
 		{
-
-			const WORD_T word_size = ibit + 1;	// partial word size
-			const WORD_MAX_T mask_lsb = (~0ULL >> (64 - word_size));	// masks word_size LS bits
-			const WORD_T alpha_part = alpha_in & mask_lsb;
-			const WORD_T beta_part = beta_in & mask_lsb;
-
-			int p_iround = 0;
-
-			// p[0] p[1] ... p[iround - 2] => first (iround - 1) rounds
-			for (uint32_t i = 0; i < (iround - 1); i++)
-			  {
-				 int p_i = g_T[i].log2p;
-				 p_iround += p_i;
-			  }
-
-			for (uint32_t w = 0; w < 2; w++)
-			{
-
-				const WORD_T gamma_i = (w >> 0) & 1;	// <-- (w >> 2) bug!
-				const WORD_T gamma_part = gamma_in | (gamma_i << ibit);
-				int p_part = xdp_add_lm_log2(alpha_part, beta_part, gamma_part, word_size);	// partial prob.
-
-				// p[0] p[1] ... p[iround - 2] (p_part = p[iround - 1]) => first iround rounds
-				const int p_est = p_iround + p_part;
-
-				if (p_est >= g_Bn_log2)
-				{
-					speck_best_diff_search_log2_i (iround, ibit + 1, alpha_in, beta_in, gamma_part);	// <-- bug! alpha_part, beta_part
-				}
-			}
+		  speck_best_diff_search_log2_i (iround, ibit + 1, alpha_in, beta_in, gamma_part);	// <-- bug! alpha_part, beta_part
 		}
-	}							// (iround == NROUNDS)
+	    }
+	}
+    }							// (iround == NROUNDS)
 
 #if 0 // DEBUG
-	printf ("[%s:%d]  Exit iround %d ibit %d diffs %X %X %X\n", __FILE__, __LINE__, iround, ibit, alpha_in, beta_in, gamma_in);
+  printf ("[%s:%d]  Exit iround %d ibit %d diffs %X %X %X\n", __FILE__, __LINE__, iround, ibit, alpha_in, beta_in, gamma_in);
 #endif // #if 1 // DEBUG
 }
 
