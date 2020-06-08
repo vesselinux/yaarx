@@ -436,7 +436,10 @@ void speck_print_diff_trail_log2(differential_3d_t T[NROUNDS])
 	 printf("%2d: %16llX %16llX -> %16llX %4.2f %d\n", i, (WORD_MAX_T)T[i].dx, (WORD_MAX_T)T[i].dy, (WORD_MAX_T)T[i].dz, T[i].p, T[i].log2p);
 #endif // #if (WORD_SIZE <= 32)
 
-	 double p_tmp = xdp_add_lm_log2(T[i].dx, T[i].dy, T[i].dz);
+	 int p_tmp = xdp_add_lm_log2(T[i].dx, T[i].dy, T[i].dz);
+	 if(!(p_tmp == T[i].log2p)) {
+	   printf("[%s:%d] ERROR! %d %d\n", __FILE__, __LINE__, p_tmp, T[i].log2p);
+	 }
 	 assert(p_tmp == T[i].log2p);
 
 	 log2p += T[i].log2p;
