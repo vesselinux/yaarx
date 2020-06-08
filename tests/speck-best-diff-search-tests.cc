@@ -438,7 +438,7 @@ void speck_print_diff_trail_log2(differential_3d_t T[NROUNDS])
 
 	 int p_tmp = xdp_add_lm_log2(T[i].dx, T[i].dy, T[i].dz);
 	 if(!(p_tmp == T[i].log2p)) {
-	   printf("[%s:%d] ERROR! %d %d\n", __FILE__, __LINE__, p_tmp, T[i].log2p);
+	   printf("[%s:%d] ERROR! %X %X %X %d %d\n", __FILE__, __LINE__, T[i].dx, T[i].dy, T[i].dz, p_tmp, T[i].log2p);
 	 }
 	 assert(p_tmp == T[i].log2p);
 
