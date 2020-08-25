@@ -1276,8 +1276,8 @@ void test_simon_diff_search_fixed()
 #endif
 
 #if 1
-  //  FILE* fp = fopen(SIMON_CLUSTER_TRAILS_DATFILE, "w"); // init file
-  //  fclose(fp);
+  FILE* fp = fopen(SIMON_CLUSTER_TRAILS_DATFILE, "w"); // init file
+  fclose(fp);
   uint32_t dyy_init = 0;		  // dummy
   simon_trail_cluster_search_boost(&trails_hash_map, g_B, g_trail, NROUNDS, &dyy_init);
 #endif
@@ -1971,8 +1971,8 @@ int main (int argc, char ** argv)
   printf("[%s:%d] WORD_SIZE %d NROUNDS %d XDP_ROT_AND_P_THRES %f 2^%f XDP_ROT_AND_MAX_DIFF_CNT %lld 2^%4.2f SIMON_EPS %f 2^%f XDP_ROT_AND_MAX_HW %d TRAIL_MAX_HW %d SIMON_BACK_TO_HWAY %d\n", 
 			 __FILE__, __LINE__, WORD_SIZE, NROUNDS, XDP_ROT_AND_P_THRES, log2(XDP_ROT_AND_P_THRES), (WORD_MAX_T)XDP_ROT_AND_MAX_DIFF_CNT, log2(XDP_ROT_AND_MAX_DIFF_CNT), SIMON_EPS, log2(SIMON_EPS), XDP_ROT_AND_MAX_HW, TRAIL_MAX_HW, SIMON_BACK_TO_HWAY);
 
-  test_simon_trails_graph_transition_matrix();
-  //  test_simon_diff_search_fixed(); // cluster trails around a fixed trail
+  //  test_simon_trails_graph_transition_matrix();
+  test_simon_diff_search_fixed(); // cluster trails around a fixed trail
   //  test_simon_cluster_trails_datfile_read(); // read dat file stored by test_simon_diff_search_fixed()
   //  test_simon_multi_diff_search_fixed();
   //  test_simon_best_trails_latex();
