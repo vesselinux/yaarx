@@ -64,6 +64,7 @@ uint32_t rsh_xor(uint32_t a, uint32_t x, int r)
  */ 
 double adp_rsh_xor_exper(const uint32_t da, const uint32_t dx, const uint32_t db, const int r)
 {
+#if (WORD_SIZE <= 14)  
   uint32_t N = ALL_WORDS * ALL_WORDS;
   uint32_t cnt = 0;
 
@@ -83,6 +84,9 @@ double adp_rsh_xor_exper(const uint32_t da, const uint32_t dx, const uint32_t db
   }
   double p = (double)cnt / (double)N;
   return p;
+#else
+  return 0.0;
+#endif // #if (WORD_SIZE <= 14)    
 }
 
 /**

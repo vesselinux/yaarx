@@ -577,7 +577,7 @@ uint32_t gen_word_hw_i(const uint32_t k, const uint32_t n, const uint32_t hw,
   if(k == n) {
 	 X->push_back(x);
 	 (*x_cnt)++;
-	 uint32_t hw_x = hw32(x & mask); 
+	 uint32_t hw_x = hamming_weight(x & mask); 
 #if 0									  // DEBUG
 	 printf("[%s:%d] %10d | %8X %d\n", __FILE__, __LINE__, *x_cnt, x, hw_x);
 #endif
@@ -587,7 +587,7 @@ uint32_t gen_word_hw_i(const uint32_t k, const uint32_t n, const uint32_t hw,
 
   for(uint32_t i = 0; i < 2; i++) {
 	 x |= (i << k);
-	 if(hw32(x & mask) <= hw) {
+	 if(hamming_weight(x & mask) <= hw) {
 		gen_word_hw_i(k+1, n, hw, &x, x_cnt, X);
 	 }
   }
@@ -621,7 +621,7 @@ uint32_t gen_word_hw_all(const uint32_t word_size, const uint32_t hw)
   uint32_t mask = (0xffffffff >> (32 - word_size));
   uint64_t N = (1ULL << word_size);
   for(uint32_t x = 0; x < N; x++) {
-	 uint32_t hw_x = hw32(x & mask); 
+	 uint32_t hw_x = hamming_weight(x & mask); 
 	 if(hw_x <= hw) {
 #if 0									  // DEBUG
 		printf("[%s:%d] %10d| %8X %d\n", __FILE__, __LINE__, cnt, x, hw_x);
@@ -769,8 +769,8 @@ void simon_diff_update_max(const differential_t input_diff, const differential_t
 	 max_diff->dx = dx;
 	 max_diff->dy = dy;
   } else {
-	 uint32_t hw_sum = hw32(dx & MASK) + hw32(dy & MASK);
-	 uint32_t hw_sum_max = hw32(max_diff->dx & MASK) + hw32(max_diff->dy & MASK);
+	 uint32_t hw_sum = hamming_weight(dx & MASK) + hamming_weight(dy & MASK);
+	 uint32_t hw_sum_max = hamming_weight(max_diff->dx & MASK) + hamming_weight(max_diff->dy & MASK);
 	 if((p == max_diff->p) && (hw_sum < hw_sum_max)) { // if current has same prob. but smaller Hamming weight
 #if 0									  // DEBUG
 		printf("[%s:%d] Update max p*: (%4X %4X 2^%f) -> (%4X %4X 2^%f)\n", 
@@ -831,8 +831,8 @@ bool simon_diff_search_oneround(const uint32_t nrounds,
 	 const double p_in = (H_iter->second).p;
 	 const differential_t diff_in = {dx_in, dy_in, 0, p_in};
 
-	 assert(hw32(dx_in & MASK) <= hw_max);
-	 assert(hw32(dy_in & MASK) <= hw_max);
+	 assert(hamming_weight(dx_in & MASK) <= hw_max);
+	 assert(hamming_weight(dy_in & MASK) <= hw_max);
 
 #if 0									  // DEBUG
 	 h_cnt++;
@@ -883,8 +883,8 @@ bool simon_diff_search_oneround(const uint32_t nrounds,
 		const uint32_t dx_out_old = dx_out;
 #endif
 
-		if(hw32(dx_out & MASK) <= hw_max) {
-		//		if((hw32(dx_out & MASK) <= hw_max) && (p_out >= (max_output_diff->p * p_eps))) { // !
+		if(hamming_weight(dx_out & MASK) <= hw_max) {
+		//		if((hamming_weight(dx_out & MASK) <= hw_max) && (p_out >= (max_output_diff->p * p_eps))) { // !
 		  if(!b_hw) {
 			 b_hw = true;
 		  }
@@ -973,7 +973,7 @@ bool simon_diff_search_oneround(const uint32_t nrounds,
 #endif
 		} else {
 #if 0									  // DEBUG
-		  printf("[%s:%d] HW bigger than max %4X %d > %d\n", __FILE__, __LINE__, dx_out, hw32(dx_out & MASK), hw_max);
+		  printf("[%s:%d] HW bigger than max %4X %d > %d\n", __FILE__, __LINE__, dx_out, hamming_weight(dx_out & MASK), hw_max);
 #endif
 		}
 	 }
@@ -1035,7 +1035,7 @@ bool simon_diff_search_oneround_fast(const uint32_t nrounds,
 		const double p_out = (p_in * p);
 		const differential_t diff_out = {dx_out, dy_out, 0, p_out};
 
-		if(hw32(dx_out & MASK) <= hw_max) {
+		if(hamming_weight(dx_out & MASK) <= hw_max) {
 		  if(!b_hw) {
 			 b_hw = true;
 		  }
@@ -1122,7 +1122,7 @@ void simon_diff_search(const uint32_t nrounds,
   //  differential_t input_diff  = {0x400, 0x1900, 0, 1.0}; // mydiff-2
   //  differential_t input_diff  = {0x8000, 0x2202, 0, 1.0}; // mydiff-3
   //  differential_t input_diff = {0x0001, 0x0000, 0, 1.0}; // DTU
-  assert((hw32(dx_in) <= hw_max) && (hw32(dy_in) <= hw_max));
+  assert((hamming_weight(dx_in) <= hw_max) && (hamming_weight(dy_in) <= hw_max));
   differential_t input_diff = {dx_in, dy_in, 0, 1.0};
 
   uint32_t n_diff = differential_to_num(input_diff);
@@ -1165,7 +1165,7 @@ void simon_diff_search(const uint32_t nrounds,
 	 double C = total_time_sec / (double)cnt_iter;
 	 printf("[%s:%d] %f min %f s %f ms %f mu\n", __FILE__, __LINE__, total_time_min, total_time_sec, total_time_ms, total_time_mu);
 	 //	 printf("[%s:%d] cnt_iter %ld 2^%4.2f C %f 2^%f\n", __FILE__, __LINE__, cnt_iter, log2(cnt_iter), C, log2(C));
-	 printf("[%s:%d] cnt_iter %lld 2^%4.2f C %f 2^%f\n", __FILE__, __LINE__, cnt_iter, log2(cnt_iter), C, log2(C));
+	 printf("[%s:%d] cnt_iter %lld 2^%4.2f C %f 2^%f\n", __FILE__, __LINE__, (WORD_MAX_T)cnt_iter, log2(cnt_iter), C, log2(C));
 #endif
 
 	 uint64_t npairs = 0;
@@ -1483,8 +1483,8 @@ void simon_gen_args_file(const char* argfile)
 #if 0									  // DEBUG
 		printf("[%10d] %4X %4X\n", cnt, dx, dy);
 #endif
-		assert(hw32(dx) <= hw);
-		assert(hw32(dy) <= hw);
+		assert(hamming_weight(dx) <= hw);
+		assert(hamming_weight(dy) <= hw);
 	 }
   }
   fclose(fp);

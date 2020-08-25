@@ -98,10 +98,10 @@ void test_best_trail_n16()
   //  uint32_t nrounds = NROUNDS;
 
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
 
   differential_t trail[NROUNDS] = {{0, 0, 0, 0.0}};
 
@@ -156,10 +156,10 @@ void test_simon_xor_ddt_trail_search()
 #if(WORD_SIZE <= 16)
   double B[NROUNDS] = {0.0};
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
 
   uint32_t nrounds = NROUNDS;
   differential_t trail[NROUNDS] = {{0, 0, 0, 0.0}};
@@ -242,10 +242,10 @@ void test_simon_xor_trail_search()
 {
   double B[NROUNDS] = {0.0};
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
 
   //  uint32_t nrounds = NROUNDS;
   differential_t trail[NROUNDS] = {{0, 0, 0, 0.0}};
@@ -354,10 +354,10 @@ void test_simon_xor_trail_search()
 void test_simon_cluster_trails()
 {
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
 
   uint32_t lrot_const_s = SIMON_LROT_CONST_S; 
   uint32_t lrot_const_t = SIMON_LROT_CONST_T;
@@ -562,8 +562,8 @@ void hash_map_add(std::unordered_map<std::string, differential_t**>* trails_hash
 	 trail = (differential_t** )calloc(1, sizeof(differential_t*));
 	 *trail = (differential_t*)calloc(trail_len, sizeof(differential_t));
 	 for(uint32_t i = 0; i < trail_len; i++) {
-		(*trail)[i].dx = random32() & MASK;
-		(*trail)[i].dy = random32() & MASK;
+		(*trail)[i].dx = xrandom() & MASK;
+		(*trail)[i].dy = xrandom() & MASK;
 	 }
 	 std::string s = trail_to_string(*trail, trail_len);
 	 (*trails_hash_map)[s] = trail;
@@ -587,8 +587,8 @@ void test_trail_to_string()
   trail = (differential_t** )calloc(1, sizeof(differential_t*));
   *trail = (differential_t*)calloc(trail_len, sizeof(differential_t));
   for(uint32_t i = 0; i < trail_len; i++) {
-	 (*trail)[i].dx = random32() & MASK;
-	 (*trail)[i].dy = random32() & MASK;
+	 (*trail)[i].dx = xrandom() & MASK;
+	 (*trail)[i].dy = xrandom() & MASK;
   }
  for(uint32_t i = 0; i < trail_len; i++) {
 	printf("%4X %4X ", (*trail)[i].dx, (*trail)[i].dy);
@@ -721,10 +721,10 @@ void test_simon_verify_differential_gviz()
 	 // generate random key
 	 uint32_t key[SIMON_MAX_NROUNDS] = {0};
 #if 0
-	 key[0] = random32() & MASK;
-	 key[1] = random32() & MASK;
-	 key[2] = random32() & MASK;
-	 key[3] = random32() & MASK;
+	 key[0] = xrandom() & MASK;
+	 key[1] = xrandom() & MASK;
+	 key[2] = xrandom() & MASK;
+	 key[3] = xrandom() & MASK;
 #else
 	 uint32_t mkey[4] = {0x545A, 0xE2AD, 0xEA9F, 0x6B56};
 	 uint32_t s = 0;//6;//5;//1;//0;
@@ -827,7 +827,7 @@ uint64_t simon_test_code(std::unordered_map<uint32_t, std::vector<differential_t
 		const uint32_t dy_out = dx_in;
 		const double p_out = (p_in * p);
 		const differential_t diff_out = {dx_out, dy_out, 0, p_out};
-		if(hw32(dx_out & MASK) <= hw_max) {
+		if(hamming_weight(dx_out & MASK) <= hw_max) {
 
 #if 1
 		  //		  std::string s_diff_out = differential_to_string(diff_out);
@@ -887,9 +887,9 @@ void test_simon_test_code()
   printf("[%s:%d] Fill DZ len 2^%4.2f\n", __FILE__, __LINE__, log2(dz_len));
   differential_t diff = {0, 0, 0, 0.0};
   for(uint32_t i = 0; i < dz_len; i++) {
-	 diff.dx = random32() & MASK;
-	 diff.dy = random32() & MASK;
-	 diff.p = (double)(random32() & MASK) / (double)ALL_WORDS;
+	 diff.dx = xrandom() & MASK;
+	 diff.dy = xrandom() & MASK;
+	 diff.p = (double)(xrandom() & MASK) / (double)ALL_WORDS;
 	 assert((diff.p >= 0.0) && (diff.p <= 1.0));
 	 DZ.push_back(diff);
   }
@@ -900,10 +900,10 @@ void test_simon_test_code()
   printf("[%s:%d] Fill H len 2^%4.2f\n", __FILE__, __LINE__, log2(h_len));
   differential_t input_diff = {0, 0, 0, 0.0}; // DTU
   for(uint32_t i = 0; i < h_len; i++) {
-	 input_diff.dx = random32() & MASK;
-	 input_diff.dy = random32() & MASK;
+	 input_diff.dx = xrandom() & MASK;
+	 input_diff.dy = xrandom() & MASK;
 	 input_diff.npairs = 0;
-	 input_diff.p = (double)(random32() & MASK) / (double)ALL_WORDS;
+	 input_diff.p = (double)(xrandom() & MASK) / (double)ALL_WORDS;
 	 assert((input_diff.p >= 0.0) && (input_diff.p <= 1.0));
 
 	 //	 std::string s_diff = differential_to_string(input_diff);
@@ -918,10 +918,10 @@ void test_simon_test_code()
   //  G.rehash(g_len);
 
   timestamp_t start_time = get_timestamp();
-  printf("[%s:%d] Start search %lld H_len 2^%4.2f G_len 2^%4.2f\n", __FILE__, __LINE__, start_time, log2(H.size()), log2(G.size()));
+  printf("[%s:%d] Start search %lld H_len 2^%4.2f G_len 2^%4.2f\n", __FILE__, __LINE__, (WORD_MAX_T)start_time, log2(H.size()), log2(G.size()));
   uint64_t cnt_iter = simon_test_code(&T, DZ, &H, &G, input_diff, &max_diff, hw_max);
   timestamp_t end_time = get_timestamp();
-  printf("[%s:%d] End search %lld H_len 2^%4.2f G_len 2^%4.2f\n", __FILE__, __LINE__, end_time, log2(H.size()), log2(G.size()));
+  printf("[%s:%d] End search %lld H_len 2^%4.2f G_len 2^%4.2f\n", __FILE__, __LINE__, (WORD_MAX_T)end_time, log2(H.size()), log2(G.size()));
 
   double total_time_sec = (double)(end_time - start_time) / 1000000.0L;
   double total_time_ms = (double)(end_time - start_time) / 1000.0L;
@@ -930,7 +930,7 @@ void test_simon_test_code()
   double C = total_time_sec / (double)cnt_iter;
   printf("[%s:%d] %f min %f s %f ms %f mu\n", __FILE__, __LINE__, total_time_min, total_time_sec, total_time_ms, total_time_mu);
   //  printf("[%s:%d] cnt_iter %ld (2^%4.2f) C %f (2^%f)\n", __FILE__, __LINE__, cnt_iter, log2(cnt_iter), C, log2(C));
-  printf("[%s:%d] cnt_iter %lld (2^%4.2f) C %f (2^%f)\n", __FILE__, __LINE__, cnt_iter, log2(cnt_iter), C, log2(C));
+  printf("[%s:%d] cnt_iter %lld (2^%4.2f) C %f (2^%f)\n", __FILE__, __LINE__, (WORD_MAX_T)cnt_iter, log2(cnt_iter), C, log2(C));
 
 #endif  // #if(WORD_SIZE <= 16)
 }
@@ -1158,7 +1158,7 @@ void test_time()
   double total_time_sec = (double)(end_time - start_time) / 1000000.0L;
   double total_time_millisec = (double)(end_time - start_time) / 1000.0L;
   double total_time_microsec = (double)(end_time - start_time);
-  printf("[%s:%d] %lld %lld %f s %f ms %f mu\n", __FILE__, __LINE__, start_time, end_time, total_time_sec, total_time_millisec, total_time_microsec);
+  printf("[%s:%d] %lld %lld %f s %f ms %f mu\n", __FILE__, __LINE__, (WORD_MAX_T)start_time, (WORD_MAX_T)end_time, total_time_sec, total_time_millisec, total_time_microsec);
 }
 
 void test_simon_diff_hash_custom()
@@ -1174,8 +1174,8 @@ void test_simon_diff_hash_custom()
 
 	 differential_t diff[SIMON_NDIFFS] = {{0, 0, 0, 0.0}};
 	 for(uint32_t i = 0; i < SIMON_NDIFFS; i++) {
-		diff[i].dx = random32() & MASK;
-		diff[i].dy = random32() & MASK;
+		diff[i].dx = xrandom() & MASK;
+		diff[i].dy = xrandom() & MASK;
 	 }
 
 	 std::array<differential_t, SIMON_NDIFFS> diff_array;
@@ -1223,8 +1223,8 @@ void test_simon_trail_hash_custom()
 
 	 differential_t trail[NROUNDS] = {{0, 0, 0, 0.0}};
 	 for(uint32_t i = 0; i < NROUNDS; i++) {
-		trail[i].dx = random32() & MASK;
-		trail[i].dy = random32() & MASK;
+		trail[i].dx = xrandom() & MASK;
+		trail[i].dy = xrandom() & MASK;
 	 }
 
 	 std::array<differential_t, NROUNDS> trail_array;
@@ -1263,10 +1263,10 @@ void test_simon_diff_search_fixed()
 
 #if 0									  // DEBUG
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
   uint32_t npairs = (1ULL << 22);
   uint32_t lrot_const_s = SIMON_LROT_CONST_S; 
   uint32_t lrot_const_t = SIMON_LROT_CONST_T;
@@ -1385,7 +1385,7 @@ void simon_trails_graph_transition_matrix_compute()
 #if 1									  // TEMP
 
 #if 1									  // DEBUG
-  printf("\n[%s:%d] #edges E.size %d\n", __FILE__, __LINE__, E.size());
+  printf("\n[%s:%d] #edges E.size %d\n", __FILE__, __LINE__, (uint32_t)E.size());
 #endif  // #if 1									  // DEBUG
 
 
@@ -1395,7 +1395,7 @@ void simon_trails_graph_transition_matrix_compute()
   simon_diff_graph_print_nodes(V);
 #endif  // #if 1									  // DEBUG
 #if 1									  // DEBUG
-  printf("[%s:%d] #vertices V.size %d\n", __FILE__, __LINE__, V.size());
+  printf("[%s:%d] #vertices V.size %d\n", __FILE__, __LINE__, (uint32_t)V.size());
 #endif  // #if 1									  // DEBUG
 
   uint32_t A_nrows = V.size();
@@ -1523,7 +1523,7 @@ void test_simon_cluster_trails_datfile_read()
 
   simon_cluster_trails_datfile_read(&E);
 
-  printf("\nE.size %d\n", E.size());
+  printf("\nE.size %d\n", (uint32_t)E.size());
 
   char datfile[0xFFFF] = {0};
   sprintf(datfile, SIMON_GVIZ_CLUSTER_TRAILS_DATFILE);
@@ -1637,10 +1637,10 @@ void test_simon_multi_diff_search_fixed()
 		(*diff_max)[0].dy = trail[0].dy ^ trail[1].dx; // !!
 		(*diff_max)[1].dx = trail[NROUNDS - 1].dx;
 		(*diff_max)[1].dy = trail[NROUNDS - 1].dy;
-		printf("[%s:%d] Update MAX differential: %4X %4X -> %4X %4X 2^%f | #trails %d\n", __FILE__, __LINE__, (*diff_max)[0].dx, (*diff_max)[0].dy, (*diff_max)[1].dx, (*diff_max)[1].dy, log2((*diff_max)[1].p), trails_hash_map.size());
+		printf("[%s:%d] Update MAX differential: %4X %4X -> %4X %4X 2^%f | #trails %d\n", __FILE__, __LINE__, (*diff_max)[0].dx, (*diff_max)[0].dy, (*diff_max)[1].dx, (*diff_max)[1].dy, log2((*diff_max)[1].p), (uint32_t)trails_hash_map.size());
 	 }
   }
-  printf("[%s:%d] Initial MAX differential: %4X %4X -> %4X %4X 2^%f | #trails %d\n", __FILE__, __LINE__, (*diff_max)[0].dx, (*diff_max)[0].dy, (*diff_max)[1].dx, (*diff_max)[1].dy, log2((*diff_max)[1].p), trails_hash_map.size());
+  printf("[%s:%d] Initial MAX differential: %4X %4X -> %4X %4X 2^%f | #trails %d\n", __FILE__, __LINE__, (*diff_max)[0].dx, (*diff_max)[0].dy, (*diff_max)[1].dx, (*diff_max)[1].dy, log2((*diff_max)[1].p), (uint32_t)trails_hash_map.size());
 #endif
 
   double Bn = B[nrounds - 1] * SIMON_EPS;
@@ -1781,10 +1781,10 @@ void simon_best_trails_latex(differential_t trail_1[SIMON_TRAIL_LEN_MAX + 1], ui
   fprintf(fp, " & & $%4.2f$ &", p_thres_3);
   fprintf(fp, " & & $%4.2f$ \\\\\n", p_thres_4);
 
-  fprintf(fp, " $\{\\mathrm{pDDT}}$ & & & $%lld$ &", nhways_1);
-  fprintf(fp, " & & $%lld$ &", nhways_2);
-  fprintf(fp, " & & $%lld$ &", nhways_3);
-  fprintf(fp, " & & $%lld$ \\\\\n", nhways_4);
+  fprintf(fp, " $\{\\mathrm{pDDT}}$ & & & $%lld$ &", (WORD_MAX_T)nhways_1);
+  fprintf(fp, " & & $%lld$ &", (WORD_MAX_T)nhways_2);
+  fprintf(fp, " & & $%lld$ &", (WORD_MAX_T)nhways_3);
+  fprintf(fp, " & & $%lld$ \\\\\n", (WORD_MAX_T)nhways_4);
 
   fprintf(fp, " Time: & & & $%d$ min. &", ntime_1);
   fprintf(fp, " & & $%d$ min. &", ntime_2);
@@ -1812,10 +1812,10 @@ void test_simon_best_trails_latex()
 #if 0									  // verify trails
   uint32_t dyy_init = 0;		  // dummy
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
   uint32_t npairs = (1ULL << 22);
 
 #if(WORD_SIZE == 16) 
@@ -1917,7 +1917,7 @@ void test_simon_best_trails_latex()
 //int main()
 int main (int argc, char ** argv)
 {
-  printf("#--- [%s:%d] Tests, WORD_SIZE  = %d, MASK = %8X\n", __FILE__, __LINE__, WORD_SIZE, MASK);
+  printf("#--- [%s:%d] Tests, WORD_SIZE  = %d, MASK = %8lX\n", __FILE__, __LINE__, WORD_SIZE, MASK);
   srandom(time(NULL));
 
   time_t rawtime;
@@ -1965,11 +1965,11 @@ int main (int argc, char ** argv)
   FILE* fp = fopen(logfile, "w");
   fprintf(fp, "\nTime: %s", ctime (&rawtime));
   fprintf(fp, "[%s:%d]\n WORD_SIZE %d\n NROUNDS %d\n XDP_ROT_AND_P_THRES %f 2^%f\n XDP_ROT_AND_MAX_DIFF_CNT %lld 2^%4.2f\n SIMON_EPS %f 2^%f\n XDP_ROT_AND_MAX_HW %d\n TRAIL_MAX_HW %d\n SIMON_BACK_TO_HWAY %d\n", 
-			 __FILE__, __LINE__, WORD_SIZE, NROUNDS, XDP_ROT_AND_P_THRES, log2(XDP_ROT_AND_P_THRES), XDP_ROT_AND_MAX_DIFF_CNT, log2(XDP_ROT_AND_MAX_DIFF_CNT), SIMON_EPS, log2(SIMON_EPS), XDP_ROT_AND_MAX_HW, TRAIL_MAX_HW, SIMON_BACK_TO_HWAY);
+			 __FILE__, __LINE__, WORD_SIZE, NROUNDS, XDP_ROT_AND_P_THRES, log2(XDP_ROT_AND_P_THRES), (WORD_MAX_T)XDP_ROT_AND_MAX_DIFF_CNT, log2(XDP_ROT_AND_MAX_DIFF_CNT), SIMON_EPS, log2(SIMON_EPS), XDP_ROT_AND_MAX_HW, TRAIL_MAX_HW, SIMON_BACK_TO_HWAY);
   fclose(fp);
 
   printf("[%s:%d] WORD_SIZE %d NROUNDS %d XDP_ROT_AND_P_THRES %f 2^%f XDP_ROT_AND_MAX_DIFF_CNT %lld 2^%4.2f SIMON_EPS %f 2^%f XDP_ROT_AND_MAX_HW %d TRAIL_MAX_HW %d SIMON_BACK_TO_HWAY %d\n", 
-			 __FILE__, __LINE__, WORD_SIZE, NROUNDS, XDP_ROT_AND_P_THRES, log2(XDP_ROT_AND_P_THRES), XDP_ROT_AND_MAX_DIFF_CNT, log2(XDP_ROT_AND_MAX_DIFF_CNT), SIMON_EPS, log2(SIMON_EPS), XDP_ROT_AND_MAX_HW, TRAIL_MAX_HW, SIMON_BACK_TO_HWAY);
+			 __FILE__, __LINE__, WORD_SIZE, NROUNDS, XDP_ROT_AND_P_THRES, log2(XDP_ROT_AND_P_THRES), (WORD_MAX_T)XDP_ROT_AND_MAX_DIFF_CNT, log2(XDP_ROT_AND_MAX_DIFF_CNT), SIMON_EPS, log2(SIMON_EPS), XDP_ROT_AND_MAX_HW, TRAIL_MAX_HW, SIMON_BACK_TO_HWAY);
 
   test_simon_trails_graph_transition_matrix();
   //  test_simon_diff_search_fixed(); // cluster trails around a fixed trail
@@ -1994,7 +1994,7 @@ int main (int argc, char ** argv)
   //  test_best_trail_n16();
 
   printf("[%s:%d] WORD_SIZE %d NROUNDS %d XDP_ROT_AND_P_THRES %f 2^%f XDP_ROT_AND_MAX_DIFF_CNT %lld 2^%4.2f SIMON_EPS %f 2^%f XDP_ROT_AND_MAX_HW %d TRAIL_MAX_HW %d SIMON_BACK_TO_HWAY %d\n", 
-			 __FILE__, __LINE__, WORD_SIZE, NROUNDS, XDP_ROT_AND_P_THRES, log2(XDP_ROT_AND_P_THRES), XDP_ROT_AND_MAX_DIFF_CNT, log2(XDP_ROT_AND_MAX_DIFF_CNT), SIMON_EPS, log2(SIMON_EPS), XDP_ROT_AND_MAX_HW, TRAIL_MAX_HW, SIMON_BACK_TO_HWAY);
+			 __FILE__, __LINE__, WORD_SIZE, NROUNDS, XDP_ROT_AND_P_THRES, log2(XDP_ROT_AND_P_THRES), (WORD_MAX_T)XDP_ROT_AND_MAX_DIFF_CNT, log2(XDP_ROT_AND_MAX_DIFF_CNT), SIMON_EPS, log2(SIMON_EPS), XDP_ROT_AND_MAX_HW, TRAIL_MAX_HW, SIMON_BACK_TO_HWAY);
 
   return 0;
 }

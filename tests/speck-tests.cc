@@ -58,6 +58,7 @@ void speck_round_equiv(const WORD_T key[2], const WORD_T plaintext[2], WORD_T ci
  */
 double speck_round_xdp_keys_plaintexts(const WORD_T dx[2], const WORD_T dy[2])
 {
+#if (WORD_SIZE <= 11)  
   uint32_t cnt_all = 0;
   uint32_t cnt = 0;
   for(WORD_T key_L = 0; key_L < ALL_WORDS; key_L++) {
@@ -96,6 +97,9 @@ double speck_round_xdp_keys_plaintexts(const WORD_T dx[2], const WORD_T dy[2])
   }
   double prob = (double)cnt / (double)cnt_all;
   return prob;
+#else
+  return 0.0;
+#endif // #if (WORD_SIZE <= 11)
 }
 
 /**

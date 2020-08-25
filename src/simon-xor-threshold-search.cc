@@ -485,10 +485,10 @@ uint32_t simon_verify_xor_trail(uint32_t nrounds, uint32_t npairs,
 	 uint32_t dy_out = trail[i].dx;
 
 	 for(uint64_t j = 0; j < npairs; j++) {
-		uint32_t x1 = random32() & MASK;
+		uint32_t x1 = xrandom() & MASK;
 		uint32_t x2 = XOR(x1, dx_in);
 
-		uint32_t y1 = random32() & MASK;
+		uint32_t y1 = xrandom() & MASK;
 		uint32_t y2 = XOR(y1, dy_in);
 
 		simon_encrypt(key, one_round, &x1, &y1);
@@ -621,10 +621,10 @@ uint32_t simon_verify_xor_differential(uint32_t nrounds, uint32_t npairs,
 	 p_the *= trail[i].p;
 
 	 for(uint64_t j = 0; j < npairs; j++) {
-		uint32_t x1 = random32() & MASK;
+		uint32_t x1 = xrandom() & MASK;
 		uint32_t x2 = XOR(x1, dx_in);
 
-		uint32_t y1 = random32() & MASK;
+		uint32_t y1 = xrandom() & MASK;
 		uint32_t y2 = XOR(y1, dy_in);
 
 		simon_encrypt(key, enc_nrounds, &x1, &y1);
@@ -666,7 +666,7 @@ void simon_diff_graph_print_nodes(std::map<simon_diff_graph_node_t, simon_diff_g
 #endif  // #if 1									  // DEBUG
   }
 #if 1									  // DEBUG
-  printf("[%s:%d] V.size %d\n", __FILE__, __LINE__, V.size());
+  printf("[%s:%d] V.size %d\n", __FILE__, __LINE__, (uint32_t)V.size());
 #endif  // #if 1									  // DEBUG
 }
 
@@ -999,7 +999,7 @@ double simon_verify_differential_approx(const uint32_t key_in[SIMON_MAX_NROUNDS]
   printf("\n");
 #else	 // random keys
   for(uint32_t i = 0; i < SIMON_MAX_NROUNDS; i++) {
-	 key[i] = random32() & MASK;
+	 key[i] = xrandom() & MASK;
   }
   printf("[%s:%d] Random round keys, %d R:\n", __FILE__, __LINE__, nrounds);
   for(uint32_t i = 0; i < nrounds; i++) {
@@ -1019,14 +1019,14 @@ double simon_verify_differential_approx(const uint32_t key_in[SIMON_MAX_NROUNDS]
   uint64_t cnt = 0;				  // (dx,dy)
 
   for(uint32_t i = 0; i < npairs; i++) {
-	 uint32_t x1 = random32() & MASK;
+	 uint32_t x1 = xrandom() & MASK;
 	 uint32_t x2 = XOR(x1, dx_in);
 #if SIMON_DRAW_GRAPH
 	 uint32_t x1_ptext = x1;
 	 uint32_t x2_ptext = x2;
 #endif
 
-	 uint32_t y1 = random32() & MASK;
+	 uint32_t y1 = xrandom() & MASK;
 	 uint32_t y2 = XOR(y1, dy_in);
 #if SIMON_DRAW_GRAPH
 	 uint32_t y1_ptext = y1;
@@ -1039,7 +1039,7 @@ double simon_verify_differential_approx(const uint32_t key_in[SIMON_MAX_NROUNDS]
 	 uint32_t dx_ctext = XOR(x1, x2);
 	 uint32_t dy_ctext = XOR(y1, y2);
 
-	 //	 if((dx_ctext == dx_out) && (hw32(dy_ctext & MASK) <= 5)) {
+	 //	 if((dx_ctext == dx_out) && (hamming_weight(dy_ctext & MASK) <= 5)) {
 	 //		printf("[%s:%d] %8X %8X\n", __FILE__, __LINE__, dx_ctext, dy_ctext);
 	 //	 }
 	 if((dx_ctext == dx_out) && (dy_ctext == dy_out)) {
@@ -1103,7 +1103,7 @@ double simon_verify_differential(const uint32_t key_in[SIMON_MAX_NROUNDS],
   printf("\n");
 #else	 // random keys
   for(uint32_t i = 0; i < SIMON_MAX_NROUNDS; i++) {
-	 key[i] = random32() & MASK;
+	 key[i] = xrandom() & MASK;
   }
   printf("[%s:%d] Random round keys, %d R:\n", __FILE__, __LINE__, nrounds);
   for(uint32_t i = 0; i < nrounds; i++) {
@@ -1128,14 +1128,14 @@ double simon_verify_differential(const uint32_t key_in[SIMON_MAX_NROUNDS],
   //  uint32_t N = npairs;
   for(uint32_t i = 0; i < N; i++) {
 	 for(uint32_t j = 0; j < N; j++) {
-		uint32_t x1 = i;//random32() & MASK;
+		uint32_t x1 = i;//xrandom() & MASK;
 		uint32_t x2 = XOR(x1, dx_in);
 #if VERBOSE
 		uint32_t x1_ptext = x1;
 		uint32_t x2_ptext = x2;
 #endif
 
-		uint32_t y1 = j;//random32() & MASK;
+		uint32_t y1 = j;//xrandom() & MASK;
 		uint32_t y2 = XOR(y1, dy_in);
 #if VERBOSE
 		uint32_t y1_ptext = y1;
@@ -1152,7 +1152,7 @@ double simon_verify_differential(const uint32_t key_in[SIMON_MAX_NROUNDS],
 		  cnt++;
 #if VERBOSE
 		  double p_temp = (double)cnt / (double)(N * N);
-		  printf("Found %lld right pairs (2^%f) | %8X %8X | 1:(%8X %8X) 2:(%8X %8X)\n", cnt, log2(p_temp), dx_ctext, dy_ctext, x1_ptext, y1_ptext, x2_ptext, y2_ptext);
+		  printf("Found %lld right pairs (2^%f) | %8X %8X | 1:(%8X %8X) 2:(%8X %8X)\n", (WORD_MAX_T)cnt, log2(p_temp), dx_ctext, dy_ctext, x1_ptext, y1_ptext, x2_ptext, y2_ptext);
 		  simon_encrypt_pairs(key, enc_nrounds, &x1_ptext, &y1_ptext, &x2_ptext, &y2_ptext, E);
 #endif
 		}
@@ -1167,10 +1167,10 @@ double simon_verify_differential(const uint32_t key_in[SIMON_MAX_NROUNDS],
 void simon_print_hash_table(std::unordered_map<std::string, differential_t**> trails_hash_map, uint32_t trail_len) 
 {
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
   std::unordered_map<std::string, differential_t**>::const_iterator hash_map_iter = trails_hash_map.begin();
   printf("[%s:%d] Found %d trails:\n", __FILE__, __LINE__, (uint32_t)trails_hash_map.size());
   uint32_t trail_cnt = 0;
@@ -1237,10 +1237,10 @@ void simon_boost_print_hash_table(boost::unordered_map<std::array<differential_t
   //  printf("[%s:%d] CHECKPOINT! Enter %s() trail_len %d hmap_size %d\n", __FILE__, __LINE__, __FUNCTION__, trail_len, (uint32_t)trails_hash_map.size());
 #if 0//(WORD_SIZE <= 16)
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
 #endif
   boost::unordered_map<std::array<differential_t, NROUNDS>, uint32_t, simon_trail_hash, simon_trail_equal_to>::iterator hash_map_iter 
 	 = trails_hash_map.begin();
@@ -1346,10 +1346,10 @@ void simon_boost_print_hash_table(boost::unordered_map<std::array<differential_t
 void simon_print_diff_hash_table(std::unordered_map<std::string, differential_t**> diffs_hash_map, uint32_t nrounds) 
 {
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
   std::unordered_map<std::string, differential_t**>::const_iterator hash_map_iter = diffs_hash_map.begin();
   printf("[%s:%d] Found %d differentials:\n", __FILE__, __LINE__, (uint32_t)diffs_hash_map.size());
   uint32_t trail_cnt = 0;
@@ -1929,11 +1929,11 @@ void simon_xor_threshold_search(const int n, const int nrounds,
 		pn = mset_iter->p;
 		uint32_t dxx = dy ^ dyy_init ^ LROT(dx, lrot_const_u); // gamma ^ dy_i ^ (alpha <<< 2)
 #if 1									  // DEBUG
-		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
+		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f", __FILE__, __LINE__, n, cnt, (uint32_t)diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn));
 		fflush(stdout);
 #endif
 		//		bool b_low_hw = true;
-		bool b_low_hw = ((hw32(dx) <= TRAIL_MAX_HW) && (hw32(dxx) <= TRAIL_MAX_HW));
+		bool b_low_hw = ((hamming_weight(dx) <= TRAIL_MAX_HW) && (hamming_weight(dxx) <= TRAIL_MAX_HW));
 		if(!b_hash_map)
 		  b_low_hw = true;
 		if(b_low_hw) {
@@ -1976,7 +1976,7 @@ void simon_xor_threshold_search(const int n, const int nrounds,
 		}
 #endif
 		std::multiset<differential_t, struct_comp_diff_p>::iterator begin_iter = diff_mset_p->begin();
-		bool b_low_hw = ((hw32(dx) <= TRAIL_MAX_HW) && (hw32(dxx) <= TRAIL_MAX_HW));
+		bool b_low_hw = ((hamming_weight(dx) <= TRAIL_MAX_HW) && (hamming_weight(dxx) <= TRAIL_MAX_HW));
 		if(!b_hash_map)
 		  b_low_hw = true;
 		if(b_low_hw) {
@@ -2016,9 +2016,9 @@ void simon_xor_threshold_search(const int n, const int nrounds,
 		uint32_t dxx = dy ^ dyy ^ LROT(dx, lrot_const_u); // dx_{i+1} = gamma ^ dx_{i-1} ^ (alpha <<< 2)
 		double p = diff[0].p * pn * B[nrounds - 1 - (n + 1)];
 #if 1									  // DEBUG
-		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f hw %5d %5d", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn), hw32(dx), hw32(dy));
+		printf("\r[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f hw %5d %5d", __FILE__, __LINE__, n, cnt, (uint32_t)diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn), hamming_weight(dx), hamming_weight(dy));
 		fflush(stdout);
-		//		printf("\n[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f hw %5d %5d\n", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn), hw32(dx), hw32(dy));
+		//		printf("\n[%s:%d] %2d: [%2d / %2d] %8X -> %8X, 2^%f, 2^%f hw %5d %5d\n", __FILE__, __LINE__, n, cnt, diff_mset_p->size(), dx, dy, log2(pn), log2(*Bn), hamming_weight(dx), hamming_weight(dy));
 #endif
 #if 0								  // DEBUG
 		if(b_hash_map) {
@@ -2026,7 +2026,7 @@ void simon_xor_threshold_search(const int n, const int nrounds,
 		}
 #endif
 		std::multiset<differential_t, struct_comp_diff_p>::iterator begin_iter = diff_mset_p->begin();
-		bool b_low_hw = ((hw32(dx) <= TRAIL_MAX_HW) && (hw32(dxx) <= TRAIL_MAX_HW));
+		bool b_low_hw = ((hamming_weight(dx) <= TRAIL_MAX_HW) && (hamming_weight(dxx) <= TRAIL_MAX_HW));
 		if(!b_hash_map)
 		  b_low_hw = true;
 		if(b_low_hw) {
@@ -2101,7 +2101,7 @@ void simon_xor_threshold_search(const int n, const int nrounds,
 
 		differential_t diff_max = {dx, dy, 0, p_max};
 		found_mset_p.insert(diff_max);
-		bool b_low_hw = (hw32(dx) <= XDP_ROT_AND_MAX_HW);
+		bool b_low_hw = (hamming_weight(dx) <= XDP_ROT_AND_MAX_HW);
 		if(!b_hash_map)
 		  b_low_hw = true;
 
@@ -2192,7 +2192,7 @@ void simon_xor_threshold_search(const int n, const int nrounds,
 		  uint32_t dxx = dy ^ dyy ^ LROT(dx, lrot_const_u); // dx_{i+1} = gamma ^ dx_{i-1} ^ (alpha <<< 2)
 
 		  // store the beginnig
-		  bool b_low_hw = ((hw32(dx) <= TRAIL_MAX_HW) && (hw32(dxx) <= TRAIL_MAX_HW));
+		  bool b_low_hw = ((hamming_weight(dx) <= TRAIL_MAX_HW) && (hamming_weight(dxx) <= TRAIL_MAX_HW));
 		  if(!b_hash_map)
 			 b_low_hw = true;
 		  if(b_low_hw) {
@@ -2231,8 +2231,8 @@ void simon_xor_threshold_search(const int n, const int nrounds,
 	 diff[n].dy = dxx;
 	 diff[n].p = pn;
 
-	 bool b_low_hw = ((hw32(dx) <= TRAIL_MAX_HW) && (hw32(dxx) <= TRAIL_MAX_HW));
-	 //	 bool b_low_hw = ((hw32(dx) + hw32(dxx)) <= 5); // !!!
+	 bool b_low_hw = ((hamming_weight(dx) <= TRAIL_MAX_HW) && (hamming_weight(dxx) <= TRAIL_MAX_HW));
+	 //	 bool b_low_hw = ((hamming_weight(dx) + hamming_weight(dxx)) <= 5); // !!!
 	 if(!b_hash_map)
 		b_low_hw = true;
 	 if(b_low_hw) {
@@ -2448,7 +2448,8 @@ uint32_t simon_xor_trail_search(uint32_t key[SIMON_MAX_NROUNDS], double B[NROUND
 	 }
 #endif
 
-	 printf("pDDT sizes: HW Dp %d, Dxy %d, CR Dp %d, Dxy %d, p_thres %f 2^%f\n", diff_mset_p.size(), diff_set_dx_dy.size(), croads_diff_mset_p.size(), croads_diff_set_dx_dy.size(), p_thres, log2(p_thres));
+	 printf("pDDT sizes: HW Dp %d, Dxy %d, CR Dp %d, Dxy %d, p_thres %f 2^%f\n",
+		(uint32_t)diff_mset_p.size(), (uint32_t)diff_set_dx_dy.size(), (uint32_t)croads_diff_mset_p.size(), (uint32_t)croads_diff_set_dx_dy.size(), p_thres, log2(p_thres));
 
 	 //	 assert(diff_mset_p.size() == diff_set_dx_dy.size());
 
@@ -2682,10 +2683,10 @@ uint32_t simon_xor_trail_search(uint32_t key[SIMON_MAX_NROUNDS], double B[NROUND
 
 #if 0								  // Verify probability of differential
   //  uint32_t key[SIMON_MAX_NROUNDS] = {0};
-  key[0] = random32() & MASK;
-  key[1] = random32() & MASK;
-  key[2] = random32() & MASK;
-  key[3] = random32() & MASK;
+  key[0] = xrandom() & MASK;
+  key[1] = xrandom() & MASK;
+  key[2] = xrandom() & MASK;
+  key[3] = xrandom() & MASK;
   uint32_t dx_in = ((*diff_max))[0].dx;
   uint32_t dy_in = ((*diff_max))[0].dy;
   uint32_t dx_out = ((*diff_max))[1].dy;
@@ -2859,7 +2860,7 @@ void simon_xor_cluster_trails(const int n, const int nrounds,
 		  if(n == (nrounds - 2)) {
 			 b_penultimate = (diff[n].dy == output_diff.dx);
 		  }
-		bool b_low_hw = ((hw32(dx) <= TRAIL_MAX_HW) && (hw32(dxx) <= TRAIL_MAX_HW)); // !!!
+		bool b_low_hw = ((hamming_weight(dx) <= TRAIL_MAX_HW) && (hamming_weight(dxx) <= TRAIL_MAX_HW)); // !!!
 		//		  if(b_penultimate) {
 		if((b_penultimate) && (b_low_hw)) {
 			 //			 simon_xor_cluster_trails(n+1, nrounds, B, diff, best_trail, trails_hash_map, dyy_init, input_diff, output_diff, lrot_const_s, lrot_const_t, lrot_const_u, diff_mset_p, diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy, eps);
