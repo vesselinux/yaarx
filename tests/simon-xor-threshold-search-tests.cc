@@ -1260,7 +1260,8 @@ void test_simon_diff_search_fixed()
 {
   assert(SIMON_TRAIL_LEN >= NROUNDS);
   boost::unordered_map<std::array<differential_t, NROUNDS>, uint32_t, simon_trail_hash, simon_trail_equal_to> trails_hash_map;
-#if 1 // QQ trail
+#if 0 // QQ trail
+  assert(NROUNDS==4);
   differential_t qq_trail[5] = {
 				{   0x0,    0x0, 0, 1.000000}, //(2^-0.000000)
 				{  0x40,  0x100, 0, 0.250000}, //(2^-2.000000)
@@ -1296,8 +1297,7 @@ void test_simon_diff_search_fixed()
   simon_verify_xor_trail(NROUNDS, npairs, key, qq_trail, dyy_init, lrot_const_s, lrot_const_t, lrot_const_u);
   simon_verify_xor_differential(NROUNDS, npairs, key, qq_trail, dyy_init, lrot_const_s, lrot_const_t, lrot_const_u);
 #endif
-  
-#if 0
+#if 1 // example trail with clustering
   FILE* fp = fopen(SIMON_CLUSTER_TRAILS_DATFILE, "w"); // init file
   fclose(fp);
   uint32_t dyy_init = 0;		  // dummy

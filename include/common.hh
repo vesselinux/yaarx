@@ -123,7 +123,7 @@
 #define WORD_SIZE 16//32//16//8//32//16//32//64//32//64//32//8//4//32//16//8//16//32//4//32//8//32//7//4//7//3//4//5//6//32//64//8//64//32 /**< Word size in  bits. */
 #endif
 #ifndef NROUNDS
-#define NROUNDS 4//5//4//5//4//5//4//6//8//13//3//4//11//4//11//10//5//6//5//20 /**< Number of rounds in reduced-round versions of target ciphers. */
+#define NROUNDS 8//4//8//8//4//5//4//5//4//5//4//6//8//13//3//4//11//4//11//10//5//6//5//20 /**< Number of rounds in reduced-round versions of target ciphers. */
 #endif
 #ifndef ALL_WORDS
 #define ALL_WORDS (1ULL << WORD_SIZE) /**< Total number of words of size WORD_SIZE. */
