@@ -86,7 +86,7 @@ differential_t g_trail[SIMON_TRAIL_LEN] = {
   {0, 0, 0, 0.0}
 };
 #endif
-#if 0									  // trail 2, 13R, 2^-36
+#if 1									  // trail 2, 13R, 2^-36
 double g_B[SIMON_TRAIL_LEN] = {
   (1.0 / (double)(1ULL <<  0)),
   (1.0 / (double)(1ULL <<  4)),
@@ -122,7 +122,7 @@ differential_t g_trail[SIMON_TRAIL_LEN] = {
   {   0x1, 0x4004, 0, 0.250000} //(2^-2.000000)
 };
 #endif  // #if 0
-#if 1									  // trail 3, 12R, 2^-34
+#if 0									  // trail 3, 12R, 2^-34
 double g_B[SIMON_TRAIL_LEN] = {
   (1.0 / (double)(1ULL <<  0)),
   (1.0 / (double)(1ULL <<  4)),
@@ -569,9 +569,9 @@ void simon_trail_to_round_diffs(differential_t trail_in[NROUNDS], differential_t
  *       - Differential for \f$N\f$ rounds: rounds \f$0,1,2,\ldots,(N-1)\f$. 
  */
 uint32_t simon_verify_xor_differential(uint32_t nrounds, uint32_t npairs, 
-													uint32_t key_in[SIMON_MAX_NROUNDS],
-													differential_t trail_in[NROUNDS], uint32_t dy_init,
-													uint32_t lrot_const_s, uint32_t lrot_const_t, uint32_t lrot_const_u)
+				       uint32_t key_in[SIMON_MAX_NROUNDS],
+				       differential_t trail_in[NROUNDS], uint32_t dy_init,
+				       uint32_t lrot_const_s, uint32_t lrot_const_t, uint32_t lrot_const_u)
 {
   //  if(nrounds > 10) {
   //	 npairs =( 1ULL << 27);
@@ -602,7 +602,7 @@ uint32_t simon_verify_xor_differential(uint32_t nrounds, uint32_t npairs,
   uint32_t warn_cnt = 0;
   printf("[%s:%d] Verify P of differentials (2^%f CPs)...\n", __FILE__, __LINE__, log2(npairs));
 
-  // First two Fesitel rounds are freely chosen, so add correction at dy[0]
+  // First two Feistel rounds are freely chosen, so add correction at dy[0]
   uint32_t dx_in = trail[0].dx;
   uint32_t dy_in = trail[1].dx ^ trail[0].dy ^ dy_init;
   trail[0].dy = trail[1].dx;
@@ -3026,19 +3026,19 @@ void simon_trail_cluster_search(std::unordered_map<std::string, differential_t**
 // --- 20131029 ---
 
 void simon_xor_cluster_trails_boost(const int n, const int nrounds, 
-												const double B[NROUNDS], 
-												const differential_t diff_in[NROUNDS], const differential_t best_trail[NROUNDS], 
-												//													std::unordered_map<std::string, differential_t**>* trails_hash_map,
-												boost::unordered_map<std::array<differential_t, NROUNDS>, uint32_t, simon_trail_hash, simon_trail_equal_to>* trails_hash_map,
-												const differential_t input_diff, const differential_t output_diff, 
-												uint32_t lrot_const_s, uint32_t lrot_const_t, uint32_t lrot_const_u,
-												std::multiset<differential_t, struct_comp_diff_p>* diff_mset_p, // initial highways
-												std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy,
-												std::multiset<differential_t, struct_comp_diff_p>* hways_diff_mset_p, // all highways
-												std::set<differential_t, struct_comp_diff_dx_dy>* hways_diff_set_dx_dy,
-												std::multiset<differential_t, struct_comp_diff_p>* croads_diff_mset_p, // country roads
-												std::set<differential_t, struct_comp_diff_dx_dy>* croads_diff_set_dx_dy,
-												double eps)
+				    const double B[NROUNDS], 
+				    const differential_t diff_in[NROUNDS], const differential_t best_trail[NROUNDS], 
+				    //													std::unordered_map<std::string, differential_t**>* trails_hash_map,
+				    boost::unordered_map<std::array<differential_t, NROUNDS>, uint32_t, simon_trail_hash, simon_trail_equal_to>* trails_hash_map,
+				    const differential_t input_diff, const differential_t output_diff, 
+				    uint32_t lrot_const_s, uint32_t lrot_const_t, uint32_t lrot_const_u,
+				    std::multiset<differential_t, struct_comp_diff_p>* diff_mset_p, // initial highways
+				    std::set<differential_t, struct_comp_diff_dx_dy>* diff_set_dx_dy,
+				    std::multiset<differential_t, struct_comp_diff_p>* hways_diff_mset_p, // all highways
+				    std::set<differential_t, struct_comp_diff_dx_dy>* hways_diff_set_dx_dy,
+				    std::multiset<differential_t, struct_comp_diff_p>* croads_diff_mset_p, // country roads
+				    std::set<differential_t, struct_comp_diff_dx_dy>* croads_diff_set_dx_dy,
+				    double eps)
 {
 #if 1
   double pn = 0.0;
@@ -3048,227 +3048,234 @@ void simon_xor_cluster_trails_boost(const int n, const int nrounds,
   // make a local copy of the input diff trail
   differential_t diff[NROUNDS] = {{0, 0, 0, 0.0}};
   for(int i = 0; i < n; i++) {
-	 diff[i].dx = diff_in[i].dx;
-	 diff[i].dy = diff_in[i].dy;
-	 diff[i].p = diff_in[i].p;
+    diff[i].dx = diff_in[i].dx;
+    diff[i].dy = diff_in[i].dy;
+    diff[i].p = diff_in[i].p;
   }
 
   if((n >= 0) && (n != (nrounds - 1))) { // Round-i and not last round
-	 uint32_t dx = input_diff.dx;
-	 if(n > 0) {
-		dx = diff[n - 1].dy; // dx_{i} = dy_{i - 1}
-	 }
-	 uint32_t dy = 0;					 // gamma
+    //    printf("[%s:%d] round %d\n", __FILE__, __LINE__, n);
+    uint32_t dx = input_diff.dx;
+    if(n > 0) {
+      dx = diff[n - 1].dy; // dx_{i} = dy_{i - 1}
+    }
+    uint32_t dy = 0;					 // gamma
 
-	 differential_t diff_dy;
-	 diff_dy.dx = dx;  			  // alpha
-	 diff_dy.dy = 0;
-	 diff_dy.p = 0.0;
+    differential_t diff_dy;
+    diff_dy.dx = dx;  			  // alpha
+    diff_dy.dy = 0;
+    diff_dy.p = 0.0;
 
-	 std::multiset<differential_t, struct_comp_diff_p> found_mset_p;
+    std::multiset<differential_t, struct_comp_diff_p> found_mset_p;
 
-	 // p_i >= p_min = Bn / p1 * p2 ... * p{i-1} * B{n-i} 
-	 double p_min = 1.0;
-	 for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
-		p_min *= diff[i].p;
-	 }
-	 p_min = p_min * 1.0 * B[nrounds - 1 - (n + 1)]; 
-	 p_min = (B[nrounds - 1] * eps) / p_min;
-	 assert(p_min <= 1.0);
+    // p_i >= p_min = Bn / p1 * p2 ... * p{i-1} * B{n-i} 
+    double p_min = 1.0;
+    for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
+      p_min *= diff[i].p;
+    }
+    p_min = p_min * 1.0 * B[nrounds - 1 - (n + 1)]; 
+    p_min = (B[nrounds - 1] * eps) / p_min;
+    assert(p_min <= 1.0);
 
-	 // check if the differential is not already in the set
-	 std::set<differential_t, struct_comp_diff_dx_dy>::iterator hway_iter = diff_set_dx_dy->lower_bound(diff_dy);
-	 bool b_found_in_hways = (hway_iter != diff_set_dx_dy->end()) && (hway_iter->dx == dx);
-	 bool b_found_in_croads = false;
-	 if((b_found_in_hways) && (hway_iter->p >= p_min)) { // !!
-		while(hway_iter->dx == dx) {
-		  found_mset_p.insert(*hway_iter);
-		  hway_iter++;
-		}
-	 }
+    //    printf("[%s:%d] p_min 2^%f\n", __FILE__, __LINE__, log2(p_min));
+    
+    // check if the differential is not already in the set
+    std::set<differential_t, struct_comp_diff_dx_dy>::iterator hway_iter = diff_set_dx_dy->lower_bound(diff_dy);
+    bool b_found_in_hways = (hway_iter != diff_set_dx_dy->end()) && (hway_iter->dx == dx);
+    bool b_found_in_croads = false;
+    if((b_found_in_hways) && (hway_iter->p >= p_min)) { // !!
+      //      printf("[%s:%d] n %d: Found in hways!\n", __FILE__, __LINE__, n);
+      while(hway_iter->dx == dx) {
+	found_mset_p.insert(*hway_iter);
+	hway_iter++;
+      }
+    }
 
-	 croads_diff_set_dx_dy->clear();
-	 croads_diff_mset_p->clear();
-	 b_found_in_croads = false;
-	 std::set<differential_t, struct_comp_diff_dx_dy>::iterator croad_iter;
+    croads_diff_set_dx_dy->clear();
+    croads_diff_mset_p->clear();
+    b_found_in_croads = false;
+    std::set<differential_t, struct_comp_diff_dx_dy>::iterator croad_iter;
 
-	 uint32_t dx_prev = input_diff.dx;
-	 if(n > 0) {
-		dx_prev = diff[n - 1].dx;
-	 }
-	 assert(diff_set_dx_dy->size() != 0);
-	 //	 const uint64_t max_cnt = XDP_ROT_AND_MAX_DIFF_CNT;
-	 const uint64_t max_cnt = (1U << 22);// !!!
-	 bool b_backto_hway = false;
-	 //	 uint32_t cnt_new = xdp_rot_and_dx_pddt(diff_dy.dx, dx_prev, diff_set_dx_dy, diff_mset_p, croads_diff_set_dx_dy, croads_diff_mset_p, lrot_const_s, lrot_const_t, lrot_const_u, max_cnt, p_min, b_backto_hway);
-	 uint32_t cnt_new = xdp_rot_and_dx_pddt(diff_dy.dx, dx_prev, diff_set_dx_dy, diff_mset_p, hways_diff_set_dx_dy, hways_diff_mset_p, croads_diff_set_dx_dy, croads_diff_mset_p, lrot_const_s, lrot_const_t, lrot_const_u, max_cnt, p_min, b_backto_hway);
+    uint32_t dx_prev = input_diff.dx;
+    if(n > 0) {
+      dx_prev = diff[n - 1].dx;
+    }
+    assert(diff_set_dx_dy->size() != 0);
+    //	 const uint64_t max_cnt = XDP_ROT_AND_MAX_DIFF_CNT;
+    const uint64_t max_cnt = (1U << 22);// !!!
+    bool b_backto_hway = SIMON_BACK_TO_HWAY;//true;//false; //vv20200828
+    //	 uint32_t cnt_new = xdp_rot_and_dx_pddt(diff_dy.dx, dx_prev, diff_set_dx_dy, diff_mset_p, croads_diff_set_dx_dy, croads_diff_mset_p, lrot_const_s, lrot_const_t, lrot_const_u, max_cnt, p_min, b_backto_hway);
+    uint32_t cnt_new = xdp_rot_and_dx_pddt(diff_dy.dx, dx_prev, diff_set_dx_dy, diff_mset_p, hways_diff_set_dx_dy, hways_diff_mset_p, croads_diff_set_dx_dy, croads_diff_mset_p, lrot_const_s, lrot_const_t, lrot_const_u, max_cnt, p_min, b_backto_hway);
 
-	 if(cnt_new != 0) {
+    if(cnt_new != 0) {
 #if 0									  // DEBUG
-		printf("\r[%s:%d] [%2d / %2d]: Added %d new country roads: p_min = %f (2^%f). New sizes: Dxy %d, Dp %d.", __FILE__, __LINE__, n, NROUNDS, cnt_new, p_min, log2(p_min), (uint32_t)croads_diff_set_dx_dy->size(), (uint32_t)croads_diff_mset_p->size());
-		fflush(stdout);
+      printf("\r[%s:%d] [%2d / %2d]: Added %d new country roads: p_min = %f (2^%f). New sizes: Dxy %d, Dp %d.", __FILE__, __LINE__, n, NROUNDS, cnt_new, p_min, log2(p_min), (uint32_t)croads_diff_set_dx_dy->size(), (uint32_t)croads_diff_mset_p->size());
+      fflush(stdout);
 #endif
-		croad_iter = croads_diff_set_dx_dy->lower_bound(diff_dy);
-		b_found_in_croads = (croad_iter != croads_diff_set_dx_dy->end()) && (croad_iter->dx == dx);
-	 } 
+      croad_iter = croads_diff_set_dx_dy->lower_bound(diff_dy);
+      b_found_in_croads = (croad_iter != croads_diff_set_dx_dy->end()) && (croad_iter->dx == dx);
+    } 
 
-	 if(b_found_in_croads) {
-		assert(croad_iter->p >= p_min);
-		//		while(croad_iter->dx == dx) {
-		while((croad_iter->dx == dx) && (croad_iter->p >= p_min)) {
-		  found_mset_p.insert(*croad_iter);
-		  croad_iter++;
-		}
-	 }
+    if(b_found_in_croads) {
+      assert(croad_iter->p >= p_min);
+      //		while(croad_iter->dx == dx) {
+      while((croad_iter->dx == dx) && (croad_iter->p >= p_min)) {
+	found_mset_p.insert(*croad_iter);
+	croad_iter++;
+      }
+    }
 
-	 std::multiset<differential_t, struct_comp_diff_p>::iterator find_iter = found_mset_p.begin();
+    std::multiset<differential_t, struct_comp_diff_p>::iterator find_iter = found_mset_p.begin();
 
-	 if(find_iter->dx == dx) {
-		while((find_iter->dx == dx) && (find_iter != found_mset_p.end())) {
-		  assert((find_iter->dx == dx));
-		  diff_dy = *find_iter;
+    if(find_iter->dx == dx) {
+      while((find_iter->dx == dx) && (find_iter != found_mset_p.end())) {
+	assert((find_iter->dx == dx));
+	diff_dy = *find_iter;
 
-		  dx = diff_dy.dx;
-		  dy = diff_dy.dy;
-		  pn = diff_dy.p;
+	dx = diff_dy.dx;
+	dy = diff_dy.dy;
+	pn = diff_dy.p;
 
-		  double p = 1.0;
-		  for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
-			 p *= diff[i].p;
-		  }
-		  //		  p = p * pn * B[nrounds - 1 - (n + 1)]; 
-		  p = p * pn;				  // p[0] * p[1] * p[n-1] * p[n]
+	double p = 1.0;
+	for(int i = 0; i < n; i++) { // p[0] * p[1] * p[n-1]
+	  p *= diff[i].p;
+	}
+	//		  p = p * pn * B[nrounds - 1 - (n + 1)]; 
+	p = p * pn;				  // p[0] * p[1] * p[n-1] * p[n]
 
-		  // !!
-		  //			 uint32_t dyy = input_diff.dy;
-		  uint32_t dyy = input_diff.dy;
-		  if(n > 0) {
-			 dyy = diff[n-1].dx; // dy_{i} = dx_{i-1}
-		  }
-		  uint32_t dxx = dy ^ dyy ^ LROT(dx, lrot_const_u); // dx_{i+1} = gamma ^ dx_{i-1} ^ (alpha <<< 2)
+	// !!
+	//			 uint32_t dyy = input_diff.dy;
+	uint32_t dyy = input_diff.dy;
+	if(n > 0) {
+	  dyy = diff[n-1].dx; // dy_{i} = dx_{i-1}
+	}
+	uint32_t dxx = dy ^ dyy ^ LROT(dx, lrot_const_u); // dx_{i+1} = gamma ^ dx_{i-1} ^ (alpha <<< 2)
 
-		  diff[n].dx = dx;		  // dx_{i}
-		  diff[n].dy = dxx;	  // dx_{i+1}
-		  diff[n].p = pn;
+	diff[n].dx = dx;		  // dx_{i}
+	diff[n].dy = dxx;	  // dx_{i+1}
+	diff[n].p = pn;
 
-		  bool b_penultimate = true;
-		  if(n == (nrounds - 2)) {
-			 b_penultimate = (diff[n].dy == output_diff.dx);
-		  }
-		  if(b_penultimate) {
-			 simon_xor_cluster_trails_boost(n+1, nrounds, B, diff, best_trail, trails_hash_map, input_diff, output_diff, lrot_const_s, lrot_const_t, lrot_const_u, diff_mset_p, diff_set_dx_dy, hways_diff_mset_p, hways_diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy, eps);
-		  } else {
+	bool b_penultimate = true;
+	if(n == (nrounds - 2)) {
+	  b_penultimate = (diff[n].dy == output_diff.dx);
+	}
+	if(b_penultimate) {
+	  simon_xor_cluster_trails_boost(n+1, nrounds, B, diff, best_trail, trails_hash_map, input_diff, output_diff, lrot_const_s, lrot_const_t, lrot_const_u, diff_mset_p, diff_set_dx_dy, hways_diff_mset_p, hways_diff_set_dx_dy, croads_diff_mset_p, croads_diff_set_dx_dy, eps);
+	} else {
 #if 0									  // DEBUG
-			 printf("\r[%s:%d] Penultimate round does not match output diff: %X vs. %X", __FILE__, __LINE__, diff[n].dy, output_diff.dx);
-			 fflush(stdout);
+	  printf("\r[%s:%d] Penultimate round does not match output diff: %X vs. %X", __FILE__, __LINE__, diff[n].dy, output_diff.dx);
+	  fflush(stdout);
 #endif
-		  }
-		  find_iter++;
-		}	// while
-	 }		// if
+	}
+	find_iter++;
+      }	// while
+    }		// if
   }
 
   if((n == (nrounds - 1)) && (nrounds > 1)) {		  // Last round
+    //    assert(0);
+    uint32_t dx = diff[n - 1].dy; // dx_{i} = dy_{i - 1}
+    uint32_t dy = 0;					 // gamma
 
-	 uint32_t dx = diff[n - 1].dy; // dx_{i} = dy_{i - 1}
-	 uint32_t dy = 0;					 // gamma
+    pn = max_xdp_rot_and(dx, &dy, lrot_const_s, lrot_const_t);
 
-	 pn = max_xdp_rot_and(dx, &dy, lrot_const_s, lrot_const_t);
+    uint32_t dyy = diff[n-1].dx; // dy_{i} = dx_{i-1}
+    uint32_t dxx = dy ^ dyy ^ LROT(dx, lrot_const_u); // dx_{i+1} = gamma ^ dx_{i-1} ^ (alpha <<< 2)
 
-	 uint32_t dyy = diff[n-1].dx; // dy_{i} = dx_{i-1}
-	 uint32_t dxx = dy ^ dyy ^ LROT(dx, lrot_const_u); // dx_{i+1} = gamma ^ dx_{i-1} ^ (alpha <<< 2)
+    double p = 1.0;
+    for(int i = 0; i < n; i++) {
+      p *= diff[i].p;
+    }
+    p *= pn;
 
-	 double p = 1.0;
-	 for(int i = 0; i < n; i++) {
-		p *= diff[i].p;
-	 }
-	 p *= pn;
+    //	 double p_min = B[n] * eps;
+    //	 if((p >= p_min) && (p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
+    if((p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
 
-	 //	 double p_min = B[n] * eps;
-	 //	 if((p >= p_min) && (p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
-	 if((p != 1.0) && (p != 0.0)) { // skip the 0-diff trail (p = 1.0)
+      diff[n].dx = dx;
+      diff[n].dy = dxx;
+      diff[n].p = pn;
 
-		diff[n].dx = dx;
-		diff[n].dy = dxx;
-		diff[n].p = pn;
+      //		assert(diff[0].dx == input_diff.dx);
+      //		assert(diff[0].dy == input_diff.dy);
 
-		//		assert(diff[0].dx == input_diff.dx);
-		//		assert(diff[0].dy == input_diff.dy);
+      if((diff[n].dx == output_diff.dx) && (diff[n].dy == output_diff.dy)) {
 
-		if((diff[n].dx == output_diff.dx) && (diff[n].dy == output_diff.dy)) {
+	uint32_t trail_len = nrounds;
+	differential_t trail[NROUNDS] = {{0,0,0,0.0}};
 
-		  uint32_t trail_len = nrounds;
-		  differential_t trail[NROUNDS] = {{0,0,0,0.0}};
+	for(int i = 0; i < nrounds; i++) {
+	  trail[i].dx = diff[i].dx;
+	  trail[i].dy = diff[i].dy;
+	  trail[i].p = diff[i].p;
+	}
 
-		  for(int i = 0; i < nrounds; i++) {
-			 trail[i].dx = diff[i].dx;
-			 trail[i].dy = diff[i].dy;
-			 trail[i].p = diff[i].p;
-		  }
+	simon_trail_hash trail_hash;  // trails hash function
 
-		  simon_trail_hash trail_hash;  // trails hash function
+	std::array<differential_t, NROUNDS> trail_array;
+	for(uint32_t i = 0; i < NROUNDS; i++) {
+	  trail_array[i].dx = trail[i].dx;
+	  trail_array[i].dy = trail[i].dy;
+	  trail_array[i].npairs = trail[i].npairs;
+	  trail_array[i].p = trail[i].p;
+	}
+	//		  assert(trail_array[0].dx == input_diff.dx);
+	//		  assert(trail_array[0].dy == input_diff.dy);
 
-		  std::array<differential_t, NROUNDS> trail_array;
-		  for(uint32_t i = 0; i < NROUNDS; i++) {
-			 trail_array[i].dx = trail[i].dx;
-			 trail_array[i].dy = trail[i].dy;
-			 trail_array[i].npairs = trail[i].npairs;
-			 trail_array[i].p = trail[i].p;
-		  }
-		  //		  assert(trail_array[0].dx == input_diff.dx);
-		  //		  assert(trail_array[0].dy == input_diff.dy);
+	boost::unordered_map<std::array<differential_t, NROUNDS>, uint32_t, simon_trail_hash, simon_trail_equal_to>::iterator trail_iter 
+	  = trails_hash_map->find(trail_array);
 
-		  boost::unordered_map<std::array<differential_t, NROUNDS>, uint32_t, simon_trail_hash, simon_trail_equal_to>::iterator trail_iter 
-			 = trails_hash_map->find(trail_array);
-
-		  if(trail_iter == trails_hash_map->end()) { // trail is not in the trail table so add it
+	if(trail_iter == trails_hash_map->end()) { // trail is not in the trail table so add it
+	  //	  assert(0);
 #if 0									  // DEBUG
-			 printf("[%s:%d] Add new trail: 2^%f | %d\n", __FILE__, __LINE__, log2(p), (uint32_t)trails_hash_map->size());
+	  printf("[%s:%d] Add new trail: 2^%f | %d\n", __FILE__, __LINE__, log2(p), (uint32_t)trails_hash_map->size());
 #endif
-			 uint32_t trail_hash_val = trail_hash(trail_array);
-			 std::pair<std::array<differential_t, NROUNDS>, uint32_t> new_pair (trail_array, trail_hash_val);
-			 trails_hash_map->insert(new_pair);
-#if 0									  // old, inefficient
-			 simon_boost_print_hash_table(*trails_hash_map, trail_len);
+	  uint32_t trail_hash_val = trail_hash(trail_array);
+	  std::pair<std::array<differential_t, NROUNDS>, uint32_t> new_pair (trail_array, trail_hash_val);
+	  trails_hash_map->insert(new_pair);
+#if 1									  // old, inefficient
+	  simon_boost_print_hash_table(*trails_hash_map, trail_len);
 #else									  // NEW, xxx
-			 uint32_t dx_in = trail[0].dx;
-			 uint32_t dy_in = g_trail[0].dy ^ g_trail[1].dx;
+	  uint32_t dx_in = trail[0].dx;
+	  uint32_t dy_in = g_trail[0].dy ^ g_trail[1].dx;
 
-			 uint32_t dx_out = trail[trail_len - 1].dx;
-			 uint32_t dy_out = trail[trail_len - 1].dy;
+	  uint32_t dx_out = trail[trail_len - 1].dx;
+	  uint32_t dy_out = trail[trail_len - 1].dy;
 
-			 //			 printf("%8X %8X, %8X %8X\n", dx_in, dy_in, g_trail[0].dx, (g_trail[0].dy ^ g_trail[1].dx));
-			 assert(dx_in == g_trail[0].dx);
-			 assert(dy_in == (g_trail[0].dy ^ g_trail[1].dx));
+	  //			 printf("%8X %8X, %8X %8X\n", dx_in, dy_in, g_trail[0].dx, (g_trail[0].dy ^ g_trail[1].dx));
+	  assert(dx_in == g_trail[0].dx);
+	  assert(dy_in == (g_trail[0].dy ^ g_trail[1].dx));
 
-			 simon_boost_new_trail_store_to_file(dx_in, dy_in, trail, trail_len);
+	  simon_boost_new_trail_store_to_file(dx_in, dy_in, trail, trail_len);
 
-			 printf("\r[%s:%d] %2d R (%8X %8X) -> (%8X %8X) : [%10d trails]", __FILE__, __LINE__, trail_len, dx_in, dy_in, dx_out, dy_out, (uint32_t)trails_hash_map->size());
-			 fflush(stdout);
+	  printf("\r[%s:%d] %2d R (%8X %8X) -> (%8X %8X) : [%10d trails]", __FILE__, __LINE__, trail_len, dx_in, dy_in, dx_out, dy_out, (uint32_t)trails_hash_map->size());
+	  fflush(stdout);
 #endif
-		  }
+	} else {
+	  //	  printf("[%s:%d] Trail already added\n", __FILE__, __LINE__);
+	}
 
 #if 0									  // DEBUG
-		  for(int i = 0; i < nrounds; i++) {
-			 printf("[%s:%d] %8X %8X 2^%f\n", __FILE__, __LINE__, trail[i].dx, trail[i].dy, log2(trail[i].p));
-		  }
-		  printf("\n");
+	for(int i = 0; i < nrounds; i++) {
+	  printf("[%s:%d] %8X %8X 2^%f\n", __FILE__, __LINE__, trail[i].dx, trail[i].dy, log2(trail[i].p));
+	}
+	printf("\n");
 #endif
 
-		} else {
+      } else {
 #if 0
-		  printf("\r[%s:%d] Does not match output diffs: (%8X,%8X) vs. (%8X,%8X)", __FILE__, __LINE__, 
-					diff[n].dx, diff[n].dy, output_diff.dx, output_diff.dy);
-		  fflush(stdout);
+	printf("\r[%s:%d] Does not match output diffs: (%8X,%8X) vs. (%8X,%8X)", __FILE__, __LINE__, 
+	       diff[n].dx, diff[n].dy, output_diff.dx, output_diff.dy);
+	fflush(stdout);
 #endif
-		}
-	 }
+      }
+    }
   }
 #endif
 }
 
 void simon_trail_cluster_search_boost(boost::unordered_map<std::array<differential_t, NROUNDS>, uint32_t, simon_trail_hash, simon_trail_equal_to>* trails_hash_map,
-												  double B[NROUNDS], const differential_t trail_in[NROUNDS], uint32_t trail_len, uint32_t* dyy_init)
+				      double B[NROUNDS], const differential_t trail_in[NROUNDS], uint32_t trail_len, uint32_t* dyy_init)
 {
   printf("[%s:%d] trail_len %d\n", __FILE__, __LINE__, trail_len);
   assert(trail_len >= NROUNDS);
@@ -3277,7 +3284,7 @@ void simon_trail_cluster_search_boost(boost::unordered_map<std::array<differenti
   differential_t diff[NROUNDS] = {{0,0,0,0.0}};
   differential_t trail[NROUNDS] = {{0, 0, 0, 0.0}}; 
   for(uint32_t i = 0; i < NROUNDS; i++) {
-	 trail[i] = {trail_in[i].dx, trail_in[i].dy, trail_in[i].npairs, trail_in[i].p};
+    trail[i] = {trail_in[i].dx, trail_in[i].dy, trail_in[i].npairs, trail_in[i].p};
   }
 
   uint32_t lrot_const_s = SIMON_LROT_CONST_S; 
@@ -3320,11 +3327,11 @@ void simon_trail_cluster_search_boost(boost::unordered_map<std::array<differenti
   simon_trail_hash trail_hash;  // trails hash function
   std::array<differential_t, NROUNDS> trail_array;
   for(uint32_t i = 0; i < NROUNDS; i++) {
-	 trail_array[i].dx = trail[i].dx;
-	 trail_array[i].dy = trail[i].dy;
-	 trail_array[i].npairs = trail[i].npairs;
-	 trail_array[i].p = trail[i].p;
-	 p *= trail[i].p;
+    trail_array[i].dx = trail[i].dx;
+    trail_array[i].dy = trail[i].dy;
+    trail_array[i].npairs = trail[i].npairs;
+    trail_array[i].p = trail[i].p;
+    p *= trail[i].p;
   }
   printf("[%s:%d] Add initial trail: 2^%f | %d\n", __FILE__, __LINE__, log2(p), (uint32_t)trails_hash_map->size());
   uint32_t trail_hash_val = trail_hash(trail_array);

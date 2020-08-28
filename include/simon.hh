@@ -37,9 +37,10 @@
 #define SIMON_KEY_LEN_BITS 128
 #define SIMON_ZSEQ_LEN 62
 #define SIMON_MAX_NROUNDS 72
+//#define SIMON_EPS (double)(1.0 / (double)(1ULL << 15))//(double)(1.0 / (double)(1ULL << 15))
 #define SIMON_EPS (double)(1.0 / (double)(1ULL << 15))//(double)(1.0 / (double)(1ULL << 15))
 #define SIMON_DRAW_GRAPH 0		  // draw gviz graph
-#define SIMON_BACK_TO_HWAY true
+#define SIMON_BACK_TO_HWAY false
 #define SIMON_TRAIL_LEN_MAX 21
 
 #define SIMON_GVIZ_DATFILE "simon-gviz.dat" // full graph

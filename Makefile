@@ -146,6 +146,7 @@ idea.o:
 
 SIMON_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)simon.o
 
+.PHONY: simon
 simon: $(OBJ_PATH)common.o $(OBJ_PATH)simon.o
 	$(CC) $(LFLAGS) $(SIMON_TESTS_OBJ) -o $(BIN_PATH)simon $(LIBS)
 
@@ -180,6 +181,7 @@ $(OBJ_PATH)speck.o: $(SOURCE_PATH)speck.cc
 
 XDP_AND_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-and-tests.o
 
+.PHONY: xdp-and-tests
 xdp-and-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-and-tests.o
 	$(CC) $(LFLAGS) $(XDP_AND_TESTS_OBJ) -o $(BIN_PATH)xdp-and-tests $(LIBS)
 
@@ -193,6 +195,7 @@ $(OBJ_PATH)xdp-and-tests.o: $(TESTS_PATH)xdp-and-tests.cc
 
 XDP_ROT_AND_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-rot-and.o $(OBJ_PATH)xdp-rot-and-tests.o
 
+.PHONY: xdp-rot-and-tests
 xdp-rot-and-tests: $(OBJ_PATH)common.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-rot-and.o $(OBJ_PATH)xdp-rot-and-tests.o
 	$(CC) $(LFLAGS) $(XDP_ROT_AND_TESTS_OBJ) -o $(BIN_PATH)xdp-rot-and-tests $(LIBS)
 
@@ -205,6 +208,9 @@ $(OBJ_PATH)xdp-rot-and-tests.o:
 # --- SIMON-XOR-THRESHOLD_SEARCH ---
 
 SIMON_XOR_THRESHOLD_SEARCH_TESTS_OBJ = $(OBJ_PATH)common.o $(OBJ_PATH)simon.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-rot-and.o $(OBJ_PATH)simon-xor-ddt-search.o $(OBJ_PATH)simon-xor-threshold-search.o  $(OBJ_PATH)simon-xor-threshold-search-tests.o
+
+#.PHONY: simon-xor-threshold-search-tests
+#simon-xor-threshold-search-tests: $(BIN_PATH)simon-xor-threshold-search-tests
 
 simon-xor-threshold-search-tests: $(OBJ_PATH)common.o $(OBJ_PATH)simon.o $(OBJ_PATH)xdp-and.o $(OBJ_PATH)xdp-rot-and.o $(OBJ_PATH)simon-xor-ddt-search.o $(OBJ_PATH)simon-xor-threshold-search.o $(OBJ_PATH)simon-xor-threshold-search-tests.o
 	$(CC) $(LFLAGS) $(SIMON_XOR_THRESHOLD_SEARCH_TESTS_OBJ) -o $(BIN_PATH)simon-xor-threshold-search-tests $(LIBS)

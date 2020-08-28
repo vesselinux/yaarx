@@ -30,14 +30,14 @@
 #define XDP_ROT_AND_MSIZE 4
 #define XDP_ROT_AND_NISTATES 2  // number of initial states
 #define XDP_ROT_AND_MAX_DIFF_CNT (1ULL << 7)//70ULL//(1ULL << 3)//70ULL//(1ULL << 6)//(1ULL << 7)//(1ULL << 8)
-#define XDP_ROT_AND_P_THRES 0.06//0.016//0.0.06//0.12//0.2//0.1//0.05//0.01//(1.0 / (double)(1UL << 4))//0.1//0.1//0.05
+#define XDP_ROT_AND_P_THRES 0.06//0.06//0.016//0.0.06//0.12//0.2//0.1//0.05//0.01//(1.0 / (double)(1UL << 4))//0.1//0.1//0.05
 #define XDP_ROT_AND_P_LOW_THRES 0.0//(1.0 / (double)(1UL << 6))
-#define XDP_ROT_AND_MAX_HW 4
+#define XDP_ROT_AND_MAX_HW 4//vv20200828
 #define TRAIL_MAX_HW 32
 #define XDP_ROT_PDDT_GEN_RANDOM false
 
 double xdp_rot_and_exper(uint32_t da, uint32_t dc,
-								 uint32_t rot_const_1, uint32_t rot_const_2);
+			 uint32_t rot_const_1, uint32_t rot_const_2);
 void xdp_rot_and_alloc_matrices(gsl_matrix* A[WORD_SIZE]);
 void xdp_rot_and_free_matrices(gsl_matrix* A[WORD_SIZE]);
 void xdp_rot_and_print_graph(gsl_matrix* A[WORD_SIZE]);

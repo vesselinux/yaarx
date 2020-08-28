@@ -1260,7 +1260,27 @@ void test_simon_diff_search_fixed()
 {
   assert(SIMON_TRAIL_LEN >= NROUNDS);
   boost::unordered_map<std::array<differential_t, NROUNDS>, uint32_t, simon_trail_hash, simon_trail_equal_to> trails_hash_map;
-
+#if 1 // QQ trail
+  differential_t qq_trail[5] = {
+				{   0x0,    0x0, 0, 1.000000}, //(2^-0.000000)
+				{  0x40,  0x100, 0, 0.250000}, //(2^-2.000000)
+				{ 0x100,  0x440, 0, 0.250000}, //(2^-2.000000)
+				{ 0x440, 0x1800, 0, 0.062500}, //(2^-4.000000)
+			        {0x1800, 0x0440, 0, 0.250000}, //(2^-2.000000)
+  };
+  double qq_B[5] = {
+		    (1.0 / (double)(1ULL <<  0)),
+		    (1.0 / (double)(1ULL <<  2)),
+		    (1.0 / (double)(1ULL <<  4)),
+		    (1.0 / (double)(1ULL <<  8)),
+		    (1.0 / (double)(1ULL << 10)),
+  };
+  
+  FILE* fp = fopen(SIMON_CLUSTER_TRAILS_DATFILE, "w"); // init file
+  fclose(fp);
+  uint32_t dyy_init = 0;		  // dummy
+  simon_trail_cluster_search_boost(&trails_hash_map, qq_B, qq_trail, NROUNDS, &dyy_init);
+#endif // #if 1 // QQ trail
 #if 0									  // DEBUG
   uint32_t key[SIMON_MAX_NROUNDS] = {0};
   key[0] = xrandom() & MASK;
@@ -1271,11 +1291,13 @@ void test_simon_diff_search_fixed()
   uint32_t lrot_const_s = SIMON_LROT_CONST_S; 
   uint32_t lrot_const_t = SIMON_LROT_CONST_T;
   uint32_t lrot_const_u = SIMON_LROT_CONST_U;
-  simon_verify_xor_trail(NROUNDS, npairs, key, g_trail, dyy_init, lrot_const_s, lrot_const_t, lrot_const_u);
-  simon_verify_xor_differential(NROUNDS, npairs, key, g_trail, dyy_init, lrot_const_s, lrot_const_t, lrot_const_u);
+  //  uint32_t dyy_init = 0;		  // dummy, must be zero
+  dyy_init = 0;
+  simon_verify_xor_trail(NROUNDS, npairs, key, qq_trail, dyy_init, lrot_const_s, lrot_const_t, lrot_const_u);
+  simon_verify_xor_differential(NROUNDS, npairs, key, qq_trail, dyy_init, lrot_const_s, lrot_const_t, lrot_const_u);
 #endif
-
-#if 1
+  
+#if 0
   FILE* fp = fopen(SIMON_CLUSTER_TRAILS_DATFILE, "w"); // init file
   fclose(fp);
   uint32_t dyy_init = 0;		  // dummy

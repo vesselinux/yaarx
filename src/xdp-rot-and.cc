@@ -1174,65 +1174,66 @@ void xdp_rot_and_pddt_i(uint32_t k, uint32_t n, uint32_t s, uint32_t t,
   assert(p_thres == XDP_ROT_AND_P_THRES);
   uint32_t delta = delta_in;
   uint32_t dc = dc_in;
-#if 0									  // DEBUG
+#if 0								  // DEBUG
   printf("[%s:%d] %d / %d\n", __FILE__, __LINE__, k, n);
 #endif
 
   if(k == n) {
 
-	 uint32_t da = delta;
-	 double p = xdp_rot_and(da, dc, s, t);
+    uint32_t da = delta;
+    double p = xdp_rot_and(da, dc, s, t);
 
     // Definition: Highway -- a transition (da -> dc) with prob. p such that hamming_weight(da) <= hw_thres and p <= 2^-4
-	 // Add to highways if above the threshold
-	 // We want only the input difference to F to have controlled weight
-	 // because the output will be XOR-ed with the input diff from the prev. round
-	 bool b_low_hw = (hamming_weight(da) <= XDP_ROT_AND_MAX_HW);
-	 assert(b_low_hw);
-	 if((p > XDP_ROT_AND_P_THRES) && (b_low_hw) && (p != 0.0) && (da != 0) && (*cnt_diff < max_cnt)) {
+    // Add to highways if above the threshold
+    // We want only the input difference to F to have controlled weight
+    // because the output will be XOR-ed with the input diff from the prev. round
+    bool b_low_hw = (hamming_weight(da) <= XDP_ROT_AND_MAX_HW);
+    assert(b_low_hw);
+    if((p > XDP_ROT_AND_P_THRES) && (b_low_hw) && (p != 0.0) && (da != 0) && (*cnt_diff < max_cnt)) {
 
-		differential_t diff;
-		diff.dx = da;
-		diff.dy = dc;
-		diff.p = p;
+      differential_t diff;
+      diff.dx = da;
+      diff.dy = dc;
+      diff.p = p;
 
-		hways_diff_mset_p->insert(diff);
-		hways_diff_set_dx_dy->insert(diff);
-		(*cnt_diff)++;
+      hways_diff_mset_p->insert(diff);
+      hways_diff_set_dx_dy->insert(diff);
+      (*cnt_diff)++;
 #if 1									  // DEBUG
-		printf("%10lld / %10lld\r", (WORD_MAX_T)*cnt_diff, (WORD_MAX_T)max_cnt);
-		fflush(stdout);
+      //      printf("[%s:%d] PDDT [%10lld / %10lld] %8X %8X 2^%f\n", __FILE__, __LINE__, (WORD_MAX_T)*cnt_diff, (WORD_MAX_T)max_cnt, da, dc, log2(p));
+      printf("[%s:%d] PDDT [%10lld / %10lld]\r", __FILE__, __LINE__, (WORD_MAX_T)*cnt_diff, (WORD_MAX_T)max_cnt);
+      fflush(stdout);
 #endif
-		assert(*cnt_diff == hways_diff_set_dx_dy->size());
-	 }
-	 return;
+      assert(*cnt_diff == hways_diff_set_dx_dy->size());
+    }
+    return;
   }
 
   if(*cnt_diff == max_cnt)
-	 return;
+    return;
 
   for(uint32_t x = 0; x < 2; x++) {
-	 for(uint32_t y = 0; y < 2; y++) {
+    for(uint32_t y = 0; y < 2; y++) {
 
-		uint32_t new_delta = (delta | (x << k));
-		uint32_t new_dc = (dc | (y << k));
+      uint32_t new_delta = (delta | (x << k));
+      uint32_t new_dc = (dc | (y << k));
 
 #if 1
-		uint32_t da = LROT(delta, s);
-		uint32_t db = LROT(delta, t);
-		uint32_t a = ((da >> k) & 1);
-		uint32_t b = ((db >> k) & 1);
-		uint32_t c = ((new_dc >> k) & 1);
-		bool b_is_impossible = ((a == 0) && (b == 0) && (c == 1));
+      uint32_t da = LROT(delta, s);
+      uint32_t db = LROT(delta, t);
+      uint32_t a = ((da >> k) & 1);
+      uint32_t b = ((db >> k) & 1);
+      uint32_t c = ((new_dc >> k) & 1);
+      bool b_is_impossible = ((a == 0) && (b == 0) && (c == 1));
 #endif
 
-		bool b_low_hw = (hamming_weight(new_delta) <= XDP_ROT_AND_MAX_HW);
-		///		if(b_low_hw) { 
-		//		if(!b_is_impossible) { 
-		if((!b_is_impossible) && (b_low_hw)) { 
-		  xdp_rot_and_pddt_i(k+1, n, s, t, new_delta, new_dc, hways_diff_set_dx_dy, hways_diff_mset_p, cnt_diff, max_cnt, p_thres);
-		}
-	 }
+      bool b_low_hw = (hamming_weight(new_delta) <= XDP_ROT_AND_MAX_HW);
+      ///		if(b_low_hw) { 
+      //		if(!b_is_impossible) { 
+      if((!b_is_impossible) && (b_low_hw)) { 
+	xdp_rot_and_pddt_i(k+1, n, s, t, new_delta, new_dc, hways_diff_set_dx_dy, hways_diff_mset_p, cnt_diff, max_cnt, p_thres);
+      }
+    }
   }
 }
 
@@ -1317,13 +1318,13 @@ void xdp_rot_and_dx_pddt_i(uint32_t k, uint32_t n, uint32_t s, uint32_t t, uint3
 	 diff.p = p;
 
 #if 0
-	 //	 bool b_low_hw = ((hamming_weight(da) <= XDP_ROT_AND_MAX_HW) && (hamming_weight(dc) <= XDP_ROT_AND_MAX_HW));
+	  bool b_low_hw = ((hamming_weight(da) <= XDP_ROT_AND_MAX_HW) && (hamming_weight(dc) <= XDP_ROT_AND_MAX_HW));
 
     // Definition: Highway -- a transition (da -> dc) with prob. p such that hamming_weight(da) <= hw_thres and p <= 2^-4
 	 // Add to highways if above the threshold
 	 // We want only the input difference to F to have controlled weight
 	 // because the output will be XOR-ed with the input diff from the prev. round
-	 bool b_low_hw = (hamming_weight(da) <= XDP_ROT_AND_MAX_HW);
+	 //bool b_low_hw = (hamming_weight(da) <= XDP_ROT_AND_MAX_HW);
 	 if((p > XDP_ROT_AND_P_THRES) && (b_low_hw) && (p != 0.0)) {
 
 		// check if it is already in highway table
