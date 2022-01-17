@@ -192,6 +192,9 @@ const int g_best_B_log2[NROUNDS_MAX] = {
     -9,                         // 5
     -13,                        // 6
     -18,                        // 7
+    -24,                        // 8
+    -30,                        // 9
+    -34,                        // 10
 };
 #else
 #error("WORD_SIZE must be either 16, 24, or 32")
@@ -977,6 +980,9 @@ void speck_best_diff_search_log2_i (const uint32_t iround,	// current round
   if (iround == NROUNDS)
     {
 
+      //      printf("[%s:%d] CHECKPOINT!\n", __FILE__, __LINE__);
+      //      assert(0);
+      
       if (ibit == WORD_SIZE)
 	{
 	  const int p = xdp_add_lm_log2(alpha_in, beta_in, gamma_in);
@@ -984,8 +990,8 @@ void speck_best_diff_search_log2_i (const uint32_t iround,	// current round
 	  speck_add_diff_to_trail (g_T, iround - 1, new_diff);
 
 #if 0							// DEBUG
-	  printf ("[%s:%d] iround %d add to trail %X %X %X %d\n",
-		  __FILE__, __LINE__, iround, new_diff.dx, new_diff.dy, new_diff.dz, new_diff.p);
+	  printf ("[%s:%d] iround %d add to trail %llX %llX %llX %d\n",
+		  __FILE__, __LINE__, iround, (WORD_MAX_T)new_diff.dx, (WORD_MAX_T)new_diff.dy, (WORD_MAX_T)new_diff.dz, (int)log2(new_diff.p));
 #endif // #if 0 // DEBUG
 
 	  // p[0] p[1] ... p[iround - 1] => first (iround) rounds
@@ -1256,11 +1262,14 @@ void test_mask()
  */
 int main()
 {
-  printf("#--- [%s:%d] Tests, WORD_SIZE  %d NROUNDS %d UPDATE_BOUND %d r1 %d r2 %d g_Bn 2^%4.2f\n", 
-			__FILE__, __LINE__, WORD_SIZE, NROUNDS, UPDATE_BOUND, g_r1, g_r2, log2(g_Bn));
+  printf("#--- [%s:%d] Tests, WORD_SIZE  %d NROUNDS %d UPDATE_BOUND %d r1 %d r2 %d g_Bn 2^%4.2f %d\n", 
+	 __FILE__, __LINE__, WORD_SIZE, NROUNDS, UPDATE_BOUND, g_r1, g_r2, log2(g_Bn), g_best_B_log2[NROUNDS-1]);
 
   srandom(time(NULL));
 
+  assert(g_Bn != 0.0);
+  assert(g_best_B_log2[NROUNDS-1] > LOG0);
+    
   //  speck_best_diff_search();
   //  test_speck_best_diff_search_full();
   speck_best_diff_search_log2();
